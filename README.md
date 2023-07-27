@@ -30,10 +30,6 @@ Step 1. 添加maven仓库地址和配置
 ```
 
 ```
-
-```
-
-```
      //主项目的build.gradle中加入
      //新AndroidStudio版本
      android {
