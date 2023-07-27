@@ -1,16 +1,12 @@
 plugins {
     id 'com.android.library'
-    id 'maven-publish'
 }
-
-group  'com.gitee.shadowless_lhq'
 
 android {
     compileSdk 32
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "cn.com.shadowless.baseview"
         minSdk 19
         targetSdk 32
         versionCode 1
@@ -34,27 +30,18 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-}
 
-afterEvaluate {
-    publishing {
-        publications {
-            // Creates a Maven publication called "release".
-            release(MavenPublication) {
-                // Applies the component for the release build variant.
-                from components.release
-
-                // You can then customize attributes of the publication as shown below.
-                groupId = android.defaultConfig.applicationId
-                artifactId = 'BaseView'
-                version = android.defaultConfig.versionName
-            }
-        }
+    buildFeatures {
+        viewBinding true
     }
 }
 
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
+
+    api 'io.reactivex.rxjava2:rxjava:2.2.21'
+    api 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    api 'com.github.liujingxing.rxlife:rxlife-rxjava2:2.2.2'
 
 }
