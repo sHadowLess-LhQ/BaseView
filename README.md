@@ -1,0 +1,405 @@
+# BaseView
+
+#### 软件架构
+
+个人Android项目快速搭建框架基类
+
+#### 安装教程
+
+Step 1. 添加maven仓库地址和配置
+
+```
+     //旧AndroidStudio版本
+     //build.gradle
+     allprojects {
+         repositories {
+            ...
+              maven { url 'https://jitpack.io' }
+         }
+     }
+     
+     //新AndroidStudio版本
+     //settings.gradle
+     dependencyResolutionManagement {
+          repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+          repositories {
+            ...
+             maven { url 'https://jitpack.io' }
+          }
+      }
+```
+
+```
+
+```
+
+```
+     //主项目的build.gradle中加入
+     //新AndroidStudio版本
+     android {
+      ...
+       buildFeatures {
+         viewBinding true
+          }
+     }
+     
+     //主项目的build.gradle中加入
+     //旧AndroidStudio版本
+     android {
+      ...
+       viewBinding {
+         enable = true
+          }
+     }
+```
+
+Step 2. 添加依赖
+
+a、克隆引入
+
+直接下载源码引入model
+
+b、远程仓库引入
+
+[[![](https://jitpack.io/v/com.gitee.shadowless_lhq/base-view.svg)](https://jitpack.io/#com.gitee.shadowless_lhq/base-view)
+
+```
+    dependencies {
+        implementation 'com.gitee.shadowless_lhq:base-view:Tag'
+    }
+```
+
+c、混淆规则
+
+```
+-keepattributes Signature
+-dontwarn sun.misc.**
+-keepclassmembers class rx.internal.util.unsafe.*ArrayQueue*Field* {
+    long producerIndex;
+    long consumerIndex;
+}
+-keepclassmembers class rx.internal.util.unsafe.BaseLinkedQueueProducerNodeRef {
+    rx.internal.util.atomic.LinkedQueueNode producerNode;
+}
+-keepclassmembers class rx.internal.util.unsafe.BaseLinkedQueueConsumerNodeRef {
+    rx.internal.util.atomic.LinkedQueueNode consumerNode;
+}
+-keepclassmembers class rx.android.**{*;}
+```
+
+#### 使用说明
+
+### BaseActivity
+
+```
+      //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
+      //click监听已做快速点击处理
+      //填入传递数据类型
+      //更换ARouter为TheRouter
+      //设置Activity主题，请重写initTheme()方法
+      //设置initData()方法所在线程，请重写initDataThreadMod()，回传RxUtils的其他线程模式
+      //更多用法请参考TheRouter
+      @Router(path = "xxx")
+      public class MainActivity extends BaseActivity<ActivityMainBinding,String> {
+      
+          //ARouter跳转参数获取，一定要public，name最好声明，不声明默认使用变量名为key
+          //用法请参考TheRouter的使用
+          @Autowired(name = "key1")
+          public String s;
+      
+          @Nullable
+          @Override
+          protected String[] permissionName() {
+             //设置需要获取的权限，无需申请可传null或空数组
+             return null;
+          }
+      
+          @NonNull
+          @Override
+          protected ActivityMainBinding setBindView() {
+             //回传ViewBinding绑定的视图
+             return ActivityMainBinding.inflate(getLayoutInflater());
+          }
+      
+          @Override
+          protected void initData(@NonNull InitDataCallBack<String> initDataCallBack) {
+             //携参路由，需要页面参数注入
+             TheRouter.inject(this);
+             //默认在IO线程，需要更改，请重写initDataThreadMod()方法，传递新的RxUtils线程值
+             //初始化数据
+             【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
+             //若有数据给视图绑定，使用initViewWithData
+             //若无数据给视图绑定，使用initViewWithOutData
+             initDataCallBack.initViewWithData("1");
+             initDataCallBack.initViewWithOutData();
+          }
+          
+          @Override
+          protected void initListener() {
+             //初始化监听
+             getBindView().test.setOnClickListener(this);
+          }
+      
+          @Override
+          protected void initView(@Nullable String data) {
+             //默认在主线程
+             //初始化界面控件
+             getBindView().test.setText(data);
+             //正常路由
+             RouterUtils.jump("xxx").navigation();
+          }
+          
+          @Override
+          protected void click(View v) {
+              
+          }
+      }
+```
+
+可根据实际使用二次封装
+
+```
+      public abstract class PrinterBaseActivity<VB extends ViewBinding, T> extends BaseActivity<VB, T> {
+          ...
+      }
+```
+
+### BaseFragment
+
+```
+      //创建xml后，点击编译，填入需要绑定的视图
+      //click监听已做快速点击处理
+      //填入传递数据类型Pop
+      //设置initData()方法所在线程，请重写initDataThreadMod()，回传RxUtils的其他线程模式
+      //更换ARouter为TheRouter
+      //更多用法请参考TheRouter
+      @Router(path = "xxx")
+      public class MainFragment extends BaseFragment<FragmentMainBinding,String> {
+          
+          //ARouter跳转参数获取，一定要public，name最好声明，不声明默认使用变量名为key
+          //用法请参考TheRouter的使用
+          @Autowired(name = "key1")
+          public String s;
+          
+          @Nullable
+          @Override
+          protected String[] permissionName() {
+             //设置需要获取的权限，无需申请可传null或空数组
+             return null;
+          }
+      
+          @NonNull
+          @Override
+          protected FragmentMainBinding setBindView() {
+              //回传ViewBinding绑定的视图
+              return FragmentMainBinding.inflate(getLayoutInflater());
+          }
+      
+          @Override
+          protected void initData(@NonNull InitDataCallBack<String> initDataCallBack) {
+             //携参路由，需要页面参数注入
+             TheRouter.inject(this);
+             //默认在IO线程，需要更改，请重写initPermissions()方法，向父类super传递新的RxUtils线程值
+             //初始化数据
+             【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
+             Toast.makeText(getBindActivity(), "可用Activity对象", Toast.LENGTH_SHORT).show();
+             //若有数据给视图绑定，使用initViewWithData
+             //若无数据给视图绑定，使用initViewWithOutData
+             initDataCallBack.initViewWithData("1");
+             initDataCallBack.initViewWithOutData();
+          }
+          
+          @Override
+          protected void initListener() {
+             //初始化监听
+             getBindView().test.setOnClickListener(this);
+          }
+      
+          @Override
+          protected void initView(@Nullable String map) {
+             //默认在主线程
+             //初始化界面控件
+             getBindView().test.setText(map);
+             RouterUtils.jump("xxx").navigation();
+          }
+          
+          @Override
+          protected void click(View v) {
+              
+          }
+      }
+```
+
+可根据实际使用二次封装
+
+```
+      public abstract class PrinterBaseFragment<VB extends ViewBinding,K,V> extends BaseFragment<VB,K,V> {
+           ...
+      }
+```
+
+### BaseDialog
+
+```
+      //创建xml后，点击编译，填入需要绑定的视图
+      //支持ViewBinding
+      //支持LifecycleProvider
+      //支持监听Activity的声明周期
+      //click监听已做快速点击处理
+      //继承示例
+      public class TestDialog extends BaseDialog<PopTestBinding> {
+      
+            public TestDialog(@NonNull Context context) {
+                super(context);
+            }
+        
+            public TestDialog(@NonNull Context context, Lifecycle lifecycle) {
+                super(context, lifecycle);
+            }
+        
+            public v(@NonNull Context context, int themeResId) {
+                super(context, themeResId);
+            }
+        
+            public TestDialog(@NonNull Context context, int themeResId, Lifecycle lifecycle) {
+                super(context, themeResId, lifecycle);
+            }
+        
+            @NonNull
+            @Override
+            protected PopTestBinding setBindView() {
+                return PopTestBinding.inflate(getLayoutInflater());
+            }
+        
+            @Override
+            protected int[] dialogParams() {
+                //按照顺序传入指定的X/Y/宽/高数值
+                return new int[0];
+            }
+        
+            @Override
+            protected int dialogPosition() {
+                //传入Gravity的位置
+                return 0;
+            }
+        
+            @Override
+            protected boolean clearPadding() {
+                //是否清除边框
+                return false;
+            }
+        
+            @Override
+            protected boolean cancelOutside() {
+                //是否允许外部取消
+                return false;
+            }
+        
+            @Override
+            protected boolean isDrag() {
+                //是否允许拖动
+                return false;
+            }
+        
+            @Override
+            protected boolean hasShadow() {
+                //是否拥有阴影
+                return false;
+            }
+        
+            @Override
+            protected int setFlag() {
+                //设置Dialog的窗体标识
+                return 0;
+            }
+        
+            @Override
+            protected void initView() {
+               
+            }
+        
+            @Override
+            protected void initListener() {
+        
+            }
+        
+            @Override
+            protected void click(@NonNull View v) {
+        
+            }
+      }
+```
+
+### BaseApplication
+
+```
+      //支持应用前后台判断
+      //已接入MyActivityManager，可直接使用
+      //已接入MyApplicationManager，可直接使用
+      public class MyApplication extends BaseApplication {
+      
+          @Override
+          protected void init() {
+             //初始化
+          }
+          
+      }
+      
+      //判断应用在前/后台
+      //true为前台
+      //false为后台
+      MyApplication.isAppForeground()
+```
+
+### ActivityManager
+
+```
+      //使用BaseApplicatio可直接使用
+      //单独使用，需要在ActivityLifecycleCallbacks回调中的onActivityResumed设置
+      //支持弱引用，获取到的Activity已做弱引用处理
+      //设置当前正在显示的Activity
+      MyActivityManager.INSTANCE.setCurrentActivity(Activity activity);
+      //获取当前正在显示的Activity
+      MyActivityManager.INSTANCE.getCurrentActivity();
+```
+
+### ContextManager
+
+```
+      //使用BaseApplicatio可直接使用
+      //单独使用，需要在Application的onCreate设置
+      //支持弱引用，获取到的Context已做弱引用处理
+      //设置当前Context
+      MyApplicationManager.INSTANCE.setCurrentContext(Context context);
+      //获取当前Cotext
+      MyApplicationManager.INSTANCE.getCurrentContext();
+```
+
+### CrashConfig
+
+```
+      CrashConfig.Builder
+                .create()
+                //当应用程序处于后台时崩溃，也会启动错误页面
+                .backgroundMode(CrashConfig.BACKGROUND_MODE_SHOW_CUSTOM)
+                //当应用程序处于后台崩溃时显示默认系统错误
+                .backgroundMode(CrashConfig.BACKGROUND_MODE_CRASH)
+                //当应用程序处于后台时崩溃，默默地关闭程序
+                .backgroundMode(CrashConfig.BACKGROUND_MODE_SILENT)
+                //false表示对崩溃的拦截阻止。用它来禁用customactivityoncrash
+                .enabled(true)
+                //这将隐藏错误活动中的“错误详细信息”按钮，从而隐藏堆栈跟踪,针对框架自带程序崩溃后显示的页面有用
+                .showErrorDetails(true)
+                //是否可以重启页面,针对框架自带程序崩溃后显示的页面有用
+                .showRestartButton(true)
+                //崩溃页面显示的图标
+                .errorDrawable(R.mipmap.ic_launcher)
+                .logErrorOnRestart(true)
+                //错误页面中显示错误详细信息
+                .trackActivities(true)
+                //定义应用程序崩溃之间的最短时间，以确定我们不在崩溃循环中
+                .minTimeBetweenCrashesMs(2000)
+                //重新启动后的页面
+                .restartActivity(LoginActivity.class)
+                .apply();
+```
