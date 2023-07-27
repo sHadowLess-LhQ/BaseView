@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.view;
+package cn.com.shadowless.baseview.base;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -16,8 +16,6 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.viewbinding.ViewBinding;
-
-import com.rxjava.rxlife.RxLife;
 
 import cn.com.shadowless.baseview.utils.ClickUtils;
 
