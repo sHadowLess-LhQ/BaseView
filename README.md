@@ -432,6 +432,11 @@ c、混淆规则
       //在此类的业务逻辑中的合适位置发送声明周期事件
       public class Test extends BaseQuickLifecycleImpl{
       
+          public Test() {
+              //默认构造调用的时候发送ON_CREATE事件，不需要请移除超类后自发送
+              super();
+          }
+      
           @Override
           public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
              //发送生命周期事件

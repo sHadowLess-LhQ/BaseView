@@ -22,6 +22,7 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
      */
     public BaseQuickLifecycleImpl() {
         lifecycleRegistry = new LifecycleRegistry(this);
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
     }
 
     @Override
