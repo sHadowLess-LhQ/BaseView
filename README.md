@@ -242,26 +242,20 @@ c、混淆规则
 ```
       //创建xml后，点击编译，填入需要绑定的视图
       //支持ViewBinding
-      //支持LifecycleProvider
-      //支持监听Activity的声明周期
+      //自身支持Lifecycle
+      //支持监听其他Lifcycle
       //click监听已做快速点击处理
       //继承示例
       public class TestDialog extends BaseDialog<PopTestBinding> {
       
             public TestDialog(@NonNull Context context) {
                 super(context);
+                //需要观察的Lifecycle
+                setNeedObserveLifecycle(Lifecycle lifecycle);
             }
         
-            public TestDialog(@NonNull Context context, Lifecycle lifecycle) {
-                super(context, lifecycle);
-            }
-        
-            public v(@NonNull Context context, int themeResId) {
+            public TestDialog(@NonNull Context context, int themeResId) {
                 super(context, themeResId);
-            }
-        
-            public TestDialog(@NonNull Context context, int themeResId, Lifecycle lifecycle) {
-                super(context, themeResId, lifecycle);
             }
         
             @NonNull
@@ -325,6 +319,11 @@ c、混淆规则
             @Override
             protected void click(@NonNull View v) {
         
+            }
+            
+            @Override
+            public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+                //监听其他Lifecycle的声明周期
             }
       }
 ```
@@ -401,4 +400,42 @@ c、混淆规则
                 //重新启动后的页面
                 .restartActivity(LoginActivity.class)
                 .apply();
+```
+
+### BaseQuickLifecycle
+
+```
+      //快速实现一个支持Lifecycle和支持监听其他Lifecycle的类
+      public class Test implements BaseQuickLifecycle {
+      
+          @Override
+          public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event){
+          
+          }
+      
+          @NonNull
+          @Override
+          public Lifecycle getLifecycle() {
+              //实现自己的Lifecycle注册
+              return null;
+          }
+      }
+```
+
+### BaseQucikLifeleImpl
+
+```
+      //超快速实现一个可以使用的支持Lifecycle和支持监听其他Lifecycle的类
+      //适合无继承关系的任意类使用
+      //有继承关系请使用BaseQuickLifecycle
+      //直接继承BaseQuickLifecycleImpl
+      //在此类的业务逻辑中的合适位置发送声明周期事件
+      public class Test extends BaseQuickLifecycleImpl{
+      
+          @Override
+          public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+             //发送生命周期事件
+             getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event event);
+          }
+      }
 ```

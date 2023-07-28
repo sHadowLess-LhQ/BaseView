@@ -1,20 +1,17 @@
-package cn.com.shadowless.baseview.view;
+package cn.com.shadowless.baseview.base;
 
-import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewbinding.ViewBinding;
 
 import com.rxjava.rxlife.RxLife;
 
+import cn.com.shadowless.baseview.R;
 import cn.com.shadowless.baseview.permission.RxPermissions;
 import cn.com.shadowless.baseview.utils.ClickUtils;
 import io.reactivex.Observable;
@@ -26,25 +23,19 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-
 /**
- * 基类Fragment
+ * 基类Activity
  *
  * @param <VB> the type 视图
- * @param <T>  the type parameter
+ * @param <T>  the type 传递数据类型
  * @author sHadowLess
  */
-public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment implements ObservableOnSubscribe<T>, Observer<T>, View.OnClickListener {
+public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatActivity implements ObservableOnSubscribe<T>, Observer<T>, View.OnClickListener {
 
     /**
      * 视图绑定
      */
     private VB bind = null;
-
-    /**
-     * 依附的activity
-     */
-    private Activity mActivity = null;
 
     /**
      * 初始化数据回调接口
@@ -65,33 +56,22 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
         void initViewWithOutData();
     }
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        this.mActivity = (Activity) context;
-    }
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        bind = setBindView();
+    protected void onCreate(Bundle savedInstanceState) {
+        setTheme(initTheme());
+        super.onCreate(savedInstanceState);
+        initBindView();
         initListener();
         initPermissions();
-        return bind.getRoot();
     }
 
     @Override
-    public void onDestroyView() {
-        if (bind != null) {
+    protected void onDestroy() {
+        if (null != bind) {
             bind = null;
         }
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onDetach() {
-        mActivity = null;
-        super.onDetach();
+        super.onDestroy();
     }
 
     @Override
@@ -160,7 +140,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     /**
      * 初始化数据
      *
-     * @param callBack the  回调
+     * @param callBack the call back
      */
     protected abstract void initData(@NonNull InitDataCallBack<T> callBack);
 
@@ -179,9 +159,40 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     protected abstract void click(@NonNull View v);
 
     /**
+     * 获取绑定的视图
+     *
+     * @return the 视图
+     */
+    @NonNull
+    protected VB getBindView() {
+        return bind;
+    }
+
+    /**
+     * 初始化主题
+     *
+     * @return the int
+     */
+    protected int initTheme() {
+        return R.style.MyAppTheme;
+    }
+
+    /**
+     * 初始化数据所在线程
+     *
+     * @param <T> the type parameter
+     * @return the 线程模式
+     */
+    protected <T> ObservableTransformer<T, T> dealWithThreadMode() {
+        return upstream -> upstream.subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
      * 初始化权限
      */
-    protected void initPermissions() {
+    private void initPermissions() {
         String[] permissions = permissionName();
         if (null != permissions && permissions.length != 0) {
             new RxPermissions(this)
@@ -203,34 +214,11 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     }
 
     /**
-     * 初始化数据所在线程
-     *
-     * @param <T> the type parameter
-     * @return the 线程模式
+     * 初始化视图
      */
-    protected <T> ObservableTransformer<T, T> dealWithThreadMode() {
-        return upstream -> upstream.subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-
-    /**
-     * 获取绑定视图
-     *
-     * @return the bind
-     */
-    @NonNull
-    public VB getBindView() {
-        return bind;
-    }
-
-    /**
-     * 获取绑定的activity
-     *
-     * @return the bind activity
-     */
-    protected Activity getAttachActivity() {
-        return mActivity;
+    private void initBindView() {
+        bind = setBindView();
+        setContentView(bind.getRoot());
     }
 
     /**
@@ -240,6 +228,6 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      */
     private void showToast(String name) {
         String tip = "应用无法使用，请开启%s权限";
-        Toast.makeText(mActivity, String.format(tip, name), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, String.format(tip, name), Toast.LENGTH_LONG).show();
     }
 }

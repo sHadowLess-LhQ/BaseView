@@ -1,9 +1,10 @@
-package cn.com.shadowless.baseview.view;
+package cn.com.shadowless.baseview.base;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,7 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.viewbinding.ViewBinding;
@@ -26,7 +27,7 @@ import cn.com.shadowless.baseview.utils.ClickUtils;
  * @param <VB> the type parameter
  * @author sHadowLess
  */
-public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements View.OnClickListener, LifecycleObserver, LifecycleOwner {
+public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements View.OnClickListener, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数
@@ -51,7 +52,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     /**
      * The Lifecycle registry.
      */
-    protected LifecycleRegistry lifecycleRegistry;
+    private final LifecycleRegistry lifecycleRegistry;
 
     /**
      * 普通dialog构造
@@ -77,18 +78,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP);
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
@@ -97,24 +86,27 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     }
 
     @Override
-    public void show() {
-        super.show();
+    protected void onStart() {
+        super.onStart();
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
-        initListener();
-        initDialog();
     }
 
     @Override
-    public void cancel() {
-        super.cancel();
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP);
     }
 
     @Override
-    public void dismiss() {
-        lifecycleRegistry.removeObserver(this);
+    protected void onStop() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
-        super.dismiss();
+        super.onStop();
     }
 
     /**
@@ -133,6 +125,30 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     @Override
     public Lifecycle getLifecycle() {
         return lifecycleRegistry;
+    }
+
+    @Override
+    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+        if (event == Lifecycle.Event.ON_DESTROY) {
+            source.getLifecycle().removeObserver(this);
+            this.dismiss();
+        }
+    }
+
+    @Override
+    public void show() {
+        super.show();
+        initListener();
+        initDialog();
+    }
+
+    /**
+     * Sets observer lifecycle.
+     *
+     * @param lifecycle the lifecycle
+     */
+    public void setNeedObserveLifecycle(Lifecycle lifecycle) {
+        lifecycle.addObserver(this);
     }
 
     /**
