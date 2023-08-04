@@ -94,21 +94,14 @@ c、混淆规则
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理
       //填入传递数据类型
-      //更换ARouter为TheRouter
       //设置Activity主题，请重写initTheme()方法
-      //设置initData()方法所在线程，请重写initDataThreadMod()，回传RxUtils的其他线程模式
-      //更多用法请参考TheRouter
-      @Router(path = "xxx")
+      //设置initData所处线程，请重写setScheduler()方法
+      //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
       public class MainActivity extends BaseActivity<ActivityMainBinding,String> {
-      
-          //ARouter跳转参数获取，一定要public，name最好声明，不声明默认使用变量名为key
-          //用法请参考TheRouter的使用
-          @Autowired(name = "key1")
-          public String s;
-      
+    
           @Nullable
           @Override
-          protected String[] permissionName() {
+          protected String[] permissions() {
              //设置需要获取的权限，无需申请可传null或空数组
              return null;
           }
@@ -122,9 +115,6 @@ c、混淆规则
       
           @Override
           protected void initData(@NonNull InitDataCallBack<String> initDataCallBack) {
-             //携参路由，需要页面参数注入
-             TheRouter.inject(this);
-             //默认在IO线程，需要更改，请重写initDataThreadMod()方法，传递新的RxUtils线程值
              //初始化数据
              【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
              //若有数据给视图绑定，使用initViewWithData
@@ -145,44 +135,72 @@ c、混淆规则
              //初始化界面控件
              getBindView().test.setText(data);
              //正常路由
-             RouterUtils.jump("xxx").navigation();
           }
           
           @Override
           protected void click(View v) {
-              
+              //检查权限
+              hasPermission(Manifest.permission.CAMERA);
           }
-      }
-```
-
-可根据实际使用二次封装
-
-```
-      public abstract class PrinterBaseActivity<VB extends ViewBinding, T> extends BaseActivity<VB, T> {
-          ...
+          
+          @Override
+          protected void initPermission(String[] permissions) {
+              //去除超类
+              //重写例子，比如需要申请前的说明
+              //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
+              //需要自己获取回调，需实现PermissionCallBack接口
+              //不需要直接传null
+              new AlertDialog.Builder(this)
+                      .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                          @Override
+                          public void onClick(DialogInterface dialog, int which) {
+                              dealPermission(permissions, new PermissionCallBack() {
+                                  @Override
+                                  public void agree() {
+      
+                                  }
+      
+                                  @Override
+                                  public void disagree(List<String> name) {
+      
+                                  }
+      
+                                  @Override
+                                  public void ban(List<String> name) {
+      
+                                  }
+                              });
+                          }
+                      });
+          }
+          
+          @Override
+          protected Scheduler[] setScheduler() {
+              //去除超类
+              //参数1为注册+注销线程
+              //参数2为订阅线程
+              return new Scheduler[]{
+                       Schedulers.io(),
+                       AndroidSchedulers.mainThread()
+              };
+          }
       }
 ```
 
 ### BaseFragment
 
 ```
-      //创建xml后，点击编译，填入需要绑定的视图
+      //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理
-      //填入传递数据类型Pop
-      //设置initData()方法所在线程，请重写initDataThreadMod()，回传RxUtils的其他线程模式
-      //更换ARouter为TheRouter
-      //更多用法请参考TheRouter
-      @Router(path = "xxx")
+      //填入传递数据类型
+      //设置Activity主题，请重写initTheme()方法
+      //设置initData所处线程，请重写setScheduler()方法
+      //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
       public class MainFragment extends BaseFragment<FragmentMainBinding,String> {
-          
-          //ARouter跳转参数获取，一定要public，name最好声明，不声明默认使用变量名为key
-          //用法请参考TheRouter的使用
-          @Autowired(name = "key1")
-          public String s;
-          
+  
           @Nullable
           @Override
-          protected String[] permissionName() {
+          protected String[] permissions() {
              //设置需要获取的权限，无需申请可传null或空数组
              return null;
           }
@@ -196,9 +214,6 @@ c、混淆规则
       
           @Override
           protected void initData(@NonNull InitDataCallBack<String> initDataCallBack) {
-             //携参路由，需要页面参数注入
-             TheRouter.inject(this);
-             //默认在IO线程，需要更改，请重写initPermissions()方法，向父类super传递新的RxUtils线程值
              //初始化数据
              【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
              Toast.makeText(getBindActivity(), "可用Activity对象", Toast.LENGTH_SHORT).show();
@@ -219,21 +234,55 @@ c、混淆规则
              //默认在主线程
              //初始化界面控件
              getBindView().test.setText(map);
-             RouterUtils.jump("xxx").navigation();
           }
           
           @Override
           protected void click(View v) {
-              
+              //检查权限
+              hasPermission(Manifest.permission.CAMERA);
           }
-      }
-```
-
-可根据实际使用二次封装
-
-```
-      public abstract class PrinterBaseFragment<VB extends ViewBinding,K,V> extends BaseFragment<VB,K,V> {
-           ...
+          
+          @Override
+          protected void initPermission(String[] permissions) {
+              //去除超类
+              //重写例子，比如需要申请前的说明
+              //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
+              //需要自己获取回调，需实现PermissionCallBack接口
+              //不需要直接传null
+              new AlertDialog.Builder(this)
+                      .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                          @Override
+                          public void onClick(DialogInterface dialog, int which) {
+                              dealPermission(permissions, new PermissionCallBack() {
+                                  @Override
+                                  public void agree() {
+      
+                                  }
+      
+                                  @Override
+                                  public void disagree(List<String> name) {
+      
+                                  }
+      
+                                  @Override
+                                  public void ban(List<String> name) {
+      
+                                  }
+                              });
+                          }
+                      });
+          }
+          
+          @Override
+          protected Scheduler[] setScheduler() {
+              //去除超类
+              //参数1为注册+注销线程
+              //参数2为订阅线程
+              return new Scheduler[]{
+                       Schedulers.io(),
+                       AndroidSchedulers.mainThread()
+              };
+          }
       }
 ```
 

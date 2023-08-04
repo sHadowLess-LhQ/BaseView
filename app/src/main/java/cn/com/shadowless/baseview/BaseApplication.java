@@ -33,12 +33,13 @@ public abstract class BaseApplication extends Application implements Application
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-
+        ActivityManager.INSTANCE.setCurrentActivity(activity);
     }
 
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
         foregroundCount++;
+        ActivityManager.INSTANCE.setCurrentActivity(activity);
     }
 
     @Override

@@ -2,7 +2,9 @@ package cn.com.shadowless.baseview.base;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +12,19 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
 import com.rxjava.rxlife.RxLife;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import cn.com.shadowless.baseview.callback.InitDataCallBack;
+import cn.com.shadowless.baseview.callback.PermissionCallBack;
+import cn.com.shadowless.baseview.permission.Permission;
 import cn.com.shadowless.baseview.permission.RxPermissions;
 import cn.com.shadowless.baseview.utils.ClickUtils;
 import io.reactivex.Observable;
@@ -22,6 +32,7 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -47,23 +58,17 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     private Activity mActivity = null;
 
     /**
-     * 初始化数据回调接口
-     *
-     * @param <T> the type parameter
+     * The No data.
      */
-    protected interface InitDataCallBack<T> {
-        /**
-         * 成功且带数据
-         *
-         * @param t the t
-         */
-        void initViewWithData(@NonNull T t);
-
-        /**
-         * 成功不带数据
-         */
-        void initViewWithOutData();
-    }
+    protected final int noData = 0;
+    /**
+     * The Success.
+     */
+    protected final int success = 1;
+    /**
+     * The Error.
+     */
+    protected final int error = -1;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -76,7 +81,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         bind = setBindView();
         initListener();
-        initPermissions();
+        initPermissionData();
         return bind.getRoot();
     }
 
@@ -116,17 +121,17 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
 
     @Override
     public void onNext(@NonNull T mData) {
-        initView(mData);
+        initSuccessView(mData);
     }
 
     @Override
     public void onError(@NonNull Throwable e) {
-        initView(null);
+        initFailView("处理数据错误", e);
     }
 
     @Override
     public void onComplete() {
-        initView(null);
+        initSuccessView(null);
     }
 
     @Override
@@ -142,7 +147,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      * @return the 权限组
      */
     @Nullable
-    protected abstract String[] permissionName();
+    protected abstract String[] permissions();
 
     /**
      * 设置绑定视图
@@ -160,7 +165,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     /**
      * 初始化数据
      *
-     * @param callBack the  回调
+     * @param callBack the call back
      */
     protected abstract void initData(@NonNull InitDataCallBack<T> callBack);
 
@@ -169,7 +174,15 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      *
      * @param data the 数据表
      */
-    protected abstract void initView(@Nullable T data);
+    protected abstract void initSuccessView(@Nullable T data);
+
+    /**
+     * Init fail view.
+     *
+     * @param error the error
+     * @param e     the e
+     */
+    protected abstract void initFailView(@Nullable String error, @Nullable Throwable e);
 
     /**
      * 点击
@@ -177,42 +190,6 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      * @param v the v
      */
     protected abstract void click(@NonNull View v);
-
-    /**
-     * 初始化权限
-     */
-    protected void initPermissions() {
-        String[] permissions = permissionName();
-        if (null != permissions && permissions.length != 0) {
-            new RxPermissions(this)
-                    .requestEachCombined(permissions)
-                    .as(RxLife.as(this))
-                    .subscribe(permission -> {
-                                if (permission.granted) {
-                                    Observable.create(this).compose(dealWithThreadMode()).as(RxLife.as(this)).subscribe(this);
-                                } else if (permission.shouldShowRequestPermissionRationale) {
-                                    showToast(permission.name);
-                                } else {
-                                    showToast(permission.name);
-                                }
-                            }
-                    );
-        } else {
-            Observable.create(this).compose(dealWithThreadMode()).as(RxLife.as(this)).subscribe(this);
-        }
-    }
-
-    /**
-     * 初始化数据所在线程
-     *
-     * @param <T> the type parameter
-     * @return the 线程模式
-     */
-    protected <T> ObservableTransformer<T, T> dealWithThreadMode() {
-        return upstream -> upstream.subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
 
     /**
      * 获取绑定视图
@@ -234,12 +211,120 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     }
 
     /**
-     * 内部权限提示
+     * 设置调度器
      *
-     * @param name the 权限名
+     * @return the scheduler
      */
-    private void showToast(String name) {
-        String tip = "应用无法使用，请开启%s权限";
-        Toast.makeText(mActivity, String.format(tip, name), Toast.LENGTH_LONG).show();
+    protected Scheduler[] setScheduler() {
+        return new Scheduler[]{
+                AndroidSchedulers.mainThread(),
+                AndroidSchedulers.mainThread()
+        };
+    }
+
+    /**
+     * Init permission.
+     *
+     * @param permissions the permissions
+     */
+    protected void initPermission(String[] permissions) {
+        dealPermission(permissions, null);
+    }
+
+    /**
+     * Check permission boolean.
+     *
+     * @param name the name
+     * @return the boolean
+     */
+    protected boolean hasPermission(String name) {
+        return ContextCompat.checkSelfPermission(getAttachActivity(), name) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Deal permission.
+     *
+     * @param permissions the permissions
+     * @param callBack    the call back
+     */
+    protected void dealPermission(String[] permissions, PermissionCallBack callBack) {
+        final List<String> disagree = new ArrayList<>();
+        final List<String> ban = new ArrayList<>();
+        new RxPermissions(this)
+                .requestEach(permissions)
+                .as(RxLife.as(this))
+                .subscribe(new Observer<Permission>() {
+                               @Override
+                               public void onSubscribe(@NonNull Disposable d) {
+
+                               }
+
+                               @Override
+                               public void onNext(@NonNull Permission permission) {
+                                   if (!permission.shouldShowRequestPermissionRationale) {
+                                       ban.add(permission.name);
+                                   } else {
+                                       disagree.add(permission.name);
+                                   }
+                               }
+
+                               @Override
+                               public void onError(@NonNull Throwable e) {
+                                   initFailView("处理权限错误", e);
+                               }
+
+                               @Override
+                               public void onComplete() {
+                                   if (ban.isEmpty() && disagree.isEmpty()) {
+                                       if (callBack != null) {
+                                           callBack.agree();
+                                       }
+                                       dealDataToView();
+                                       return;
+                                   } else if (!ban.isEmpty()) {
+                                       if (callBack != null) {
+                                           callBack.ban(ban);
+                                       }
+                                   } else {
+                                       if (callBack != null) {
+                                           callBack.disagree(disagree);
+                                       }
+                                   }
+                                   initFailView("暂无权限", null);
+                               }
+                           }
+                );
+    }
+
+    /**
+     * 初始化权限
+     */
+    private void initPermissionData() {
+        String[] permissions = permissions();
+        if (null == permissions && permissions.length == 0) {
+            dealDataToView();
+            return;
+        }
+        initPermission(permissions);
+    }
+
+    /**
+     * Deal data.
+     */
+    private void dealDataToView() {
+        Observable.create(this).compose(dealWithThreadMode(setScheduler())).as(RxLife.as(this)).subscribe(this);
+    }
+
+    /**
+     * 初始化数据所在线程
+     *
+     * @param <TF>      the type parameter
+     * @param scheduler the scheduler
+     * @return the 线程模式
+     */
+    private <TF> ObservableTransformer<TF, TF> dealWithThreadMode(Scheduler[] scheduler) {
+        return upstream -> upstream.subscribeOn(scheduler[0])
+                .unsubscribeOn(scheduler[0])
+                .observeOn(scheduler[1]);
     }
 }
