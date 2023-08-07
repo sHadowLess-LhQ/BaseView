@@ -261,9 +261,9 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
 
                                @Override
                                public void onNext(@NonNull Permission permission) {
-                                   if (!permission.shouldShowRequestPermissionRationale) {
+                                   if (permission.shouldShowRequestPermissionRationale) {
                                        ban.add(permission.name);
-                                   } else {
+                                   } else if (!permission.granted){
                                        disagree.add(permission.name);
                                    }
                                }
