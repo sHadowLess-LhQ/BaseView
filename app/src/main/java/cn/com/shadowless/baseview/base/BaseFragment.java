@@ -301,7 +301,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      */
     private void initPermissionData() {
         String[] permissions = permissions();
-        if (null == permissions && permissions.length == 0) {
+        if (null == permissions || permissions.length == 0) {
             dealDataToView();
             return;
         }

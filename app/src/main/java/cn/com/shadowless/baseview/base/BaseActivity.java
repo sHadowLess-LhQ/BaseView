@@ -264,7 +264,7 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
      */
     private void initPermissionData() {
         String[] permissions = permissions();
-        if (null == permissions && permissions.length == 0) {
+        if (null == permissions || permissions.length == 0) {
             dealDataToView();
             return;
         }
