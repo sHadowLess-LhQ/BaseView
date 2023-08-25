@@ -47,7 +47,10 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(initTheme());
+        int customTheme = initTheme();
+        if (-1 != customTheme) {
+            setTheme(customTheme);
+        }
         super.onCreate(savedInstanceState);
         initBindView();
         initListener();
@@ -170,7 +173,7 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
      * @return the int
      */
     protected int initTheme() {
-        return R.style.MyAppTheme;
+        return -1;
     }
 
     /**

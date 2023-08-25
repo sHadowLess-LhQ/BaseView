@@ -57,19 +57,6 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      */
     private Activity mActivity = null;
 
-    /**
-     * The No data.
-     */
-    protected final int noData = 0;
-    /**
-     * The Success.
-     */
-    protected final int success = 1;
-    /**
-     * The Error.
-     */
-    protected final int error = -1;
-
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
