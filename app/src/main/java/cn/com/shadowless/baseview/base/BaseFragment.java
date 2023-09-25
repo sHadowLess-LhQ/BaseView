@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ import androidx.viewbinding.ViewBinding;
 import com.rxjava.rxlife.RxLife;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -250,7 +253,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
                                public void onNext(@NonNull Permission permission) {
                                    if (permission.shouldShowRequestPermissionRationale) {
                                        ban.add(permission.name);
-                                   } else if (!permission.granted){
+                                   } else if (!permission.granted) {
                                        disagree.add(permission.name);
                                    }
                                }

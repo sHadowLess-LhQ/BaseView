@@ -1,5 +1,7 @@
 package cn.com.shadowless.baseview.callback;
 
+import androidx.annotation.Nullable;
+
 import java.util.List;
 
 /**
@@ -26,4 +28,12 @@ public interface PermissionCallBack {
      * @param name the name
      */
     void ban(List<String> name);
+
+    /**
+     * Fail.
+     *
+     * @param msg the msg
+     * @param e   the e
+     */
+    void fail(String msg, @Nullable Throwable e);
 }

@@ -21,6 +21,7 @@ import cn.com.shadowless.baseview.callback.PermissionCallBack;
 import cn.com.shadowless.baseview.permission.Permission;
 import cn.com.shadowless.baseview.permission.RxPermissions;
 import cn.com.shadowless.baseview.utils.ClickUtils;
+import cn.com.shadowless.baseview.utils.PermissionUtils;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -216,9 +217,7 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
     protected void dealPermission(String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
-        new RxPermissions(this)
-                .requestEach(permissions)
-                .as(RxLife.as(this))
+        PermissionUtils.getPermissionObservable(this, this, permissions)
                 .subscribe(new Observer<Permission>() {
                                @Override
                                public void onSubscribe(@NonNull Disposable d) {

@@ -130,11 +130,16 @@ c、混淆规则
           }
       
           @Override
-          protected void initView(@Nullable String data) {
+          protected void initSuccessView(@Nullable String data) {
              //默认在主线程
              //初始化界面控件
              getBindView().test.setText(data);
-             //正常路由
+          }
+          
+          @Override
+          protected void initFailView(@Nullable String error, @Nullable Throwable e) {
+              //处理数据失败
+              //错误页面
           }
           
           @Override
@@ -146,7 +151,7 @@ c、混淆规则
           @Override
           protected void initPermission(String[] permissions) {
               //去除超类
-              //重写例子，比如需要申请前的说明
+              //比如需要申请前的说明
               //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
               //需要自己获取回调，需实现PermissionCallBack接口
               //不需要直接传null
@@ -171,7 +176,8 @@ c、混淆规则
                                   }
                               });
                           }
-                      });
+                      })
+                      .show();
           }
           
           @Override
@@ -230,10 +236,15 @@ c、混淆规则
           }
       
           @Override
-          protected void initView(@Nullable String map) {
+          protected void initSuccessView(@Nullable String map) {
              //默认在主线程
              //初始化界面控件
              getBindView().test.setText(map);
+          }
+          
+          @Override
+          protected void initFailView(@Nullable String error, @Nullable Throwable e) {
+      
           }
           
           @Override
@@ -249,7 +260,7 @@ c、混淆规则
               //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
               //需要自己获取回调，需实现PermissionCallBack接口
               //不需要直接传null
-              new AlertDialog.Builder(this)
+              new AlertDialog.Builder(getActivity())
                       .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                           @Override
                           public void onClick(DialogInterface dialog, int which) {
@@ -270,7 +281,8 @@ c、混淆规则
                                   }
                               });
                           }
-                      });
+                      })
+                      .show();
           }
           
           @Override
