@@ -205,7 +205,7 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
      * @return the boolean
      */
     protected boolean hasPermission(String name) {
-        return ContextCompat.checkSelfPermission(this, name) != PackageManager.PERMISSION_GRANTED;
+        return ContextCompat.checkSelfPermission(this, name) == PackageManager.PERMISSION_GRANTED;
     }
 
     /**

@@ -155,6 +155,7 @@ c、混淆规则
               //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
               //需要自己获取回调，需实现PermissionCallBack接口
               //不需要直接传null
+              //任意控件事件动态申请权限，请使用PermissionUtils
               new AlertDialog.Builder(this)
                       .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                           @Override
@@ -260,6 +261,7 @@ c、混淆规则
               //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
               //需要自己获取回调，需实现PermissionCallBack接口
               //不需要直接传null
+              //任意控件事件动态申请权限，请使用PermissionUtils
               new AlertDialog.Builder(getActivity())
                       .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                           @Override
@@ -504,4 +506,19 @@ c、混淆规则
              getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event event);
           }
       }
+```
+
+### PermissionUtils
+
+```
+      //获取权限观察者
+      PermissionUtils.getPermissionObservable(Fragment fragment, View view, String[] permissions)
+      PermissionUtils.getPermissionObservable(FragmentActivity activity, View view, String[] permissions)
+      PermissionUtils.getPermissionObservable(Fragment fragment, LifecycleOwner owner, String[] permissions)
+      PermissionUtils.getPermissionObservable(FragmentActivity activity, LifecycleOwner owner, String[] permissions);
+      //处理权限
+      PermissionUtils.dealPermission(FragmentActivity activity, View view, String[] permissions, PermissionCallBack callBack)
+      PermissionUtils.dealPermission(Fragment fragment, View view, String[] permissions, PermissionCallBack callBack)
+      PermissionUtils.dealPermission(Fragment fragment, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack)
+      PermissionUtils.dealPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack)
 ```

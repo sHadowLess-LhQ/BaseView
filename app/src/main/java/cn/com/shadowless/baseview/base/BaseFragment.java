@@ -228,7 +228,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      * @return the boolean
      */
     protected boolean hasPermission(String name) {
-        return ContextCompat.checkSelfPermission(getAttachActivity(), name) != PackageManager.PERMISSION_GRANTED;
+        return ContextCompat.checkSelfPermission(getAttachActivity(), name) == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
