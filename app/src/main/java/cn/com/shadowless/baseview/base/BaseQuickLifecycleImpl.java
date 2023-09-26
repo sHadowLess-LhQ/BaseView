@@ -15,23 +15,60 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
     /**
      * 注册类
      */
-    private final LifecycleRegistry lifecycleRegistry;
+    private LifecycleRegistry lifecycleRegistry;
+
+    /**
+     * The Lifecycle.
+     */
+    private Lifecycle observeLifecycle;
 
     /**
      * 构造
      */
     public BaseQuickLifecycleImpl() {
-        lifecycleRegistry = new LifecycleRegistry(this);
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+        init();
+    }
+
+    /**
+     * 构造
+     *
+     * @param observeLifecycle the observe lifecycle
+     */
+    public BaseQuickLifecycleImpl(Lifecycle observeLifecycle) {
+        this.observeLifecycle = observeLifecycle;
+        observeLifecycle.addObserver(this);
+        init();
     }
 
     @Override
-    public abstract void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event);
+    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+        if (event == setStopEvent()) {
+            onTerminate();
+            getObserveLifecycle().removeObserver(this);
+        }
+    }
 
     @NonNull
     @Override
     public Lifecycle getLifecycle() {
         return lifecycleRegistry;
+    }
+
+    /**
+     * Init.
+     */
+    private void init() {
+        lifecycleRegistry = new LifecycleRegistry(this);
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+    }
+
+    /**
+     * Gets observe lifecycle.
+     *
+     * @return the observe lifecycle
+     */
+    public Lifecycle getObserveLifecycle() {
+        return observeLifecycle;
     }
 
     /**
@@ -42,4 +79,17 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
     public LifecycleRegistry getLifecycleRegistry() {
         return lifecycleRegistry;
     }
+
+    /**
+     * Sets stop event.
+     *
+     * @return the stop event
+     */
+    @NonNull
+    protected abstract Lifecycle.Event setStopEvent();
+
+    /**
+     * On state destroy.
+     */
+    protected abstract void onTerminate();
 }
