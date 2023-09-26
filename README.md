@@ -488,22 +488,34 @@ c、混淆规则
 ### BaseQucikLifeleImpl
 
 ```
-      //超快速实现一个可以使用的支持Lifecycle和支持监听其他Lifecycle的类
+      //快速实现一个可以使用的支持Lifecycle和支持监听其他Lifecycle的类
       //适合无继承关系的任意类使用
       //有继承关系请使用BaseQuickLifecycle
       //直接继承BaseQuickLifecycleImpl
       //在此类的业务逻辑中的合适位置发送声明周期事件
+      //已自动监听/移除监听其他生命周期组件
       public class Test extends BaseQuickLifecycleImpl{
       
           public Test() {
               //默认构造调用的时候发送ON_CREATE事件，不需要请移除超类后自发送
               super();
           }
-      
+          
+          public Test(Lifecycle observeLifecycle) {
+              //监听其他拥有生命周期接口组件
+              super(observeLifecycle);
+          }
+          
+          @NonNull
           @Override
-          public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-             //发送生命周期事件
-             getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event event);
+          protected Lifecycle.Event setStopEvent() {
+              //设置onTerminate需要回调的事件标识
+              return Lifecycle.Event.ON_DESTROY;
+          }
+
+          @Override
+          protected void onTerminate() {
+              //可在此中止当前Test类中正在进行的任务
           }
       }
 ```
