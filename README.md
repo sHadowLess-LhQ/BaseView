@@ -220,6 +220,11 @@ c、混淆规则
               //回传ViewBinding绑定的视图
               return FragmentMainBinding.inflate(getLayoutInflater());
           }
+          
+          @Override
+          protected void initFirst() {
+              //碎片第一次创建
+          }
       
           @Override
           protected void initData(@NonNull InitDataCallBack<String> callBack) {
@@ -301,6 +306,12 @@ c、混淆规则
                        AndroidSchedulers.mainThread()
               };
           }
+          
+          @Override
+          protected void onLazyData() {
+              super.onLazyData();
+              //需要懒加载的时候重写
+          }
       }
 ```
 
@@ -323,6 +334,8 @@ c、混淆规则
         
             public TestDialog(@NonNull Context context, int themeResId) {
                 super(context, themeResId);
+                //库里自带一个全屏Dialog主题BaseFullDialog
+                //如不合要求，请自定义后传入
             }
         
             @NonNull

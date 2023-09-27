@@ -2,11 +2,9 @@ package cn.com.shadowless.baseview.base;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.text.TextUtils;
-import android.util.SparseArray;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,16 +12,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
 import com.rxjava.rxlife.RxLife;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import cn.com.shadowless.baseview.callback.InitDataCallBack;
 import cn.com.shadowless.baseview.callback.PermissionCallBack;
@@ -38,7 +33,6 @@ import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -61,6 +55,16 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     private Activity mActivity = null;
 
     /**
+     * The Main handler.
+     */
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    /**
+     * The Is first.
+     */
+    private boolean isFirst = true;
+
+    /**
      * The Is only complete.
      */
     private volatile boolean isOnlyComplete = false;
@@ -71,6 +75,12 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
         this.mActivity = (Activity) context;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initFirst();
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -78,6 +88,21 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
         initListener();
         initPermissionData();
         return bind.getRoot();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (this.isAdded()) {
+            if (isFirst) {
+                isFirst = false;
+                mainHandler.postDelayed(() -> {
+                    if (this.isAdded()) {
+                        onLazyData();
+                    }
+                }, 10);
+            }
+        }
     }
 
     @Override
@@ -163,6 +188,11 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     protected abstract VB setBindView();
 
     /**
+     * Init first.
+     */
+    protected abstract void initFirst();
+
+    /**
      * 初始化监听
      */
     protected abstract void initListener();
@@ -212,6 +242,13 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      */
     protected Activity getAttachActivity() {
         return mActivity;
+    }
+
+    /**
+     * 懒加载数据
+     */
+    protected void onLazyData() {
+
     }
 
     /**
