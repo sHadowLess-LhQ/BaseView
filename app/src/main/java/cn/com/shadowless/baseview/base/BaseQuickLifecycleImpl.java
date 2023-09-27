@@ -42,8 +42,9 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
 
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-        if (event == setStopEvent()) {
-            onTerminate();
+        Lifecycle.Event setStopEvent = setStopEvent();
+        if (event == setStopEvent) {
+            onTerminate(setStopEvent);
             getObserveLifecycle().removeObserver(this);
         }
     }
@@ -81,15 +82,17 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
     }
 
     /**
+     * On state destroy.
+     */
+    protected void onTerminate(Lifecycle.Event event) {
+        getLifecycleRegistry().handleLifecycleEvent(event);
+    }
+
+    /**
      * Sets stop event.
      *
      * @return the stop event
      */
     @NonNull
     protected abstract Lifecycle.Event setStopEvent();
-
-    /**
-     * On state destroy.
-     */
-    protected abstract void onTerminate();
 }

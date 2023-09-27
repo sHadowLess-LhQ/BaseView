@@ -114,13 +114,15 @@ c、混淆规则
           }
       
           @Override
-          protected void initData(@NonNull InitDataCallBack<String> initDataCallBack) {
+          protected void initData(@NonNull InitDataCallBack<String> callBack) {
              //初始化数据
              【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
              //若有数据给视图绑定，使用initViewWithData
              //若无数据给视图绑定，使用initViewWithOutData
-             initDataCallBack.initViewWithData("1");
-             initDataCallBack.initViewWithOutData();
+             //若有报错，使用initFailView显示错误页面
+             callBack.initSuccessViewWithData("1");
+             callBack.initSuccessViewWithOutData();
+             callBack.initFailView(new Throwable("有问题"));
           }
           
           @Override
@@ -137,15 +139,14 @@ c、混淆规则
           }
           
           @Override
-          protected void initFailView(@Nullable String error, @Nullable Throwable e) {
+          protected void initFailView(@Nullable Throwable e) {
               //处理数据失败
               //错误页面
           }
           
           @Override
           protected void click(View v) {
-              //检查权限
-              hasPermission(Manifest.permission.CAMERA);
+           
           }
           
           @Override
@@ -183,9 +184,10 @@ c、混淆规则
           
           @Override
           protected Scheduler[] setScheduler() {
-              //去除超类
+              //需要修改线程调度
+              //重写后去除超类
               //参数1为注册+注销线程
-              //参数2为订阅线程
+              //参数2为订阅观察线程
               return new Scheduler[]{
                        Schedulers.io(),
                        AndroidSchedulers.mainThread()
@@ -220,14 +222,15 @@ c、混淆规则
           }
       
           @Override
-          protected void initData(@NonNull InitDataCallBack<String> initDataCallBack) {
+          protected void initData(@NonNull InitDataCallBack<String> callBack) {
              //初始化数据
              【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
              Toast.makeText(getBindActivity(), "可用Activity对象", Toast.LENGTH_SHORT).show();
              //若有数据给视图绑定，使用initViewWithData
-             //若无数据给视图绑定，使用initViewWithOutData
-             initDataCallBack.initViewWithData("1");
-             initDataCallBack.initViewWithOutData();
+             //若有报错，使用initFailView显示错误页面
+             callBack.initSuccessViewWithData("1");
+             callBack.initSuccessViewWithOutData();
+             callBack.initFailView(new Throwable("有问题"));
           }
           
           @Override
@@ -244,14 +247,14 @@ c、混淆规则
           }
           
           @Override
-          protected void initFailView(@Nullable String error, @Nullable Throwable e) {
-      
+          protected void initFailView(@Nullable Throwable e) {
+              //处理数据失败
+              //错误页面
           }
           
           @Override
           protected void click(View v) {
-              //检查权限
-              hasPermission(Manifest.permission.CAMERA);
+              
           }
           
           @Override
@@ -289,9 +292,10 @@ c、混淆规则
           
           @Override
           protected Scheduler[] setScheduler() {
-              //去除超类
+              //需要修改线程调度
+              //重写后去除超类
               //参数1为注册+注销线程
-              //参数2为订阅线程
+              //参数2为订阅观察线程
               return new Scheduler[]{
                        Schedulers.io(),
                        AndroidSchedulers.mainThread()
@@ -386,7 +390,7 @@ c、混淆规则
             
             @Override
             public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                //监听其他Lifecycle的声明周期
+                //监听其他Lifecycle的声明周期标识符
             }
       }
 ```
@@ -510,12 +514,16 @@ c、混淆规则
           @Override
           protected Lifecycle.Event setStopEvent() {
               //设置onTerminate需要回调的事件标识
+              //默认此实现生命周期接口的组件也是在这个标识符中止运行
               return Lifecycle.Event.ON_DESTROY;
           }
-
+          
           @Override
-          protected void onTerminate() {
-              //可在此中止当前Test类中正在进行的任务
+          protected void onTerminate(Lifecycle.Event event) {
+              //可在此中止当前Test类中正在进行的任务前后的逻辑
+              //若不需要和监听的生命周期组件同一标识符终止运行，重写onTerminate()
+              //超类中传入需要的标识符
+              super.onTerminate(event);
           }
       }
 ```
@@ -533,4 +541,6 @@ c、混淆规则
       PermissionUtils.dealPermission(Fragment fragment, View view, String[] permissions, PermissionCallBack callBack)
       PermissionUtils.dealPermission(Fragment fragment, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack)
       PermissionUtils.dealPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack)
+      //检查是否获取权限
+      PermissionUtils.checkHasPermission(Context context, String name)
 ```

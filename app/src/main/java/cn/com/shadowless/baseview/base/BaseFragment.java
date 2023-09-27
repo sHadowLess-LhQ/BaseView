@@ -60,6 +60,11 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      */
     private Activity mActivity = null;
 
+    /**
+     * The Is only complete.
+     */
+    private volatile boolean isOnlyComplete = false;
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -93,13 +98,21 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     public void subscribe(@NonNull ObservableEmitter<T> emitter) throws Exception {
         initData(new InitDataCallBack<T>() {
             @Override
-            public void initViewWithData(@NonNull T t) {
+            public void initSuccessViewWithData(@NonNull T t) {
+                isOnlyComplete = false;
                 emitter.onNext(t);
+                emitter.onComplete();
             }
 
             @Override
-            public void initViewWithOutData() {
+            public void initSuccessViewWithOutData() {
+                isOnlyComplete = true;
                 emitter.onComplete();
+            }
+
+            @Override
+            public void initFailView(Throwable e) {
+                emitter.onError(e);
             }
         });
     }
@@ -116,12 +129,14 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
 
     @Override
     public void onError(@NonNull Throwable e) {
-        initFailView("处理数据错误", e);
+        initFailView(e);
     }
 
     @Override
     public void onComplete() {
-        initSuccessView(null);
+        if (isOnlyComplete) {
+            initSuccessView(null);
+        }
     }
 
     @Override
@@ -169,10 +184,9 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     /**
      * Init fail view.
      *
-     * @param error the error
-     * @param e     the e
+     * @param e the e
      */
-    protected abstract void initFailView(@Nullable String error, @Nullable Throwable e);
+    protected abstract void initFailView(@Nullable Throwable e);
 
     /**
      * 点击
@@ -222,16 +236,6 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     }
 
     /**
-     * Check permission boolean.
-     *
-     * @param name the name
-     * @return the boolean
-     */
-    protected boolean hasPermission(String name) {
-        return ContextCompat.checkSelfPermission(getAttachActivity(), name) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    /**
      * Deal permission.
      *
      * @param permissions the permissions
@@ -260,7 +264,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
 
                                @Override
                                public void onError(@NonNull Throwable e) {
-                                   initFailView("处理权限错误", e);
+                                   Toast.makeText(getAttachActivity(), "处理权限错误", Toast.LENGTH_SHORT).show();
                                }
 
                                @Override
@@ -280,7 +284,6 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
                                            callBack.disagree(disagree);
                                        }
                                    }
-                                   initFailView("暂无权限", null);
                                }
                            }
                 );

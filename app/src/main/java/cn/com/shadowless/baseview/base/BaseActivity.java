@@ -3,6 +3,7 @@ package cn.com.shadowless.baseview.base;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -46,6 +47,11 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
      */
     private VB bind = null;
 
+    /**
+     * The Is only complete.
+     */
+    private volatile boolean isOnlyComplete = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         int customTheme = initTheme();
@@ -70,13 +76,21 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
     public void subscribe(@NonNull ObservableEmitter<T> emitter) throws Exception {
         initData(new InitDataCallBack<T>() {
             @Override
-            public void initViewWithData(@NonNull T t) {
+            public void initSuccessViewWithData(@NonNull T t) {
+                isOnlyComplete = false;
                 emitter.onNext(t);
+                emitter.onComplete();
             }
 
             @Override
-            public void initViewWithOutData() {
+            public void initSuccessViewWithOutData() {
+                isOnlyComplete = true;
                 emitter.onComplete();
+            }
+
+            @Override
+            public void initFailView(Throwable e) {
+                emitter.onError(e);
             }
         });
     }
@@ -93,12 +107,14 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
 
     @Override
     public void onError(@NonNull Throwable e) {
-        initFailView("处理数据错误", e);
+        initFailView(e);
     }
 
     @Override
     public void onComplete() {
-        initSuccessView(null);
+        if (isOnlyComplete) {
+            initSuccessView(null);
+        }
     }
 
     @Override
@@ -146,10 +162,9 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
     /**
      * Init fail view.
      *
-     * @param error the error
-     * @param e     the e
+     * @param e the e
      */
-    protected abstract void initFailView(@Nullable String error, @Nullable Throwable e);
+    protected abstract void initFailView(@Nullable Throwable e);
 
     /**
      * 点击
@@ -235,7 +250,7 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
 
                                @Override
                                public void onError(@NonNull Throwable e) {
-                                   initFailView("处理权限错误", e);
+                                   Toast.makeText(BaseActivity.this, "处理权限错误", Toast.LENGTH_SHORT).show();
                                }
 
                                @Override
@@ -245,7 +260,6 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
                                            callBack.agree();
                                        }
                                        dealDataToView();
-                                       return;
                                    } else if (!ban.isEmpty()) {
                                        if (callBack != null) {
                                            callBack.ban(ban);
@@ -255,7 +269,6 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
                                            callBack.disagree(disagree);
                                        }
                                    }
-                                   initFailView("暂无权限", null);
                                }
                            }
                 );

@@ -14,10 +14,17 @@ public interface InitDataCallBack<T> {
      *
      * @param t the t
      */
-    void initViewWithData(@NonNull T t);
+    void initSuccessViewWithData(@NonNull T t);
 
     /**
      * 成功不带数据
      */
-    void initViewWithOutData();
+    void initSuccessViewWithOutData();
+
+    /**
+     * 失败
+     *
+     * @param e the e
+     */
+    void initFailView(Throwable e);
 }

@@ -1,8 +1,11 @@
 package cn.com.shadowless.baseview.utils;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
@@ -43,9 +46,7 @@ public class PermissionUtils {
      * @return the permission observable
      */
     public static ObservableLife<Permission> getPermissionObservable(FragmentActivity activity, LifecycleOwner owner, String[] permissions) {
-        return new RxPermissions(activity)
-                .requestEach(permissions)
-                .as(RxLife.as(owner));
+        return new RxPermissions(activity).requestEach(permissions).as(RxLife.as(owner));
     }
 
     /**
@@ -57,9 +58,7 @@ public class PermissionUtils {
      * @return the permission observable
      */
     public static ObservableLife<Permission> getPermissionObservable(Fragment fragment, LifecycleOwner owner, String[] permissions) {
-        return new RxPermissions(fragment)
-                .requestEach(permissions)
-                .as(RxLife.as(owner));
+        return new RxPermissions(fragment).requestEach(permissions).as(RxLife.as(owner));
     }
 
     /**
@@ -71,9 +70,7 @@ public class PermissionUtils {
      * @return the permission observable
      */
     public static ObservableLife<Permission> getPermissionObservable(FragmentActivity activity, View view, String[] permissions) {
-        return new RxPermissions(activity)
-                .requestEach(permissions)
-                .as(RxLife.as(view));
+        return new RxPermissions(activity).requestEach(permissions).as(RxLife.as(view));
     }
 
     /**
@@ -85,9 +82,7 @@ public class PermissionUtils {
      * @return the permission observable
      */
     public static ObservableLife<Permission> getPermissionObservable(Fragment fragment, View view, String[] permissions) {
-        return new RxPermissions(fragment)
-                .requestEach(permissions)
-                .as(RxLife.as(view));
+        return new RxPermissions(fragment).requestEach(permissions).as(RxLife.as(view));
     }
 
     /**
@@ -101,50 +96,49 @@ public class PermissionUtils {
     public static void dealPermission(FragmentActivity activity, View view, String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
-        getPermissionObservable(activity, view, permissions)
-                .subscribe(new Observer<Permission>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
+        getPermissionObservable(activity, view, permissions).subscribe(new Observer<Permission>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
 
-                    }
+            }
 
-                    @Override
-                    public void onNext(@NonNull Permission permission) {
-                        if (permission.shouldShowRequestPermissionRationale) {
-                            ban.add(permission.name);
-                        } else if (!permission.granted) {
-                            disagree.add(permission.name);
-                        }
-                    }
+            @Override
+            public void onNext(@NonNull Permission permission) {
+                if (permission.shouldShowRequestPermissionRationale) {
+                    ban.add(permission.name);
+                } else if (!permission.granted) {
+                    disagree.add(permission.name);
+                }
+            }
 
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        if (callBack != null) {
-                            callBack.fail("处理权限错误", e);
-                        }
-                    }
+            @Override
+            public void onError(@NonNull Throwable e) {
+                if (callBack != null) {
+                    callBack.fail("处理权限错误", e);
+                }
+            }
 
-                    @Override
-                    public void onComplete() {
-                        if (ban.isEmpty() && disagree.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.agree();
-                            }
-                            return;
-                        } else if (!ban.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.ban(ban);
-                            }
-                        } else {
-                            if (callBack != null) {
-                                callBack.disagree(disagree);
-                            }
-                        }
-                        if (callBack != null) {
-                            callBack.fail("暂无权限", null);
-                        }
+            @Override
+            public void onComplete() {
+                if (ban.isEmpty() && disagree.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.agree();
                     }
-                });
+                    return;
+                } else if (!ban.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.ban(ban);
+                    }
+                } else {
+                    if (callBack != null) {
+                        callBack.disagree(disagree);
+                    }
+                }
+                if (callBack != null) {
+                    callBack.fail("暂无权限", null);
+                }
+            }
+        });
     }
 
     /**
@@ -158,50 +152,49 @@ public class PermissionUtils {
     public static void dealPermission(Fragment fragment, View view, String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
-        getPermissionObservable(fragment, view, permissions)
-                .subscribe(new Observer<Permission>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
+        getPermissionObservable(fragment, view, permissions).subscribe(new Observer<Permission>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
 
-                    }
+            }
 
-                    @Override
-                    public void onNext(@NonNull Permission permission) {
-                        if (permission.shouldShowRequestPermissionRationale) {
-                            ban.add(permission.name);
-                        } else if (!permission.granted) {
-                            disagree.add(permission.name);
-                        }
-                    }
+            @Override
+            public void onNext(@NonNull Permission permission) {
+                if (permission.shouldShowRequestPermissionRationale) {
+                    ban.add(permission.name);
+                } else if (!permission.granted) {
+                    disagree.add(permission.name);
+                }
+            }
 
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        if (callBack != null) {
-                            callBack.fail("处理权限错误", e);
-                        }
-                    }
+            @Override
+            public void onError(@NonNull Throwable e) {
+                if (callBack != null) {
+                    callBack.fail("处理权限错误", e);
+                }
+            }
 
-                    @Override
-                    public void onComplete() {
-                        if (ban.isEmpty() && disagree.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.agree();
-                            }
-                            return;
-                        } else if (!ban.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.ban(ban);
-                            }
-                        } else {
-                            if (callBack != null) {
-                                callBack.disagree(disagree);
-                            }
-                        }
-                        if (callBack != null) {
-                            callBack.fail("暂无权限", null);
-                        }
+            @Override
+            public void onComplete() {
+                if (ban.isEmpty() && disagree.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.agree();
                     }
-                });
+                    return;
+                } else if (!ban.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.ban(ban);
+                    }
+                } else {
+                    if (callBack != null) {
+                        callBack.disagree(disagree);
+                    }
+                }
+                if (callBack != null) {
+                    callBack.fail("暂无权限", null);
+                }
+            }
+        });
     }
 
     /**
@@ -215,50 +208,49 @@ public class PermissionUtils {
     public static void dealPermission(Fragment fragment, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
-        getPermissionObservable(fragment, owner, permissions)
-                .subscribe(new Observer<Permission>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
+        getPermissionObservable(fragment, owner, permissions).subscribe(new Observer<Permission>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
 
-                    }
+            }
 
-                    @Override
-                    public void onNext(@NonNull Permission permission) {
-                        if (permission.shouldShowRequestPermissionRationale) {
-                            ban.add(permission.name);
-                        } else if (!permission.granted) {
-                            disagree.add(permission.name);
-                        }
-                    }
+            @Override
+            public void onNext(@NonNull Permission permission) {
+                if (permission.shouldShowRequestPermissionRationale) {
+                    ban.add(permission.name);
+                } else if (!permission.granted) {
+                    disagree.add(permission.name);
+                }
+            }
 
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        if (callBack != null) {
-                            callBack.fail("处理权限错误", e);
-                        }
-                    }
+            @Override
+            public void onError(@NonNull Throwable e) {
+                if (callBack != null) {
+                    callBack.fail("处理权限错误", e);
+                }
+            }
 
-                    @Override
-                    public void onComplete() {
-                        if (ban.isEmpty() && disagree.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.agree();
-                            }
-                            return;
-                        } else if (!ban.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.ban(ban);
-                            }
-                        } else {
-                            if (callBack != null) {
-                                callBack.disagree(disagree);
-                            }
-                        }
-                        if (callBack != null) {
-                            callBack.fail("暂无权限", null);
-                        }
+            @Override
+            public void onComplete() {
+                if (ban.isEmpty() && disagree.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.agree();
                     }
-                });
+                    return;
+                } else if (!ban.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.ban(ban);
+                    }
+                } else {
+                    if (callBack != null) {
+                        callBack.disagree(disagree);
+                    }
+                }
+                if (callBack != null) {
+                    callBack.fail("暂无权限", null);
+                }
+            }
+        });
     }
 
     /**
@@ -272,49 +264,59 @@ public class PermissionUtils {
     public static void dealPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
-        getPermissionObservable(activity, owner, permissions)
-                .subscribe(new Observer<Permission>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
+        getPermissionObservable(activity, owner, permissions).subscribe(new Observer<Permission>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
 
-                    }
+            }
 
-                    @Override
-                    public void onNext(@NonNull Permission permission) {
-                        if (permission.shouldShowRequestPermissionRationale) {
-                            ban.add(permission.name);
-                        } else if (!permission.granted) {
-                            disagree.add(permission.name);
-                        }
-                    }
+            @Override
+            public void onNext(@NonNull Permission permission) {
+                if (permission.shouldShowRequestPermissionRationale) {
+                    ban.add(permission.name);
+                } else if (!permission.granted) {
+                    disagree.add(permission.name);
+                }
+            }
 
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        if (callBack != null) {
-                            callBack.fail("处理权限错误", e);
-                        }
-                    }
+            @Override
+            public void onError(@NonNull Throwable e) {
+                if (callBack != null) {
+                    callBack.fail("处理权限错误", e);
+                }
+            }
 
-                    @Override
-                    public void onComplete() {
-                        if (ban.isEmpty() && disagree.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.agree();
-                            }
-                            return;
-                        } else if (!ban.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.ban(ban);
-                            }
-                        } else {
-                            if (callBack != null) {
-                                callBack.disagree(disagree);
-                            }
-                        }
-                        if (callBack != null) {
-                            callBack.fail("暂无权限", null);
-                        }
+            @Override
+            public void onComplete() {
+                if (ban.isEmpty() && disagree.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.agree();
                     }
-                });
+                    return;
+                } else if (!ban.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.ban(ban);
+                    }
+                } else {
+                    if (callBack != null) {
+                        callBack.disagree(disagree);
+                    }
+                }
+                if (callBack != null) {
+                    callBack.fail("暂无权限", null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Check permission boolean.
+     *
+     * @param context the context
+     * @param name    the name
+     * @return the boolean
+     */
+    public static boolean checkHasPermission(Context context, String name) {
+        return ContextCompat.checkSelfPermission(context, name) == PackageManager.PERMISSION_GRANTED;
     }
 }

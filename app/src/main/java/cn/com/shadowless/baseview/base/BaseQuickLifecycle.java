@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleOwner;
 
 /**
  * 快速实现生命周期接口
+ * 支持监听与被监听生命周期
  *
  * @author sHadowLess
  */
