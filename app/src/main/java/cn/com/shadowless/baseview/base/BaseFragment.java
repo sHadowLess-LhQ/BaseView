@@ -25,6 +25,7 @@ import cn.com.shadowless.baseview.callback.PermissionCallBack;
 import cn.com.shadowless.baseview.permission.Permission;
 import cn.com.shadowless.baseview.permission.RxPermissions;
 import cn.com.shadowless.baseview.utils.ClickUtils;
+import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -33,7 +34,6 @@ import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-
 
 /**
  * 基类Fragment
@@ -84,7 +84,10 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        bind = setBindView();
+        bind = inflateView();
+        if (bind == null){
+            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
+        }
         initListener();
         initPermissionData();
         return bind.getRoot();
@@ -171,6 +174,15 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
         }
     }
 
+    protected VB inflateView() {
+        try {
+            return (VB) ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * 需要申请的权限
      *
@@ -185,7 +197,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      * @return the 视图
      */
     @NonNull
-    protected abstract VB setBindView();
+    protected abstract String setBindViewClassName();
 
     /**
      * Init first.

@@ -108,9 +108,15 @@ c、混淆规则
       
           @NonNull
           @Override
-          protected ActivityMainBinding setBindView() {
-             //回传ViewBinding绑定的视图
-             return ActivityMainBinding.inflate(getLayoutInflater());
+          protected String setBindViewClassName() {
+              //返回ViewBinding类的完整类名（路径+类名）
+              return ActivityMainBinding.class.getName();
+          }
+          
+          @Override
+          protected ActivityMainBinding inflateView() {
+              //可重写后实现视图初始化
+              return super.inflateView();
           }
       
           @Override
@@ -216,9 +222,15 @@ c、混淆规则
       
           @NonNull
           @Override
-          protected FragmentMainBinding setBindView() {
-              //回传ViewBinding绑定的视图
-              return FragmentMainBinding.inflate(getLayoutInflater());
+          protected String setBindViewClassName() {
+              //返回ViewBinding类的完整类名（路径+类名）
+              return FragmentMainBinding.class.getName();
+          }
+          
+          @Override
+          protected FragmentMainBinding inflateView() {
+              //可重写后实现视图初始化
+              return super.inflateView();
           }
           
           @Override
@@ -340,8 +352,15 @@ c、混淆规则
         
             @NonNull
             @Override
-            protected PopTestBinding setBindView() {
-                return PopTestBinding.inflate(getLayoutInflater());
+            protected String setBindViewClassName() {
+                //返回ViewBinding类的完整类名（路径+类名）
+                return PopTestBinding.class.getName();
+            }
+            
+            @Override
+            protected PopTestBinding inflateView() {
+                //可重写后实现视图初始化
+                return super.inflateView();
             }
         
             @Override

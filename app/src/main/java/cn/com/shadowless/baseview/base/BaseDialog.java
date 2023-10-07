@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +12,12 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.viewbinding.ViewBinding;
 
 import cn.com.shadowless.baseview.utils.ClickUtils;
+import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 
 
 /**
@@ -166,7 +165,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      * @return the bind view
      */
     @NonNull
-    protected abstract VB setBindView();
+    protected abstract String setBindViewClassName();
 
     /**
      * Dialog params int [ ].
@@ -244,6 +243,20 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     }
 
     /**
+     * Inflate view vb.
+     *
+     * @return the vb
+     */
+    protected VB inflateView() {
+        try {
+            return (VB) ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * Init dialog attr relative layout.
      */
     private void initDialogAttr() {
@@ -253,7 +266,10 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         //子类设置是否外部关闭
         this.setCanceledOnTouchOutside(cancelOutside());
         //动态创建/初始化顶层容器
-        bind = setBindView();
+        bind = inflateView();
+        if (bind == null){
+            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
+        }
         //是否清除边框
         if (clearPadding()) {
             window.getDecorView().setPadding(0, 0, 0, 0);

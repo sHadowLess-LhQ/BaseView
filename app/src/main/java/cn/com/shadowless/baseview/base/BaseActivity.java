@@ -1,6 +1,5 @@
 package cn.com.shadowless.baseview.base;
 
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -8,7 +7,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.viewbinding.ViewBinding;
 
 import com.rxjava.rxlife.RxLife;
@@ -16,13 +14,12 @@ import com.rxjava.rxlife.RxLife;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.com.shadowless.baseview.R;
 import cn.com.shadowless.baseview.callback.InitDataCallBack;
 import cn.com.shadowless.baseview.callback.PermissionCallBack;
 import cn.com.shadowless.baseview.permission.Permission;
-import cn.com.shadowless.baseview.permission.RxPermissions;
 import cn.com.shadowless.baseview.utils.ClickUtils;
 import cn.com.shadowless.baseview.utils.PermissionUtils;
+import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -31,7 +28,6 @@ import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * 基类Activity
@@ -138,7 +134,7 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
      * @return the 视图
      */
     @NonNull
-    protected abstract VB setBindView();
+    protected abstract String setBindViewClassName();
 
     /**
      * 初始化监听
@@ -172,6 +168,20 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
      * @param v the v
      */
     protected abstract void click(@NonNull View v);
+
+    /**
+     * 反射实例化ViewBinding
+     *
+     * @return the vb
+     */
+    protected VB inflateView() {
+        try {
+            return (VB) ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     /**
      * 获取绑定的视图
@@ -300,7 +310,10 @@ public abstract class BaseActivity<VB extends ViewBinding, T> extends AppCompatA
      * 初始化视图
      */
     private void initBindView() {
-        bind = setBindView();
+        bind = inflateView();
+        if (bind == null){
+            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
+        }
         setContentView(bind.getRoot());
     }
 }
