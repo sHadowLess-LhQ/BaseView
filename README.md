@@ -336,7 +336,7 @@ c、混淆规则
       //支持监听其他Lifcycle
       //click监听已做快速点击处理
       //继承示例
-      public class TestDialog extends BaseDialog<PopTestBinding> {
+      public class TestDialog extends BaseDialog<PopTestBinding,String> {
       
             public TestDialog(@NonNull Context context) {
                 super(context);
@@ -362,52 +362,43 @@ c、混淆规则
                 //可重写后实现视图初始化
                 return super.inflateView();
             }
-        
+            
             @Override
-            protected int[] dialogParams() {
+            protected DialogSetting setDialogParam() {
+                DialogSetting setting = new DialogSetting();
                 //按照顺序传入指定的X/Y/宽/高数值
-                return new int[0];
-            }
-        
-            @Override
-            protected int dialogPosition() {
+                setting.setDialogParams(int[] dialogParams);
                 //传入Gravity的位置
-                return 0;
-            }
-        
-            @Override
-            protected boolean clearPadding() {
+                setting.setDialogPosition(int dialogPosition)
                 //是否清除边框
-                return false;
-            }
-        
-            @Override
-            protected boolean cancelOutside() {
+                setting.setClearPadding(boolean clearPadding)
                 //是否允许外部取消
-                return false;
-            }
-        
-            @Override
-            protected boolean isDrag() {
+                setting.setCancelOutside(boolean cancelOutside)
                 //是否允许拖动
-                return false;
-            }
-        
-            @Override
-            protected boolean hasShadow() {
+                setting.setDrag(boolean drag)
                 //是否拥有阴影
-                return false;
-            }
-        
-            @Override
-            protected int setFlag() {
+                setting.setHasShadow(boolean hasShadow)
                 //设置Dialog的窗体标识
-                return 0;
+                setting.setSetFlag(int setFlag)
+                return setting;
             }
         
             @Override
-            protected void initView() {
-               
+            protected void initData(InitDataCallBack<String> callBack) {
+               //在此获取数据回调给initSuccessView或initFailView
+               callBack.initSuccessViewWithData("asd");
+               callBack.initSuccessViewWithOutData();
+               callBack.initFailView(Throwable e);
+            }
+
+            @Override
+            protected void initSuccessView(String data) {
+               getBindView().test.setText(data);
+            }
+
+            @Override
+            protected void initFailView(Throwable e) {
+  
             }
         
             @Override
@@ -422,7 +413,7 @@ c、混淆规则
             
             @Override
             public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-                //监听其他Lifecycle的声明周期标识符
+                //监听其他Lifecycle组件的声明周期标识符
             }
       }
 ```
@@ -524,37 +515,39 @@ c、混淆规则
 ### BaseQucikLifeleImpl
 
 ```
-      //快速实现一个可以使用的支持Lifecycle和支持监听其他Lifecycle的类
+      //快速实现一个支持Lifecycle和支持监听其他Lifecycle的类
       //适合无继承关系的任意类使用
       //有继承关系请使用BaseQuickLifecycle
       //直接继承BaseQuickLifecycleImpl
       //在此类的业务逻辑中的合适位置发送声明周期事件
-      //已自动监听/移除监听其他生命周期组件
+      //自动监听/移除监听其他生命周期组件
       public class Test extends BaseQuickLifecycleImpl{
       
           public Test() {
-              //默认构造调用的时候发送ON_CREATE事件，不需要请移除超类后自发送
+              //此构造只支持自己实现Lifecycle，无法监听其他声明周期组件
+              //默认构造调用时发送ON_CREATE、ON_START、ON_RESUME事件
+              //需要自实现顺序和位请移除超类后自发送
               super();
           }
           
           public Test(Lifecycle observeLifecycle) {
-              //监听其他拥有生命周期接口组件
+              //监听其他拥有生命周期接口组件，且实现支持Lifecycle
+              //默认构造调用的时候发送ON_CREATE、ON_START、ON_RESUME事件，需要自实现请移除超类后自发送
               super(observeLifecycle);
           }
           
-          @NonNull
-          @Override
-          protected Lifecycle.Event setStopEvent() {
-              //设置onTerminate需要回调的事件标识
-              //默认此实现生命周期接口的组件也是在这个标识符中止运行
-              return Lifecycle.Event.ON_DESTROY;
-          }
+           @NonNull
+           @Override
+           protected Lifecycle.Event setStopEvent() {
+                return null;
+           }
           
           @Override
           protected void onTerminate(Lifecycle.Event event) {
-              //可在此中止当前Test类中正在进行的任务前后的逻辑
-              //若不需要和监听的生命周期组件同一标识符终止运行，重写onTerminate()
-              //超类中传入需要的标识符
+              //默认调用时发送ON_PAUSE、ON_STOP、ON_DESTROY事件，以达成完整生命周期顺序
+              //需要自实现顺序和位置请移除超类后自发送
+              //如果rxjava监听生命周期无法正常中止订阅，请检查生命周期状态是否分发完整
+              //可在此中止当前Test类中正在进行的任务的其他相关逻辑
               super.onTerminate(event);
           }
       }

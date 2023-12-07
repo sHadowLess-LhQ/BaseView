@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.viewbinding.ViewBinding;
 
+import cn.com.shadowless.baseview.callback.InitDataCallBack;
 import cn.com.shadowless.baseview.utils.ClickUtils;
 import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 
@@ -24,9 +25,10 @@ import cn.com.shadowless.baseview.utils.ViewBindingUtils;
  * 父类Dialog
  *
  * @param <VB> the type parameter
+ * @param <T>  the type parameter
  * @author sHadowLess
  */
-public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements View.OnClickListener, BaseQuickLifecycle {
+public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog implements View.OnClickListener, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数
@@ -54,6 +56,101 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     private final LifecycleRegistry lifecycleRegistry;
 
     /**
+     * The Setting.
+     */
+    private final DialogSetting setting;
+
+    /**
+     * The type Dialog setting.
+     */
+    public static final class DialogSetting {
+        /**
+         * The Dialog params.
+         */
+        private int[] dialogParams;
+        /**
+         * The Dialog position.
+         */
+        private int dialogPosition;
+        /**
+         * The Clear padding.
+         */
+        private boolean clearPadding;
+        /**
+         * The Cancel outside.
+         */
+        private boolean cancelOutside;
+        /**
+         * The Is drag.
+         */
+        private boolean isDrag;
+        /**
+         * The Has shadow.
+         */
+        private boolean hasShadow;
+        /**
+         * The Set flag.
+         */
+        private int setFlag;
+
+        public int[] getDialogParams() {
+            return dialogParams;
+        }
+
+        public void setDialogParams(int[] dialogParams) {
+            this.dialogParams = dialogParams;
+        }
+
+        public int getDialogPosition() {
+            return dialogPosition;
+        }
+
+        public void setDialogPosition(int dialogPosition) {
+            this.dialogPosition = dialogPosition;
+        }
+
+        public boolean isClearPadding() {
+            return clearPadding;
+        }
+
+        public void setClearPadding(boolean clearPadding) {
+            this.clearPadding = clearPadding;
+        }
+
+        public boolean isCancelOutside() {
+            return cancelOutside;
+        }
+
+        public void setCancelOutside(boolean cancelOutside) {
+            this.cancelOutside = cancelOutside;
+        }
+
+        public boolean isDrag() {
+            return isDrag;
+        }
+
+        public void setDrag(boolean drag) {
+            isDrag = drag;
+        }
+
+        public boolean isHasShadow() {
+            return hasShadow;
+        }
+
+        public void setHasShadow(boolean hasShadow) {
+            this.hasShadow = hasShadow;
+        }
+
+        public int getSetFlag() {
+            return setFlag;
+        }
+
+        public void setSetFlag(int setFlag) {
+            this.setFlag = setFlag;
+        }
+    }
+
+    /**
      * 普通dialog构造
      *
      * @param context the context
@@ -61,6 +158,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     public BaseDialog(@NonNull Context context) {
         super(context);
         this.context = context;
+        this.setting = setDialogParam();
         lifecycleRegistry = new LifecycleRegistry(this);
     }
 
@@ -73,6 +171,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     public BaseDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
         this.context = context;
+        this.setting = setDialogParam();
         lifecycleRegistry = new LifecycleRegistry(this);
     }
 
@@ -81,7 +180,22 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         super.onCreate(savedInstanceState);
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         initDialogAttr();
-        initView();
+        initData(new InitDataCallBack<T>() {
+            @Override
+            public void initSuccessViewWithData(@NonNull T t) {
+                BaseDialog.this.initSuccessView(t);
+            }
+
+            @Override
+            public void initSuccessViewWithOutData() {
+                BaseDialog.this.initSuccessView(null);
+            }
+
+            @Override
+            public void initFailView(Throwable e) {
+                BaseDialog.this.initFailView(e);
+            }
+        });
     }
 
     @Override
@@ -168,58 +282,32 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     protected abstract String setBindViewClassName();
 
     /**
-     * Dialog params int [ ].
+     * Sets dialog param.
      *
-     * @return the int [ ]
+     * @return the dialog param
      */
-    protected abstract int[] dialogParams();
+    protected abstract DialogSetting setDialogParam();
 
     /**
-     * Dialog position int.
+     * 初始化数据
      *
-     * @return the int
+     * @param callBack the call back
      */
-    protected abstract int dialogPosition();
+    protected abstract void initData(InitDataCallBack<T> callBack);
 
     /**
-     * Clear padding boolean.
+     * 初始化成功视图
      *
-     * @return the boolean
+     * @param data the data
      */
-    protected abstract boolean clearPadding();
+    protected abstract void initSuccessView(T data);
 
     /**
-     * Cancel outside boolean.
+     * 初始化失败视图
      *
-     * @return the boolean
+     * @param e the e
      */
-    protected abstract boolean cancelOutside();
-
-    /**
-     * isDrag
-     *
-     * @return the boolean
-     */
-    protected abstract boolean isDrag();
-
-    /**
-     * Has shadow boolean.
-     *
-     * @return the boolean
-     */
-    protected abstract boolean hasShadow();
-
-    /**
-     * Sets flag.
-     *
-     * @return the flag
-     */
-    protected abstract int setFlag();
-
-    /**
-     * 初始化视图
-     */
-    protected abstract void initView();
+    protected abstract void initFailView(Throwable e);
 
     /**
      * 初始化监听
@@ -264,14 +352,14 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         //无标题
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         //子类设置是否外部关闭
-        this.setCanceledOnTouchOutside(cancelOutside());
+        this.setCanceledOnTouchOutside(setting.isCancelOutside());
         //动态创建/初始化顶层容器
         bind = inflateView();
-        if (bind == null){
+        if (bind == null) {
             throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
         }
         //是否清除边框
-        if (clearPadding()) {
+        if (setting.isClearPadding()) {
             window.getDecorView().setPadding(0, 0, 0, 0);
         }
         //填充顶级容器
@@ -282,12 +370,12 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      * Init dialog position.
      */
     private void initDialog() {
-        if (!hasShadow()) {
+        if (!setting.isHasShadow()) {
             window.setDimAmount(0f);
         }
-        window.setGravity(dialogPosition());
+        window.setGravity(setting.getDialogPosition());
         layoutParams = window.getAttributes();
-        int[] params = dialogParams();
+        int[] params = setting.getDialogParams();
         if (params != null && params.length >= 4) {
             layoutParams.x = params[0];
             layoutParams.y = params[1];
@@ -297,11 +385,11 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
             layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
             layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
         }
-        int flag = setFlag();
+        int flag = setting.getSetFlag();
         if (flag != 0) {
             layoutParams.flags = flag;
         }
-        if (isDrag()) {
+        if (setting.isDrag()) {
             window.getDecorView().setOnTouchListener(new FloatingOnTouchListener());
         }
         window.setAttributes(layoutParams);

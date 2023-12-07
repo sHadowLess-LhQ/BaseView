@@ -20,7 +20,12 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
     /**
      * The Lifecycle.
      */
-    private Lifecycle observeLifecycle;
+    private LifecycleOwner observeLifecycle;
+
+    /**
+     * The Set stop event.
+     */
+    private Lifecycle.Event setStopEvent;
 
     /**
      * 构造
@@ -34,18 +39,18 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
      *
      * @param observeLifecycle the observe lifecycle
      */
-    public BaseQuickLifecycleImpl(Lifecycle observeLifecycle) {
-        this.observeLifecycle = observeLifecycle;
-        observeLifecycle.addObserver(this);
+    public BaseQuickLifecycleImpl(LifecycleOwner observeLifecycle) {
         init();
+        this.observeLifecycle = observeLifecycle;
+        this.setStopEvent = setStopEvent();
+        observeLifecycle.getLifecycle().addObserver(this);
     }
 
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-        Lifecycle.Event setStopEvent = setStopEvent();
         if (event == setStopEvent) {
-            onTerminate(setStopEvent);
-            getObserveLifecycle().removeObserver(this);
+            onTerminate(event);
+            getObserveLifecycle().getLifecycle().removeObserver(this);
         }
     }
 
@@ -60,7 +65,9 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
      */
     private void init() {
         lifecycleRegistry = new LifecycleRegistry(this);
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+        getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+        getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event.ON_START);
+        getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
     }
 
     /**
@@ -68,7 +75,7 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
      *
      * @return the observe lifecycle
      */
-    public Lifecycle getObserveLifecycle() {
+    public LifecycleOwner getObserveLifecycle() {
         return observeLifecycle;
     }
 
@@ -83,9 +90,13 @@ public abstract class BaseQuickLifecycleImpl implements BaseQuickLifecycle {
 
     /**
      * On state destroy.
+     *
+     * @param event the event
      */
     protected void onTerminate(Lifecycle.Event event) {
-        getLifecycleRegistry().handleLifecycleEvent(event);
+        getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+        getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+        getLifecycleRegistry().handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
     }
 
     /**
