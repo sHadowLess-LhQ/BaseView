@@ -16,7 +16,6 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.viewbinding.ViewBinding;
 
-import cn.com.shadowless.baseview.callback.InitDataCallBack;
 import cn.com.shadowless.baseview.utils.ClickUtils;
 import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 
@@ -25,10 +24,9 @@ import cn.com.shadowless.baseview.utils.ViewBindingUtils;
  * 父类Dialog
  *
  * @param <VB> the type parameter
- * @param <T>  the type parameter
  * @author sHadowLess
  */
-public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog implements View.OnClickListener, BaseQuickLifecycle {
+public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements View.OnClickListener, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数
@@ -93,58 +91,128 @@ public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog imple
          */
         private int setFlag;
 
+        /**
+         * Get dialog params int [ ].
+         *
+         * @return the int [ ]
+         */
         public int[] getDialogParams() {
             return dialogParams;
         }
 
+        /**
+         * Sets dialog params.
+         *
+         * @param dialogParams the dialog params
+         */
         public void setDialogParams(int[] dialogParams) {
             this.dialogParams = dialogParams;
         }
 
+        /**
+         * Gets dialog position.
+         *
+         * @return the dialog position
+         */
         public int getDialogPosition() {
             return dialogPosition;
         }
 
+        /**
+         * Sets dialog position.
+         *
+         * @param dialogPosition the dialog position
+         */
         public void setDialogPosition(int dialogPosition) {
             this.dialogPosition = dialogPosition;
         }
 
+        /**
+         * Is clear padding boolean.
+         *
+         * @return the boolean
+         */
         public boolean isClearPadding() {
             return clearPadding;
         }
 
+        /**
+         * Sets clear padding.
+         *
+         * @param clearPadding the clear padding
+         */
         public void setClearPadding(boolean clearPadding) {
             this.clearPadding = clearPadding;
         }
 
+        /**
+         * Is cancel outside boolean.
+         *
+         * @return the boolean
+         */
         public boolean isCancelOutside() {
             return cancelOutside;
         }
 
+        /**
+         * Sets cancel outside.
+         *
+         * @param cancelOutside the cancel outside
+         */
         public void setCancelOutside(boolean cancelOutside) {
             this.cancelOutside = cancelOutside;
         }
 
+        /**
+         * Is drag boolean.
+         *
+         * @return the boolean
+         */
         public boolean isDrag() {
             return isDrag;
         }
 
+        /**
+         * Sets drag.
+         *
+         * @param drag the drag
+         */
         public void setDrag(boolean drag) {
             isDrag = drag;
         }
 
+        /**
+         * Is has shadow boolean.
+         *
+         * @return the boolean
+         */
         public boolean isHasShadow() {
             return hasShadow;
         }
 
+        /**
+         * Sets has shadow.
+         *
+         * @param hasShadow the has shadow
+         */
         public void setHasShadow(boolean hasShadow) {
             this.hasShadow = hasShadow;
         }
 
+        /**
+         * Gets set flag.
+         *
+         * @return the set flag
+         */
         public int getSetFlag() {
             return setFlag;
         }
 
+        /**
+         * Sets set flag.
+         *
+         * @param setFlag the set flag
+         */
         public void setSetFlag(int setFlag) {
             this.setFlag = setFlag;
         }
@@ -180,22 +248,8 @@ public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog imple
         super.onCreate(savedInstanceState);
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         initDialogAttr();
-        initData(new InitDataCallBack<T>() {
-            @Override
-            public void initSuccessViewWithData(@NonNull T t) {
-                BaseDialog.this.initSuccessView(t);
-            }
-
-            @Override
-            public void initSuccessViewWithOutData() {
-                BaseDialog.this.initSuccessView(null);
-            }
-
-            @Override
-            public void initFailView(Throwable e) {
-                BaseDialog.this.initFailView(e);
-            }
-        });
+        initData();
+        bindDataToView();
     }
 
     @Override
@@ -251,7 +305,7 @@ public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog imple
     @Override
     public void show() {
         super.show();
-        initListener();
+        initViewListener();
         initDialog();
     }
 
@@ -274,54 +328,6 @@ public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog imple
     }
 
     /**
-     * 设置绑定视图
-     *
-     * @return the bind view
-     */
-    @NonNull
-    protected abstract String setBindViewClassName();
-
-    /**
-     * Sets dialog param.
-     *
-     * @return the dialog param
-     */
-    protected abstract DialogSetting setDialogParam();
-
-    /**
-     * 初始化数据
-     *
-     * @param callBack the call back
-     */
-    protected abstract void initData(InitDataCallBack<T> callBack);
-
-    /**
-     * 初始化成功视图
-     *
-     * @param data the data
-     */
-    protected abstract void initSuccessView(T data);
-
-    /**
-     * 初始化失败视图
-     *
-     * @param e the e
-     */
-    protected abstract void initFailView(Throwable e);
-
-    /**
-     * 初始化监听
-     */
-    protected abstract void initListener();
-
-    /**
-     * 点击
-     *
-     * @param v the v
-     */
-    protected abstract void click(@NonNull View v);
-
-    /**
      * Gets activity context.
      *
      * @return the activity context
@@ -337,7 +343,7 @@ public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog imple
      */
     protected VB inflateView() {
         try {
-            return (VB) ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+            return ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -433,4 +439,48 @@ public abstract class BaseDialog<VB extends ViewBinding, T> extends Dialog imple
             return false;
         }
     }
+
+    /**
+     * 设置绑定视图
+     *
+     * @return the bind view
+     */
+    @NonNull
+    protected abstract String setBindViewClassName();
+
+    /**
+     * Sets dialog param.
+     *
+     * @return the dialog param
+     */
+    protected abstract DialogSetting setDialogParam();
+
+    /**
+     * 初始化数据
+     */
+    protected abstract void initData();
+
+    /**
+     * 初始化成功视图
+     */
+    protected abstract void bindDataToView();
+
+    /**
+     * 初始化失败视图
+     *
+     * @param e the e
+     */
+    protected abstract void initFailView(Throwable e);
+
+    /**
+     * 初始化监听
+     */
+    protected abstract void initViewListener();
+
+    /**
+     * 点击
+     *
+     * @param v the v
+     */
+    protected abstract void click(@NonNull View v);
 }

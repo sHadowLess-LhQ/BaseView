@@ -20,29 +20,21 @@ import com.rxjava.rxlife.RxLife;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.com.shadowless.baseview.callback.InitDataCallBack;
 import cn.com.shadowless.baseview.callback.PermissionCallBack;
 import cn.com.shadowless.baseview.permission.Permission;
 import cn.com.shadowless.baseview.permission.RxPermissions;
 import cn.com.shadowless.baseview.utils.ClickUtils;
 import cn.com.shadowless.baseview.utils.ViewBindingUtils;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableTransformer;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 
 /**
  * 基类Fragment
  *
  * @param <VB> the type 视图
- * @param <T>  the type parameter
  * @author sHadowLess
  */
-public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment implements ObservableOnSubscribe<T>, Observer<T>, View.OnClickListener {
+public abstract class BaseFragment<VB extends ViewBinding> extends Fragment implements View.OnClickListener {
 
     /**
      * 视图绑定
@@ -64,11 +56,6 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      */
     private boolean isFirst = true;
 
-    /**
-     * The Is only complete.
-     */
-    private volatile boolean isOnlyComplete = false;
-
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -85,11 +72,11 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         bind = inflateView();
-        if (bind == null){
+        if (bind == null) {
             throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
         }
-        initListener();
-        initPermissionData();
+        initViewListener();
+        initPermissionAndInitData();
         return bind.getRoot();
     }
 
@@ -101,7 +88,7 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
                 isFirst = false;
                 mainHandler.postDelayed(() -> {
                     if (this.isAdded()) {
-                        onLazyData();
+                        initLazyData();
                     }
                 }, 10);
             }
@@ -123,119 +110,25 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     }
 
     @Override
-    public void subscribe(@NonNull ObservableEmitter<T> emitter) throws Exception {
-        initData(new InitDataCallBack<T>() {
-            @Override
-            public void initSuccessViewWithData(@NonNull T t) {
-                isOnlyComplete = false;
-                emitter.onNext(t);
-                emitter.onComplete();
-            }
-
-            @Override
-            public void initSuccessViewWithOutData() {
-                isOnlyComplete = true;
-                emitter.onComplete();
-            }
-
-            @Override
-            public void initFailView(Throwable e) {
-                emitter.onError(e);
-            }
-        });
-    }
-
-    @Override
-    public void onSubscribe(@NonNull Disposable d) {
-
-    }
-
-    @Override
-    public void onNext(@NonNull T mData) {
-        initSuccessView(mData);
-    }
-
-    @Override
-    public void onError(@NonNull Throwable e) {
-        initFailView(e);
-    }
-
-    @Override
-    public void onComplete() {
-        if (isOnlyComplete) {
-            initSuccessView(null);
-        }
-    }
-
-    @Override
     public void onClick(View v) {
         if (!ClickUtils.isFastClick()) {
             click(v);
         }
     }
 
+    /**
+     * Inflate view vb.
+     *
+     * @return the vb
+     */
     protected VB inflateView() {
         try {
-            return (VB) ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+            return ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
-
-    /**
-     * 需要申请的权限
-     *
-     * @return the 权限组
-     */
-    @Nullable
-    protected abstract String[] permissions();
-
-    /**
-     * 设置绑定视图
-     *
-     * @return the 视图
-     */
-    @NonNull
-    protected abstract String setBindViewClassName();
-
-    /**
-     * Init first.
-     */
-    protected abstract void initFirst();
-
-    /**
-     * 初始化监听
-     */
-    protected abstract void initListener();
-
-    /**
-     * 初始化数据
-     *
-     * @param callBack the call back
-     */
-    protected abstract void initData(@NonNull InitDataCallBack<T> callBack);
-
-    /**
-     * 初始化视图
-     *
-     * @param data the 数据表
-     */
-    protected abstract void initSuccessView(@Nullable T data);
-
-    /**
-     * Init fail view.
-     *
-     * @param e the e
-     */
-    protected abstract void initFailView(@Nullable Throwable e);
-
-    /**
-     * 点击
-     *
-     * @param v the v
-     */
-    protected abstract void click(@NonNull View v);
 
     /**
      * 获取绑定视图
@@ -254,25 +147,6 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
      */
     protected Activity getAttachActivity() {
         return mActivity;
-    }
-
-    /**
-     * 懒加载数据
-     */
-    protected void onLazyData() {
-
-    }
-
-    /**
-     * 设置调度器
-     *
-     * @return the scheduler
-     */
-    protected Scheduler[] setScheduler() {
-        return new Scheduler[]{
-                AndroidSchedulers.mainThread(),
-                AndroidSchedulers.mainThread()
-        };
     }
 
     /**
@@ -322,8 +196,8 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
                                        if (callBack != null) {
                                            callBack.agree();
                                        }
-                                       dealDataToView();
-                                       return;
+                                       initData();
+                                       bindDataToView();
                                    } else if (!ban.isEmpty()) {
                                        if (callBack != null) {
                                            callBack.ban(ban);
@@ -341,32 +215,61 @@ public abstract class BaseFragment<VB extends ViewBinding, T> extends Fragment i
     /**
      * 初始化权限
      */
-    private void initPermissionData() {
+    private void initPermissionAndInitData() {
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
-            dealDataToView();
+            initData();
+            bindDataToView();
             return;
         }
         initPermission(permissions);
     }
 
     /**
-     * Deal data.
+     * 需要申请的权限
+     *
+     * @return the 权限组
      */
-    private void dealDataToView() {
-        Observable.create(this).compose(dealWithThreadMode(setScheduler())).as(RxLife.as(this)).subscribe(this);
-    }
+    @Nullable
+    protected abstract String[] permissions();
 
     /**
-     * 初始化数据所在线程
+     * 设置绑定视图
      *
-     * @param <TF>      the type parameter
-     * @param scheduler the scheduler
-     * @return the 线程模式
+     * @return the 视图
      */
-    private <TF> ObservableTransformer<TF, TF> dealWithThreadMode(Scheduler[] scheduler) {
-        return upstream -> upstream.subscribeOn(scheduler[0])
-                .unsubscribeOn(scheduler[0])
-                .observeOn(scheduler[1]);
-    }
+    @NonNull
+    protected abstract String setBindViewClassName();
+
+    /**
+     * 碎片第一次创建
+     */
+    protected abstract void initFirst();
+
+    /**
+     * 初始化视图监听
+     */
+    protected abstract void initViewListener();
+
+    /**
+     * 初始化数据
+     */
+    protected abstract void initData();
+
+    /**
+     * 初始化懒加载数据
+     */
+    protected abstract void initLazyData();
+
+    /**
+     * 给视图绑定数据
+     */
+    protected abstract void bindDataToView();
+
+    /**
+     * 点击
+     *
+     * @param v the v
+     */
+    protected abstract void click(@NonNull View v);
 }
