@@ -248,6 +248,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         super.onCreate(savedInstanceState);
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         initDialogAttr();
+        initObject();
         initData();
         bindDataToView();
     }
@@ -456,6 +457,11 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     protected abstract DialogSetting setDialogParam();
 
     /**
+     * 初始化对象
+     */
+    protected abstract void initObject();
+
+    /**
      * 初始化数据
      */
     protected abstract void initData();
@@ -464,13 +470,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      * 初始化成功视图
      */
     protected abstract void bindDataToView();
-
-    /**
-     * 初始化失败视图
-     *
-     * @param e the e
-     */
-    protected abstract void initFailView(Throwable e);
 
     /**
      * 初始化监听

@@ -115,39 +115,30 @@ c、混淆规则
           
           @Override
           protected ActivityMainBinding inflateView() {
-              //可重写后实现视图初始化
+              //可重写后手动实现视图初始化
               return super.inflateView();
-          }
-      
-          @Override
-          protected void initData(@NonNull InitDataCallBack<String> callBack) {
-             //初始化数据
-             【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
-             //若有数据给视图绑定，使用initViewWithData
-             //若无数据给视图绑定，使用initViewWithOutData
-             //若有报错，使用initFailView显示错误页面
-             callBack.initSuccessViewWithData("1");
-             callBack.initSuccessViewWithOutData();
-             callBack.initFailView(new Throwable("有问题"));
           }
           
           @Override
-          protected void initListener() {
+          protected void initViewListener() {
              //初始化监听
              getBindView().test.setOnClickListener(this);
           }
-      
-          @Override
-          protected void initSuccessView(@Nullable String data) {
-             //默认在主线程
-             //初始化界面控件
-             getBindView().test.setText(data);
-          }
           
           @Override
-          protected void initFailView(@Nullable Throwable e) {
-              //处理数据失败
-              //错误页面
+          protected void initObject() {
+             //初始化对象
+          }
+      
+          @Override
+          protected void initData() {
+             //初始化数据
+          }
+      
+          @Override
+          protected void bindDataToView() {
+             //视图绑定数据
+             getBindView().test.setText("");
           }
           
           @Override
@@ -187,18 +178,6 @@ c、混淆规则
                       })
                       .show();
           }
-          
-          @Override
-          protected Scheduler[] setScheduler() {
-              //需要修改线程调度
-              //重写后去除超类
-              //参数1为注册+注销线程
-              //参数2为订阅观察线程
-              return new Scheduler[]{
-                       Schedulers.io(),
-                       AndroidSchedulers.mainThread()
-              };
-          }
       }
 ```
 
@@ -237,36 +216,31 @@ c、混淆规则
           protected void initFirst() {
               //碎片第一次创建
           }
-      
-          @Override
-          protected void initData(@NonNull InitDataCallBack<String> callBack) {
-             //初始化数据
-             【注】：若在initData()中需要同时从多个接口获取数据，可以使用RxJava的zip操作符，将数据进行集中处理后，再通过InitDataCallBack回调自己的装箱数据
-             Toast.makeText(getBindActivity(), "可用Activity对象", Toast.LENGTH_SHORT).show();
-             //若有数据给视图绑定，使用initViewWithData
-             //若有报错，使用initFailView显示错误页面
-             callBack.initSuccessViewWithData("1");
-             callBack.initSuccessViewWithOutData();
-             callBack.initFailView(new Throwable("有问题"));
-          }
           
           @Override
-          protected void initListener() {
+          protected void initViewListener() {
              //初始化监听
              getBindView().test.setOnClickListener(this);
           }
-      
+          
           @Override
-          protected void initSuccessView(@Nullable String map) {
-             //默认在主线程
-             //初始化界面控件
-             getBindView().test.setText(map);
+          protected void initObject() {
+             //初始化对象
           }
           
           @Override
-          protected void initFailView(@Nullable Throwable e) {
-              //处理数据失败
-              //错误页面
+          protected void initData() {
+             //初始化数据
+          }
+          
+          @Override
+          protected void initLazyData() {
+            //初始化懒加载数据
+          }
+      
+          @Override
+          protected void bindDataToView() {
+             //视图绑定数据
           }
           
           @Override
@@ -305,24 +279,6 @@ c、混淆规则
                           }
                       })
                       .show();
-          }
-          
-          @Override
-          protected Scheduler[] setScheduler() {
-              //需要修改线程调度
-              //重写后去除超类
-              //参数1为注册+注销线程
-              //参数2为订阅观察线程
-              return new Scheduler[]{
-                       Schedulers.io(),
-                       AndroidSchedulers.mainThread()
-              };
-          }
-          
-          @Override
-          protected void onLazyData() {
-              super.onLazyData();
-              //需要懒加载的时候重写
           }
       }
 ```
@@ -384,25 +340,22 @@ c、混淆规则
             }
         
             @Override
-            protected void initData(InitDataCallBack<String> callBack) {
-               //在此获取数据回调给initSuccessView或initFailView
-               callBack.initSuccessViewWithData("asd");
-               callBack.initSuccessViewWithOutData();
-               callBack.initFailView(Throwable e);
-            }
-
-            @Override
-            protected void initSuccessView(String data) {
-               getBindView().test.setText(data);
-            }
-
-            @Override
-            protected void initFailView(Throwable e) {
-  
+            protected void initObject() {
+               //初始化对象
             }
         
             @Override
-            protected void initListener() {
+            protected void initData() {
+               //初始化数据
+            }
+
+            @Override
+            protected void bindDataToView() {
+               //视图绑定数据
+            }
+        
+            @Override
+            protected void initViewListener() {
         
             }
         
