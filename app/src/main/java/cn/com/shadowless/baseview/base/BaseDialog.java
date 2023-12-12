@@ -249,8 +249,8 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         initDialogAttr();
         initObject();
-        initData();
         bindDataToView();
+        initData();
     }
 
     @Override
@@ -313,10 +313,10 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     /**
      * Sets observer lifecycle.
      *
-     * @param lifecycle the lifecycle
+     * @param owner the owner
      */
-    public void setNeedObserveLifecycle(Lifecycle lifecycle) {
-        lifecycle.addObserver(this);
+    public void setNeedObserveLifecycle(LifecycleOwner owner) {
+        owner.getLifecycle().addObserver(this);
     }
 
     /**
@@ -462,14 +462,14 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     protected abstract void initObject();
 
     /**
-     * 初始化数据
-     */
-    protected abstract void initData();
-
-    /**
      * 初始化成功视图
      */
     protected abstract void bindDataToView();
+
+    /**
+     * 初始化数据
+     */
+    protected abstract void initData();
 
     /**
      * 初始化监听

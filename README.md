@@ -92,12 +92,14 @@ c、混淆规则
 
 ```
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
+      //bindDataToView比initData先执行，设计为给LiveData使用
+      //在bindDataToView要先注册观察者后，initData再执行，防止漏收数据
       //click监听已做快速点击处理
       //填入传递数据类型
       //设置Activity主题，请重写initTheme()方法
       //设置initData所处线程，请重写setScheduler()方法
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
-      public class MainActivity extends BaseActivity<ActivityMainBinding,String> {
+      public class MainActivity extends BaseActivity<ActivityMainBinding> {
     
           @Nullable
           @Override
@@ -129,16 +131,16 @@ c、混淆规则
           protected void initObject() {
              //初始化对象
           }
-      
-          @Override
-          protected void initData() {
-             //初始化数据
-          }
-      
+          
           @Override
           protected void bindDataToView() {
              //视图绑定数据
              getBindView().test.setText("");
+          }
+      
+          @Override
+          protected void initData() {
+             //初始化数据
           }
           
           @Override
@@ -185,12 +187,14 @@ c、混淆规则
 
 ```
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
+            //bindDataToView比initData先执行，设计为给LiveData使用
+      //在bindDataToView要先注册观察者后，initData再执行，防止漏收数据
       //click监听已做快速点击处理
       //填入传递数据类型
       //设置Activity主题，请重写initTheme()方法
       //设置initData所处线程，请重写setScheduler()方法
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
-      public class MainFragment extends BaseFragment<FragmentMainBinding,String> {
+      public class MainFragment extends BaseFragment<FragmentMainBinding> {
   
           @Nullable
           @Override
@@ -229,6 +233,11 @@ c、混淆规则
           }
           
           @Override
+          protected void bindDataToView() {
+             //视图绑定数据
+          }
+          
+          @Override
           protected void initData() {
              //初始化数据
           }
@@ -236,11 +245,6 @@ c、混淆规则
           @Override
           protected void initLazyData() {
             //初始化懒加载数据
-          }
-      
-          @Override
-          protected void bindDataToView() {
-             //视图绑定数据
           }
           
           @Override

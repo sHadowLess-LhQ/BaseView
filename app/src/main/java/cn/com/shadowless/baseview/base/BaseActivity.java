@@ -100,8 +100,8 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
             initObject();
-            initData();
             bindDataToView();
+            initData();
             return;
         }
         initPermission(permissions);
@@ -153,8 +153,8 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                         callBack.agree();
                     }
                     initObject();
-                    initData();
                     bindDataToView();
+                    initData();
                 } else if (!ban.isEmpty()) {
                     if (callBack != null) {
                         callBack.ban(ban);
@@ -206,15 +206,15 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     protected abstract void initObject();
 
     /**
-     * 初始化数据
-     */
-    protected abstract void initData();
-
-    /**
      * 给视图绑定数据
      */
     protected abstract void bindDataToView();
 
+    /**
+     * 初始化数据
+     */
+    protected abstract void initData();
+    
     /**
      * 点击
      *
