@@ -73,7 +73,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         bind = inflateView();
         if (bind == null) {
-            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
+            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入正确或重写自实现inflateView方法");
         }
         initViewListener();
         initPermissionAndInitData();
@@ -123,7 +123,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      */
     protected VB inflateView() {
         try {
-            return ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+            return ViewBindingUtils.inflate(setBindViewClass().getName(), getLayoutInflater());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -197,7 +197,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
                                            callBack.agree();
                                        }
                                        initObject();
-                                       bindDataToView();
+                                       initBindDataLister();
                                        initData();
                                    } else if (!ban.isEmpty()) {
                                        if (callBack != null) {
@@ -220,7 +220,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
             initObject();
-            bindDataToView();
+            initBindDataLister();
             initData();
             return;
         }
@@ -241,7 +241,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      * @return the 视图
      */
     @NonNull
-    protected abstract String setBindViewClassName();
+    protected abstract Class<VB> setBindViewClass();
 
     /**
      * 碎片第一次创建
@@ -259,9 +259,9 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     protected abstract void initObject();
 
     /**
-     * 给视图绑定数据
+     * 初始化视图绑定数据监听
      */
-    protected abstract void bindDataToView();
+    protected abstract void initBindDataLister();
 
     /**
      * 初始化数据

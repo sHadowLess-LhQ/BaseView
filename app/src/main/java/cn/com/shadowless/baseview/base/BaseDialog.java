@@ -249,7 +249,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         initDialogAttr();
         initObject();
-        bindDataToView();
+        initBindDataLister();
         initData();
     }
 
@@ -344,7 +344,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      */
     protected VB inflateView() {
         try {
-            return ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+            return ViewBindingUtils.inflate(setBindViewClass().getName(), getLayoutInflater());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -363,7 +363,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         //动态创建/初始化顶层容器
         bind = inflateView();
         if (bind == null) {
-            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
+            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入正确或重写自实现inflateView方法");
         }
         //是否清除边框
         if (setting.isClearPadding()) {
@@ -447,7 +447,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      * @return the bind view
      */
     @NonNull
-    protected abstract String setBindViewClassName();
+    protected abstract Class<VB> setBindViewClass();
 
     /**
      * Sets dialog param.
@@ -462,9 +462,9 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     protected abstract void initObject();
 
     /**
-     * 初始化成功视图
+     * 初始化绑定视图数据监听
      */
-    protected abstract void bindDataToView();
+    protected abstract void initBindDataLister();
 
     /**
      * 初始化数据

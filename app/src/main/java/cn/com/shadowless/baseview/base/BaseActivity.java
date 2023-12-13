@@ -67,7 +67,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
      */
     protected VB inflateView() {
         try {
-            return ViewBindingUtils.inflate(setBindViewClassName(), getLayoutInflater());
+            return ViewBindingUtils.inflate(setBindViewClass().getName(), getLayoutInflater());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -100,7 +100,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
             initObject();
-            bindDataToView();
+            initBindDataLister();
             initData();
             return;
         }
@@ -153,7 +153,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                         callBack.agree();
                     }
                     initObject();
-                    bindDataToView();
+                    initBindDataLister();
                     initData();
                 } else if (!ban.isEmpty()) {
                     if (callBack != null) {
@@ -174,7 +174,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     private void initBindView() {
         bind = inflateView();
         if (bind == null) {
-            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName传是否入绝对路径或重写自实现inflateView方法");
+            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入正确或重写自实现inflateView方法");
         }
         setContentView(bind.getRoot());
     }
@@ -193,7 +193,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
      * @return the 视图
      */
     @NonNull
-    protected abstract String setBindViewClassName();
+    protected abstract Class<VB> setBindViewClass();
 
     /**
      * 初始化视图监听
@@ -208,13 +208,13 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     /**
      * 给视图绑定数据
      */
-    protected abstract void bindDataToView();
+    protected abstract void initBindDataLister();
 
     /**
      * 初始化数据
      */
     protected abstract void initData();
-    
+
     /**
      * 点击
      *
