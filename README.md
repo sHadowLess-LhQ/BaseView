@@ -110,9 +110,9 @@ c、混淆规则
       
           @NonNull
           @Override
-          protected String setBindViewClassName() {
-              //返回ViewBinding类的完整类名（路径+类名）
-              return ActivityMainBinding.class.getName();
+          protected String setBindViewClass() {
+              //返回ViewBinding类
+              return ActivityMainBinding.class;
           }
           
           @Override
@@ -133,9 +133,8 @@ c、混淆规则
           }
           
           @Override
-          protected void bindDataToView() {
-             //视图绑定数据
-             getBindView().test.setText("");
+          protected void initBindDataLister() {
+             //初始化LiveData数据绑定监听
           }
       
           @Override
@@ -205,9 +204,9 @@ c、混淆规则
       
           @NonNull
           @Override
-          protected String setBindViewClassName() {
-              //返回ViewBinding类的完整类名（路径+类名）
-              return FragmentMainBinding.class.getName();
+          protected String setBindViewClass() {
+              //返回ViewBinding类
+              return FragmentMainBinding.class;
           }
           
           @Override
@@ -233,8 +232,8 @@ c、混淆规则
           }
           
           @Override
-          protected void bindDataToView() {
-             //视图绑定数据
+          protected void initBindDataLister() {
+             //初始化LiveData视图绑定数据监听
           }
           
           @Override
@@ -312,9 +311,9 @@ c、混淆规则
         
             @NonNull
             @Override
-            protected String setBindViewClassName() {
-                //返回ViewBinding类的完整类名（路径+类名）
-                return PopTestBinding.class.getName();
+            protected String setBindViewClass() {
+                //返回ViewBinding类
+                return PopTestBinding.class;
             }
             
             @Override
@@ -347,15 +346,15 @@ c、混淆规则
             protected void initObject() {
                //初始化对象
             }
+            
+            @Override
+            protected void initBindDataLister() {
+               //初始化LiveData视图绑定数据监听
+            }
         
             @Override
             protected void initData() {
                //初始化数据
-            }
-
-            @Override
-            protected void bindDataToView() {
-               //视图绑定数据
             }
         
             @Override
