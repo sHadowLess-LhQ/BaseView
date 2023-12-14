@@ -42,6 +42,11 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         super.onCreate(savedInstanceState);
         initBindView();
         initViewListener();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         initPermissionAndInitData();
     }
 

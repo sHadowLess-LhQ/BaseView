@@ -250,7 +250,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         initDialogAttr();
         initObject();
         initBindDataLister();
-        initData();
     }
 
     @Override
@@ -306,6 +305,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     @Override
     public void show() {
         super.show();
+        initData();
         initViewListener();
         initDialog();
     }
