@@ -249,7 +249,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
         initDialogAttr();
         initObject();
-        initBindDataLister();
+        initView();
     }
 
     @Override
@@ -464,7 +464,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     /**
      * 初始化绑定视图数据监听
      */
-    protected abstract void initBindDataLister();
+    protected abstract void initView();
 
     /**
      * 初始化数据

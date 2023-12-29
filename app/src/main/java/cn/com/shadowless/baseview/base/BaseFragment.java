@@ -197,7 +197,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
                                            callBack.agree();
                                        }
                                        initObject();
-                                       initBindDataLister();
+                                       initView();
                                        initData();
                                    } else if (!ban.isEmpty()) {
                                        if (callBack != null) {
@@ -220,7 +220,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
             initObject();
-            initBindDataLister();
+            initView();
             initData();
             return;
         }
@@ -261,7 +261,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     /**
      * 初始化视图绑定数据监听
      */
-    protected abstract void initBindDataLister();
+    protected abstract void initView();
 
     /**
      * 初始化数据

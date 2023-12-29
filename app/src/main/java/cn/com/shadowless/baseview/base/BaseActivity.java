@@ -42,11 +42,6 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         super.onCreate(savedInstanceState);
         initBindView();
         initViewListener();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         initPermissionAndInitData();
     }
 
@@ -105,7 +100,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
             initObject();
-            initBindDataLister();
+            initView();
             initData();
             return;
         }
@@ -158,7 +153,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                         callBack.agree();
                     }
                     initObject();
-                    initBindDataLister();
+                    initView();
                     initData();
                 } else if (!ban.isEmpty()) {
                     if (callBack != null) {
@@ -213,7 +208,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     /**
      * 给视图绑定数据
      */
-    protected abstract void initBindDataLister();
+    protected abstract void initView();
 
     /**
      * 初始化数据
