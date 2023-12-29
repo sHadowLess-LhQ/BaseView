@@ -7,6 +7,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.viewbinding.ViewBinding;
 
 import java.util.ArrayList;
@@ -26,7 +29,7 @@ import io.reactivex.disposables.Disposable;
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActivity implements View.OnClickListener {
+public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActivity implements View.OnClickListener, LifecycleEventObserver {
 
     /**
      * 视图绑定
@@ -40,9 +43,9 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
+        getLifecycle().addObserver(this);
         initBindView();
         initViewListener();
-        initPermissionAndInitData();
     }
 
     @Override
@@ -50,6 +53,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         if (null != bind) {
             bind = null;
         }
+        getLifecycle().removeObserver(this);
         super.onDestroy();
     }
 
@@ -57,6 +61,13 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     public void onClick(View v) {
         if (!ClickUtils.isFastClick()) {
             click(v);
+        }
+    }
+
+    @Override
+    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+        if (event == Lifecycle.Event.ON_RESUME) {
+            initPermissionAndInitData();
         }
     }
 
@@ -100,8 +111,8 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
             initObject();
-            initView();
             initData();
+            initView();
             return;
         }
         initPermission(permissions);
@@ -153,8 +164,8 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                         callBack.agree();
                     }
                     initObject();
-                    initView();
                     initData();
+                    initView();
                 } else if (!ban.isEmpty()) {
                     if (callBack != null) {
                         callBack.ban(ban);

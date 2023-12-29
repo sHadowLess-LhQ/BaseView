@@ -131,15 +131,15 @@ c、混淆规则
           protected void initObject() {
              //初始化对象
           }
-          
-          @Override
-          protected void initBindDataLister() {
-             //初始化LiveData数据绑定监听
-          }
       
           @Override
           protected void initData() {
              //初始化数据
+          }
+          
+          @Override
+          protected void initView() {
+             //初始化视图
           }
           
           @Override
@@ -232,13 +232,13 @@ c、混淆规则
           }
           
           @Override
-          protected void initBindDataLister() {
-             //初始化LiveData视图绑定数据监听
+          protected void initData() {
+             //初始化数据
           }
           
           @Override
-          protected void initData() {
-             //初始化数据
+          protected void initView() {
+             //初始化视图
           }
           
           @Override

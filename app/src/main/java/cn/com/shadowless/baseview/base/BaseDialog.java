@@ -462,14 +462,14 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     protected abstract void initObject();
 
     /**
-     * 初始化绑定视图数据监听
-     */
-    protected abstract void initView();
-
-    /**
      * 初始化数据
      */
     protected abstract void initData();
+
+    /**
+     * 初始化绑定视图数据监听
+     */
+    protected abstract void initView();
 
     /**
      * 初始化监听

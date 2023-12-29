@@ -13,6 +13,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.viewbinding.ViewBinding;
 
 import com.rxjava.rxlife.RxLife;
@@ -34,7 +37,7 @@ import io.reactivex.disposables.Disposable;
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseFragment<VB extends ViewBinding> extends Fragment implements View.OnClickListener {
+public abstract class BaseFragment<VB extends ViewBinding> extends Fragment implements View.OnClickListener, LifecycleEventObserver {
 
     /**
      * 视图绑定
@@ -71,12 +74,12 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        getLifecycle().addObserver(this);
         bind = inflateView();
         if (bind == null) {
             throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入正确或重写自实现inflateView方法");
         }
         initViewListener();
-        initPermissionAndInitData();
         return bind.getRoot();
     }
 
@@ -100,6 +103,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         if (bind != null) {
             bind = null;
         }
+        getLifecycle().removeObserver(this);
         super.onDestroyView();
     }
 
@@ -113,6 +117,13 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     public void onClick(View v) {
         if (!ClickUtils.isFastClick()) {
             click(v);
+        }
+    }
+
+    @Override
+    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+        if (event == Lifecycle.Event.ON_RESUME) {
+            initPermissionAndInitData();
         }
     }
 
@@ -197,8 +208,8 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
                                            callBack.agree();
                                        }
                                        initObject();
-                                       initView();
                                        initData();
+                                       initView();
                                    } else if (!ban.isEmpty()) {
                                        if (callBack != null) {
                                            callBack.ban(ban);
@@ -220,8 +231,8 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         String[] permissions = permissions();
         if (null == permissions || permissions.length == 0) {
             initObject();
-            initView();
             initData();
+            initView();
             return;
         }
         initPermission(permissions);
@@ -259,14 +270,14 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     protected abstract void initObject();
 
     /**
-     * 初始化视图绑定数据监听
-     */
-    protected abstract void initView();
-
-    /**
      * 初始化数据
      */
     protected abstract void initData();
+
+    /**
+     * 初始化视图绑定数据监听
+     */
+    protected abstract void initView();
 
     /**
      * 初始化懒加载数据
