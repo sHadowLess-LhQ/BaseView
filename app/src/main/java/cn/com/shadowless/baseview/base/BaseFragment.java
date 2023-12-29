@@ -8,7 +8,6 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,15 +17,14 @@ import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.viewbinding.ViewBinding;
 
-import com.rxjava.rxlife.RxLife;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import cn.com.shadowless.baseview.callback.PermissionCallBack;
 import cn.com.shadowless.baseview.permission.Permission;
-import cn.com.shadowless.baseview.permission.RxPermissions;
 import cn.com.shadowless.baseview.utils.ClickUtils;
+import cn.com.shadowless.baseview.utils.PermissionUtils;
 import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -178,50 +176,48 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     protected void dealPermission(String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
-        new RxPermissions(this)
-                .requestEach(permissions)
-                .as(RxLife.as(this))
-                .subscribe(new Observer<Permission>() {
-                               @Override
-                               public void onSubscribe(@NonNull Disposable d) {
+        PermissionUtils.getPermissionObservable(this, this, permissions).subscribe(new Observer<Permission>() {
+            @Override
+            public void onSubscribe(@NonNull Disposable d) {
 
-                               }
+            }
 
-                               @Override
-                               public void onNext(@NonNull Permission permission) {
-                                   if (permission.shouldShowRequestPermissionRationale) {
-                                       ban.add(permission.name);
-                                   } else if (!permission.granted) {
-                                       disagree.add(permission.name);
-                                   }
-                               }
+            @Override
+            public void onNext(@NonNull Permission permission) {
+                if (permission.shouldShowRequestPermissionRationale) {
+                    ban.add(permission.name);
+                } else if (!permission.granted) {
+                    disagree.add(permission.name);
+                }
+            }
 
-                               @Override
-                               public void onError(@NonNull Throwable e) {
-                                   Toast.makeText(getAttachActivity(), "处理权限错误", Toast.LENGTH_SHORT).show();
-                               }
+            @Override
+            public void onError(@NonNull Throwable e) {
+                if (callBack != null) {
+                    callBack.fail("处理权限错误", e);
+                }
+            }
 
-                               @Override
-                               public void onComplete() {
-                                   if (ban.isEmpty() && disagree.isEmpty()) {
-                                       if (callBack != null) {
-                                           callBack.agree();
-                                       }
-                                       initObject();
-                                       initData();
-                                       initView();
-                                   } else if (!ban.isEmpty()) {
-                                       if (callBack != null) {
-                                           callBack.ban(ban);
-                                       }
-                                   } else {
-                                       if (callBack != null) {
-                                           callBack.disagree(disagree);
-                                       }
-                                   }
-                               }
-                           }
-                );
+            @Override
+            public void onComplete() {
+                if (ban.isEmpty() && disagree.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.agree();
+                    }
+                    initObject();
+                    initData();
+                    initView();
+                } else if (!ban.isEmpty()) {
+                    if (callBack != null) {
+                        callBack.ban(ban);
+                    }
+                } else {
+                    if (callBack != null) {
+                        callBack.disagree(disagree);
+                    }
+                }
+            }
+        });
     }
 
     /**

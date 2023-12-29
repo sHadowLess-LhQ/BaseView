@@ -154,7 +154,9 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
 
             @Override
             public void onError(@NonNull Throwable e) {
-                Toast.makeText(BaseActivity.this, "处理权限错误", Toast.LENGTH_SHORT).show();
+                if (callBack != null) {
+                    callBack.fail("处理权限错误", e);
+                }
             }
 
             @Override
