@@ -14,12 +14,13 @@ import androidx.fragment.app.FragmentActivity;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.reactivex.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+
 
 public class RxPermissionsFragment extends Fragment {
 
     private static final int PERMISSIONS_REQUEST_CODE = 42;
-    private Map<String, PublishSubject<Permission>> mSubjects = new HashMap<>();
+    private final Map<String, PublishSubject<Permission>> mSubjects = new HashMap<>();
     private boolean mLogging;
 
     public RxPermissionsFragment() {

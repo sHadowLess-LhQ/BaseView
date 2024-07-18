@@ -25,8 +25,8 @@ import cn.com.shadowless.baseview.permission.Permission;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 import cn.com.shadowless.baseview.utils.PermissionUtils;
 import cn.com.shadowless.baseview.utils.ViewBindingUtils;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 /**
  * 基类Activity
@@ -147,47 +147,49 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     protected void dealPermission(String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
-        PermissionUtils.getPermissionObservable(this, this, permissions).subscribe(new Observer<Permission>() {
-            @Override
-            public void onSubscribe(@NonNull Disposable d) {
+        PermissionUtils
+                .getPermissionObservable(this, this, permissions)
+                .subscribe(new Observer<Permission>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
 
-            }
-
-            @Override
-            public void onNext(@NonNull Permission permission) {
-                if (permission.shouldShowRequestPermissionRationale) {
-                    ban.add(permission.name);
-                } else if (!permission.granted) {
-                    disagree.add(permission.name);
-                }
-            }
-
-            @Override
-            public void onError(@NonNull Throwable e) {
-                if (callBack != null) {
-                    callBack.fail("处理权限错误", e);
-                }
-            }
-
-            @Override
-            public void onComplete() {
-                if (ban.isEmpty() && disagree.isEmpty()) {
-                    if (callBack != null) {
-                        callBack.agree();
                     }
-                    initData();
-                    initDataListener();
-                } else if (!ban.isEmpty()) {
-                    if (callBack != null) {
-                        callBack.ban(ban);
+
+                    @Override
+                    public void onNext(@NonNull Permission permission) {
+                        if (permission.shouldShowRequestPermissionRationale) {
+                            ban.add(permission.name);
+                        } else if (!permission.granted) {
+                            disagree.add(permission.name);
+                        }
                     }
-                } else {
-                    if (callBack != null) {
-                        callBack.disagree(disagree);
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        if (callBack != null) {
+                            callBack.fail("处理权限错误", e);
+                        }
                     }
-                }
-            }
-        });
+
+                    @Override
+                    public void onComplete() {
+                        if (ban.isEmpty() && disagree.isEmpty()) {
+                            if (callBack != null) {
+                                callBack.agree();
+                            }
+                            initData();
+                            initDataListener();
+                        } else if (!ban.isEmpty()) {
+                            if (callBack != null) {
+                                callBack.ban(ban);
+                            }
+                        } else {
+                            if (callBack != null) {
+                                callBack.disagree(disagree);
+                            }
+                        }
+                    }
+                });
     }
 
     /**
