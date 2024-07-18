@@ -91,10 +91,13 @@ c、混淆规则
 ### BaseActivity
 
 ```
+      //基类已实现异步布局加载，如需异步加载，请重写isAsyncLoadView方法
+      //并返回true
+      //若异步加载需要加载弹窗，需要重写initSyncView，并返回实现AsyncLoadViewCallBack
+      //默认没有异步加载弹窗
+      //接口的对象，供基类调用，显示和关闭
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
-      //bindDataToView比initData先执行，设计为给LiveData使用
-      //在bindDataToView要先注册观察者后，initData再执行，防止漏收数据
-      //click监听已做快速点击处理
+      //click监听已做快速点击处理，请重写antiShakingClick接口
       //填入传递数据类型
       //设置Activity主题，请重写initTheme()方法
       //设置initData所处线程，请重写setScheduler()方法
@@ -116,25 +119,14 @@ c、混淆规则
           }
           
           @Override
+          protected void initObject() {
+              //初始化对象
+          }
+          
+          @Override
           protected ActivityMainBinding inflateView() {
               //可重写后手动实现视图初始化
               return super.inflateView();
-          }
-          
-          @Override
-          protected void initViewListener() {
-             //初始化监听
-             getBindView().test.setOnClickListener(this);
-          }
-          
-          @Override
-          protected void initObject() {
-             //初始化对象
-          }
-      
-          @Override
-          protected void initData() {
-             //初始化数据
           }
           
           @Override
@@ -143,8 +135,24 @@ c、混淆规则
           }
           
           @Override
-          protected void click(View v) {
-           
+          protected void initViewListener() {
+             //初始化监听
+             getBindView().test.setOnClickListener(this);
+          }
+      
+          @Override
+          protected void initData() {
+             //初始化数据
+          }
+          
+          @Override
+          protected void initDataListener() {
+             //初始化数据回调
+          }
+          
+          @Override
+          public void antiShakingClick(View v) {
+              //点击处理
           }
           
           @Override
@@ -185,10 +193,18 @@ c、混淆规则
 ### BaseFragment
 
 ```
+      //基类已实现三种懒加载模式：
+      //DEFAULT：正常加载
+      //ONLY_LAZY_DATA：只懒加载数据
+      //LAZY_VIEW_AND_DATA：懒加载数据和页面
+      //通过重写getLoadMode方法，返回不同的加载枚举
+      //基类会执行不同的加载逻辑，不重写为DEFAULT
+      //可通过isLazyInitSuccess方法，获取懒加载是否成功
+      //若异步加载需要加载弹窗，需要重写initSyncView，并返回实现AsyncLoadViewCallBack
+      //接口的对象，供基类调用，显示和关闭
+      //默认没有异步加载弹窗
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
-            //bindDataToView比initData先执行，设计为给LiveData使用
-      //在bindDataToView要先注册观察者后，initData再执行，防止漏收数据
-      //click监听已做快速点击处理
+      //click监听已做快速点击处理，请重写antiShakingClick接口
       //填入传递数据类型
       //设置Activity主题，请重写initTheme()方法
       //设置initData所处线程，请重写setScheduler()方法
@@ -208,6 +224,11 @@ c、混淆规则
               //返回ViewBinding类
               return FragmentMainBinding.class;
           }
+
+          @Override
+          protected LoadMode getLoadMode() {
+              return LoadMode.LAZY_VIEW_AND_DATA;
+          }
           
           @Override
           protected FragmentMainBinding inflateView() {
@@ -221,19 +242,8 @@ c、混淆规则
           }
           
           @Override
-          protected void initViewListener() {
-             //初始化监听
-             getBindView().test.setOnClickListener(this);
-          }
-          
-          @Override
           protected void initObject() {
              //初始化对象
-          }
-          
-          @Override
-          protected void initData() {
-             //初始化数据
           }
           
           @Override
@@ -242,13 +252,19 @@ c、混淆规则
           }
           
           @Override
-          protected void initLazyData() {
-            //初始化懒加载数据
+          protected void initViewListener() {
+             //初始化监听
+             getBindView().test.setOnClickListener(this);
           }
           
           @Override
-          protected void click(View v) {
-              
+          protected void initData() {
+             //初始化数据
+          }
+          
+          @Override
+          protected void initDataListener() {
+             //初始化数据监听
           }
           
           @Override
@@ -293,7 +309,7 @@ c、混淆规则
       //支持ViewBinding
       //自身支持Lifecycle
       //支持监听其他Lifcycle
-      //click监听已做快速点击处理
+      //click监听已做快速点击处理，请重写antiShakingClick接口
       //继承示例
       public class TestDialog extends BaseDialog<PopTestBinding,String> {
       
@@ -348,8 +364,13 @@ c、混淆规则
             }
             
             @Override
-            protected void initBindDataLister() {
-               //初始化LiveData视图绑定数据监听
+            protected void initView() {
+               //初始化视图
+            }
+            
+            @Override
+            protected void initViewListener() {
+               //初始化视图监听
             }
         
             @Override
@@ -358,13 +379,8 @@ c、混淆规则
             }
         
             @Override
-            protected void initViewListener() {
-        
-            }
-        
-            @Override
-            protected void click(@NonNull View v) {
-        
+            protected void initDataListener() {
+               //初始化数据监听
             }
             
             @Override

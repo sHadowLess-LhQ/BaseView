@@ -16,7 +16,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.viewbinding.ViewBinding;
 
-import cn.com.shadowless.baseview.utils.ClickUtils;
+import cn.com.shadowless.baseview.click.AntiShakingOnClickListener;
 import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 
 
@@ -26,7 +26,8 @@ import cn.com.shadowless.baseview.utils.ViewBindingUtils;
  * @param <VB> the type parameter
  * @author sHadowLess
  */
-public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements View.OnClickListener, BaseQuickLifecycle {
+public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements
+        AntiShakingOnClickListener, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数
@@ -250,6 +251,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         initDialogAttr();
         initObject();
         initView();
+        initViewListener();
     }
 
     @Override
@@ -276,18 +278,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         super.onStop();
     }
 
-    /**
-     * On click.
-     *
-     * @param v the v
-     */
-    @Override
-    public void onClick(View v) {
-        if (!ClickUtils.isFastClick()) {
-            click(v);
-        }
-    }
-
     @NonNull
     @Override
     public Lifecycle getLifecycle() {
@@ -305,9 +295,9 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     @Override
     public void show() {
         super.show();
-        initData();
-        initViewListener();
         initDialog();
+        initData();
+        initDataListener();
     }
 
     /**
@@ -462,11 +452,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     protected abstract void initObject();
 
     /**
-     * 初始化数据
-     */
-    protected abstract void initData();
-
-    /**
      * 初始化绑定视图数据监听
      */
     protected abstract void initView();
@@ -477,9 +462,12 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     protected abstract void initViewListener();
 
     /**
-     * 点击
-     *
-     * @param v the v
+     * 初始化数据
      */
-    protected abstract void click(@NonNull View v);
+    protected abstract void initData();
+
+    /**
+     * Init data listener.
+     */
+    protected abstract void initDataListener();
 }
