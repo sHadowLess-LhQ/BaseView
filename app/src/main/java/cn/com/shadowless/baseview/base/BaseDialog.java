@@ -334,7 +334,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      */
     protected VB inflateView() {
         try {
-            return ViewBindingUtils.inflate(setBindViewClass().getName(), getLayoutInflater());
+            return ViewBindingUtils.inflate(setBindViewClass(), getLayoutInflater());
         } catch (Exception e) {
             e.printStackTrace();
         }

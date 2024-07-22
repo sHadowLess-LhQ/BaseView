@@ -106,13 +106,12 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
      * 反射实例化ViewBinding
      *
      * @return the vb
-     * @throws ClassNotFoundException    the class not found exception
      * @throws InvocationTargetException the invocation target exception
      * @throws IllegalAccessException    the illegal access exception
      * @throws NoSuchMethodException     the no such method exception
      */
-    protected VB inflateView() throws ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        return ViewBindingUtils.inflate(setBindViewClass().getName(), getLayoutInflater());
+    protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        return ViewBindingUtils.inflate(setBindViewClass(), getLayoutInflater());
     }
 
     /**
@@ -200,8 +199,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         if (!isAsync) {
             try {
                 bind = inflateView();
-            } catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException |
-                     NoSuchMethodException e) {
+            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入绝对路径或重写自实现inflateView方法捕捉堆栈" + Log.getStackTraceString(e));
             }
             setContentView(bind.getRoot());
@@ -215,14 +213,15 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         if (callBack != null) {
             callBack.showLoadView();
         }
-        new AsyncViewBindingInflate(this).inflate(setBindViewClass().getName(), null,
-                new AsyncViewBindingInflate.OnInflateFinishedListener() {
+        AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(this);
+        asyncViewBindingInflate.inflate(setBindViewClass(), null,
+                new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
-                    public void onInflateFinished(@NonNull ViewBinding binding, @Nullable ViewGroup parent) {
+                    public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
                         if (callBack != null) {
                             callBack.dismissLoadView();
                         }
-                        bind = (VB) binding;
+                        bind = binding;
                         View view = bind.getRoot();
                         view.setAlpha(0);
                         view
@@ -260,6 +259,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                         textView.setText(error);
                         textView.setTextColor(Color.RED);
                         setContentView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
                     }
                 });
     }

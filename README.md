@@ -102,6 +102,8 @@ c、混淆规则
       //设置Activity主题，请重写initTheme()方法
       //设置initData所处线程，请重写setScheduler()方法
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
+      //如果单个Activity需要动态使用不同的布局文件，请给BaseActivity的泛型类型
+      //传递ViewBinding，并在setBindViewClass抽象方法里实现不同布局类的传递
       public class MainActivity extends BaseActivity<ActivityMainBinding> {
     
           @Nullable
@@ -116,6 +118,14 @@ c、混淆规则
           protected String setBindViewClass() {
               //返回ViewBinding类
               return ActivityMainBinding.class;
+              //或者动态布局
+               Class<?> cls;
+               if (i == 1) {
+                  cls = ActivityMainBinding.class;
+               } else {
+                  cls = XxxBinding.class;
+               }
+               return (Class<ViewBinding>) cls;
           }
           
           @Override
@@ -209,6 +219,8 @@ c、混淆规则
       //设置Activity主题，请重写initTheme()方法
       //设置initData所处线程，请重写setScheduler()方法
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
+      //如果单个Activity需要动态使用不同的布局文件，请给BaseActivity的泛型类型
+      //传递ViewBinding，并在setBindViewClass抽象方法里实现不同布局类的传递
       public class MainFragment extends BaseFragment<FragmentMainBinding> {
   
           @Nullable
@@ -223,6 +235,14 @@ c、混淆规则
           protected String setBindViewClass() {
               //返回ViewBinding类
               return FragmentMainBinding.class;
+              //或者动态布局
+               Class<?> cls;
+               if (i == 1) {
+                  cls = ActivityMainBinding.class;
+               } else {
+                  cls = XxxBinding.class;
+               }
+               return (Class<ViewBinding>) cls;
           }
 
           @Override

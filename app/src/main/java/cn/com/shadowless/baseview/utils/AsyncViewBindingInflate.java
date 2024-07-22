@@ -30,9 +30,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The type Async layout inflate plus.
  *
+ * @param <VB> the type parameter
  * @author sHadowLess
  */
-public class AsyncViewBindingInflate {
+public class AsyncViewBindingInflate<VB extends ViewBinding> {
 
     /**
      * The M request pool.
@@ -67,15 +68,15 @@ public class AsyncViewBindingInflate {
     /**
      * Inflate.
      *
-     * @param className the class name
-     * @param parent    the parent
-     * @param callback  the callback
+     * @param vbClass  the vb class
+     * @param parent   the parent
+     * @param callback the callback
      */
     @UiThread
-    public void inflate(String className, @Nullable ViewGroup parent, @NonNull OnInflateFinishedListener callback) {
-        InflateRequest request = obtainRequest();
+    public void inflate(Class<VB> vbClass, @Nullable ViewGroup parent, @NonNull OnInflateFinishedListener callback) {
+        InflateRequest<VB> request = obtainRequest();
         request.inflater = this;
-        request.className = className;
+        request.vbClass = vbClass;
         request.parent = parent;
         request.callback = callback;
         mDispatcher.enqueue(request);
@@ -85,12 +86,11 @@ public class AsyncViewBindingInflate {
      * The M handler callback.
      */
     private Handler.Callback mHandlerCallback = msg -> {
-        InflateRequest request = (InflateRequest) msg.obj;
+        InflateRequest<VB> request = (InflateRequest<VB>) msg.obj;
         if (request.binding == null) {
             try {
-                request.binding = ViewBindingUtils.inflate(request.className, mInflater, request.parent, false);
-            } catch (ClassNotFoundException | InvocationTargetException |
-                     IllegalAccessException | NoSuchMethodException e) {
+                request.binding = ViewBindingUtils.inflate(request.vbClass, mInflater, request.parent, false);
+            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 request.callback.onInflateError(e);
             }
         }
@@ -102,14 +102,14 @@ public class AsyncViewBindingInflate {
     /**
      * The interface On inflate finished listener.
      */
-    public interface OnInflateFinishedListener {
+    public interface OnInflateFinishedListener<VB> {
         /**
          * On inflate finished.
          *
          * @param binding the binding
          * @param parent  the parent
          */
-        void onInflateFinished(@NonNull ViewBinding binding, @Nullable ViewGroup parent);
+        void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent);
 
         /**
          * On inflate error.
@@ -122,9 +122,9 @@ public class AsyncViewBindingInflate {
     /**
      * The type Inflate request.
      *
-     * @param <T> the type parameter
+     * @param <VB> the type parameter
      */
-    private static class InflateRequest {
+    private static class InflateRequest<VB> {
         /**
          * The Inflater.
          */
@@ -137,15 +137,15 @@ public class AsyncViewBindingInflate {
         /**
          * The Class name.
          */
-        String className;
+        Class<VB> vbClass;
         /**
          * The View.
          */
-        ViewBinding binding;
+        VB binding;
         /**
          * The Callback.
          */
-        OnInflateFinishedListener callback;
+        OnInflateFinishedListener<VB> callback;
 
         /**
          * Instantiates a new Inflate request.
@@ -293,9 +293,8 @@ public class AsyncViewBindingInflate {
         public void run() {
             isRunning = true;
             try {
-                request.binding = ViewBindingUtils.inflate(request.className, request.inflater.mInflater, request.parent, false);
-            } catch (ClassNotFoundException | InvocationTargetException |
-                     IllegalAccessException | NoSuchMethodException e) {
+                request.binding = ViewBindingUtils.inflate(request.vbClass, request.inflater.mInflater, request.parent, false);
+            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
             Message.obtain(request.inflater.mHandler, 0, request)
@@ -318,8 +317,8 @@ public class AsyncViewBindingInflate {
      *
      * @return the inflate request
      */
-    public InflateRequest obtainRequest() {
-        InflateRequest obj = mRequestPool.acquire();
+    public InflateRequest<VB> obtainRequest() {
+        InflateRequest<VB> obj = mRequestPool.acquire();
         if (obj == null) {
             obj = new InflateRequest();
         }
@@ -335,7 +334,7 @@ public class AsyncViewBindingInflate {
         obj.callback = null;
         obj.inflater = null;
         obj.parent = null;
-        obj.className = null;
+        obj.vbClass = null;
         obj.binding = null;
         mRequestPool.release(obj);
     }

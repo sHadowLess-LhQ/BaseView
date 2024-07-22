@@ -24,6 +24,22 @@ public class ViewBindingUtils {
      * Inflate t.
      *
      * @param <T>            the type parameter
+     * @param cls            the cls
+     * @param layoutInflater the layout inflater
+     * @return the t
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
+     * @throws NoSuchMethodException     the no such method exception
+     */
+    public static <T> T inflate(Class<T> cls, LayoutInflater layoutInflater) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method inflateMethod = cls.getMethod("inflate", LayoutInflater.class);
+        return (T) inflateMethod.invoke(null, layoutInflater);
+    }
+
+    /**
+     * Inflate t.
+     *
+     * @param <T>            the type parameter
      * @param className      the class name
      * @param layoutInflater the layout inflater
      * @return the t
@@ -54,7 +70,25 @@ public class ViewBindingUtils {
      */
     public static <T> T inflate(String className, LayoutInflater layoutInflater, ViewGroup parent, boolean attachToParent) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Class<?> bindingClass = Class.forName(className);
-        Method inflateMethod = bindingClass.getMethod("inflate", LayoutInflater.class);
+        Method inflateMethod = bindingClass.getMethod("inflate", LayoutInflater.class, ViewGroup.class, boolean.class);
+        return (T) inflateMethod.invoke(null, layoutInflater, parent, attachToParent);
+    }
+
+    /**
+     * Inflate t.
+     *
+     * @param <T>            the type parameter
+     * @param tClass         the t class
+     * @param layoutInflater the layout inflater
+     * @param parent         the parent
+     * @param attachToParent the attach to parent
+     * @return the t
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
+     * @throws NoSuchMethodException     the no such method exception
+     */
+    public static <T> T inflate(Class<T> tClass, LayoutInflater layoutInflater, ViewGroup parent, boolean attachToParent) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method inflateMethod = tClass.getMethod("inflate", LayoutInflater.class, ViewGroup.class, boolean.class);
         return (T) inflateMethod.invoke(null, layoutInflater, parent, attachToParent);
     }
 
@@ -73,6 +107,22 @@ public class ViewBindingUtils {
     public static <T> T inflate(String className, View view) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Class<?> bindingClass = Class.forName(className);
         Method inflateMethod = bindingClass.getMethod("bind", View.class);
+        return (T) inflateMethod.invoke(null, view);
+    }
+
+    /**
+     * Inflate t.
+     *
+     * @param <T>    the type parameter
+     * @param tClass the t class
+     * @param view   the view
+     * @return the t
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
+     * @throws NoSuchMethodException     the no such method exception
+     */
+    public static <T> T inflate(Class<T> tClass, View view) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method inflateMethod = tClass.getMethod("bind", View.class);
         return (T) inflateMethod.invoke(null, view);
     }
 }

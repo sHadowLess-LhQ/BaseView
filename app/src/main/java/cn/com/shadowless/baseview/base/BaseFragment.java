@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -185,12 +186,8 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      *
      * @return the vb
      */
-    protected VB inflateView() {
-        try {
-            return ViewBindingUtils.inflate(setBindViewClass().getName(), getLayoutInflater());
-        } catch (Exception e) {
-            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入绝对路径或重写自实现inflateView方法捕捉堆栈" + Log.getStackTraceString(e));
-        }
+    protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        return ViewBindingUtils.inflate(setBindViewClass(), getLayoutInflater());
     }
 
     /**
@@ -199,7 +196,11 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      * @return the inflate view
      */
     private View getInflateView() {
-        bind = inflateView();
+        try {
+            bind = inflateView();
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入绝对路径或重写自实现inflateView方法捕捉堆栈" + Log.getStackTraceString(e));
+        }
         return bind.getRoot();
     }
 
@@ -352,50 +353,56 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         if (callBack != null) {
             callBack.showLoadView();
         }
-        mainHandler.postDelayed(() ->
-                new AsyncViewBindingInflate(getAttachActivity()).inflate(setBindViewClass().getName(), group, new AsyncViewBindingInflate.OnInflateFinishedListener() {
-                    @Override
-                    public void onInflateFinished(@NonNull ViewBinding binding, @Nullable ViewGroup parent) {
-                        if (callBack != null) {
-                            callBack.dismissLoadView();
-                        }
-                        bind = (VB) binding;
-                        View view = bind.getRoot();
-                        view.setAlpha(0);
-                        view
-                                .animate()
-                                .alpha(0)
-                                .alpha(1)
-                                .setDuration(500)
-                                .setListener(new AnimatorListenerAdapter() {
-                                    @Override
-                                    public void onAnimationStart(Animator animation) {
-                                        super.onAnimationStart(animation);
-                                        group.addView(view);
-                                    }
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
+                asyncViewBindingInflate.inflate(setBindViewClass(), group,
+                        new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
+                            @Override
+                            public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
+                                if (callBack != null) {
+                                    callBack.dismissLoadView();
+                                }
+                                bind = binding;
+                                View view = bind.getRoot();
+                                view.setAlpha(0);
+                                view
+                                        .animate()
+                                        .alpha(0)
+                                        .alpha(1)
+                                        .setDuration(500)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationStart(Animator animation) {
+                                                super.onAnimationStart(animation);
+                                                group.addView(view);
+                                            }
 
-                                    @Override
-                                    public void onAnimationEnd(Animator animation) {
-                                        super.onAnimationEnd(animation);
-                                        initEvent();
-                                    }
-                                })
-                                .setInterpolator(new LinearInterpolator())
-                                .start();
-                    }
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                                initEvent();
+                                            }
+                                        })
+                                        .setInterpolator(new LinearInterpolator())
+                                        .start();
+                            }
 
-                    @Override
-                    public void onInflateError(Exception e) {
-                        if (callBack != null) {
-                            callBack.dismissLoadView();
-                        }
-                        TextView textView = new TextView(getAttachActivity());
-                        String error = "异步加载视图错误：" + Log.getStackTraceString(e);
-                        textView.setText(error);
-                        textView.setTextColor(Color.RED);
-                        group.addView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                    }
-                }), 500);
+                            @Override
+                            public void onInflateError(Exception e) {
+                                if (callBack != null) {
+                                    callBack.dismissLoadView();
+                                }
+                                TextView textView = new TextView(getAttachActivity());
+                                String error = "异步加载视图错误：" + Log.getStackTraceString(e);
+                                textView.setText(error);
+                                textView.setTextColor(Color.RED);
+                                group.addView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                            }
+                        });
+            }
+        }, 500);
     }
 
     /**
