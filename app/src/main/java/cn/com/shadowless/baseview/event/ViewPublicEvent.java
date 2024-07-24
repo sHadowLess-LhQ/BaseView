@@ -39,7 +39,11 @@ public interface ViewPublicEvent<VB extends ViewBinding> extends View.OnClickLis
     default Class<VB> initGenericsClass(Object o) {
         Type superClass = o.getClass().getGenericSuperclass();
         ParameterizedType parameterized = (ParameterizedType) superClass;
-        return (Class<VB>) parameterized.getActualTypeArguments()[0];
+        Class<VB> genericsCls = (Class<VB>) parameterized.getActualTypeArguments()[0];
+        if (genericsCls == ViewBinding.class) {
+            genericsCls = setBindViewClass();
+        }
+        return genericsCls;
     }
 
     /**
@@ -125,7 +129,7 @@ public interface ViewPublicEvent<VB extends ViewBinding> extends View.OnClickLis
      *
      * @return the async load view call back
      */
-    default ViewPublicEvent.AsyncLoadViewCallBack initSyncView() {
+    default AsyncLoadViewCallBack initSyncView() {
         return null;
     }
 
@@ -173,7 +177,7 @@ public interface ViewPublicEvent<VB extends ViewBinding> extends View.OnClickLis
      * @param permissions the permissions
      * @param callBack    the call back
      */
-    default void dealPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions, ViewPublicEvent.PermissionCallBack callBack) {
+    default void dealPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
         PermissionUtils.getPermissionObservable(activity, owner, permissions).subscribe(new Observer<Permission>() {
