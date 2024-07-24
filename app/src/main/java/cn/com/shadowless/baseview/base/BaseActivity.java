@@ -14,16 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 
-import cn.com.shadowless.baseview.event.PublicEvent;
-import cn.com.shadowless.baseview.permission.Permission;
+import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
-import cn.com.shadowless.baseview.utils.PermissionUtils;
-import cn.com.shadowless.baseview.utils.ViewBindingUtils;
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
 
 /**
  * 基类Activity
@@ -32,7 +25,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
  * @author sHadowLess
  */
 public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActivity implements
-        PublicEvent<VB> {
+        ViewPublicEvent<VB> {
 
     /**
      * 视图绑定
@@ -42,7 +35,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     /**
      * The Call back.
      */
-    private PublicEvent.AsyncLoadViewCallBack callBack;
+    private ViewPublicEvent.AsyncLoadViewCallBack callBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +44,12 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
-        initBindView();
+        boolean isAsync = isAsyncLoadView();
+        if (!isAsync) {
+            syncInitView();
+            return;
+        }
+        asyncInitView();
     }
 
     @Override
@@ -82,157 +80,31 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     }
 
     /**
-     * Init sync view async load view call back.
-     *
-     * @return the async load view call back
+     * 同步加载布局
      */
-    protected PublicEvent.AsyncLoadViewCallBack initSyncView() {
-        return null;
-    }
-
-    /**
-     * Is async load view boolean.
-     *
-     * @return the boolean
-     */
-    protected boolean isAsyncLoadView() {
-        return false;
-    }
-
-    /**
-     * 反射实例化ViewBinding
-     *
-     * @return the vb
-     * @throws InvocationTargetException the invocation target exception
-     * @throws IllegalAccessException    the illegal access exception
-     * @throws NoSuchMethodException     the no such method exception
-     */
-    protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        return ViewBindingUtils.inflate(initGenericsClass(), getLayoutInflater());
-    }
-
-    /**
-     * 设置绑定视图
-     *
-     * @return the 视图
-     */
-    protected Class<VB> setBindViewClass() {
-        return null;
-    }
-
-    /**
-     * Init permission.
-     *
-     * @param permissions the permissions
-     */
-    protected void initPermission(String[] permissions) {
-        dealPermission(permissions, null);
-    }
-
-    /**
-     * Deal permission.
-     *
-     * @param permissions the permissions
-     * @param callBack    the call back
-     */
-    protected void dealPermission(String[] permissions, PublicEvent.PermissionCallBack callBack) {
-        final List<String> disagree = new ArrayList<>();
-        final List<String> ban = new ArrayList<>();
-        PermissionUtils
-                .getPermissionObservable(this, this, permissions)
-                .subscribe(new Observer<Permission>() {
-                    @Override
-                    public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(@NonNull Permission permission) {
-                        if (permission.shouldShowRequestPermissionRationale) {
-                            ban.add(permission.name);
-                        } else if (!permission.granted) {
-                            disagree.add(permission.name);
-                        }
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        if (callBack != null) {
-                            callBack.fail("处理权限错误", e);
-                        }
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        if (ban.isEmpty() && disagree.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.agree();
-                            }
-                            initData();
-                            initDataListener();
-                        } else if (!ban.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.ban(ban);
-                            }
-                        } else {
-                            if (callBack != null) {
-                                callBack.disagree(disagree);
-                            }
-                        }
-                    }
-                });
-    }
-
-    /**
-     * Init generics class class.
-     *
-     * @return the class
-     */
-    private Class<VB> initGenericsClass() {
-        Class<VB> genericsCls = this.initGenericsClass(this);
-        if (genericsCls == ViewBinding.class) {
-            genericsCls = setBindViewClass();
+    private void syncInitView() {
+        try {
+            bind = inflateView(this, getLayoutInflater());
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
         }
-        return genericsCls;
+        setContentView(bind.getRoot());
+        initObject();
+        initView();
+        initViewListener();
+        initPermissionAndInitData(this, this);
     }
 
     /**
-     * 初始化权限
+     * 异步加载布局
      */
-    private void initPermissionAndInitData() {
-        String[] permissions = permissions();
-        if (null == permissions || permissions.length == 0) {
-            initData();
-            initDataListener();
-            return;
-        }
-        initPermission(permissions);
-    }
-
-    /**
-     * 初始化视图
-     */
-    private void initBindView() {
-        boolean isAsync = isAsyncLoadView();
-        if (!isAsync) {
-            try {
-                bind = inflateView();
-            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
-            }
-            setContentView(bind.getRoot());
-            initObject();
-            initView();
-            initViewListener();
-            initPermissionAndInitData();
-            return;
-        }
+    private void asyncInitView() {
         callBack = initSyncView();
         if (callBack != null) {
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(this);
-        asyncViewBindingInflate.inflate(initGenericsClass(), null,
+        asyncViewBindingInflate.inflate(initGenericsClass(this), null,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -260,7 +132,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                                         initObject();
                                         initView();
                                         initViewListener();
-                                        initPermissionAndInitData();
+                                        initPermissionAndInitData(BaseActivity.this, BaseActivity.this);
                                     }
                                 })
                                 .setInterpolator(new LinearInterpolator())
@@ -276,37 +148,4 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                     }
                 });
     }
-
-    /**
-     * 需要申请的权限
-     *
-     * @return the 权限组
-     */
-    @Nullable
-    protected abstract String[] permissions();
-
-    /**
-     * 初始化对象
-     */
-    protected abstract void initObject();
-
-    /**
-     * 给视图绑定数据
-     */
-    protected abstract void initView();
-
-    /**
-     * 初始化视图监听
-     */
-    protected abstract void initViewListener();
-
-    /**
-     * 初始化数据
-     */
-    protected abstract void initData();
-
-    /**
-     * Bind data to view.
-     */
-    protected abstract void initDataListener();
 }

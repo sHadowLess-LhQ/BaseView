@@ -20,6 +20,7 @@ import androidx.viewbinding.ViewBinding;
 
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -53,11 +54,10 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
      */
     Dispather mDispatcher;
 
-
     /**
      * Instantiates a new Async layout inflate plus.
      *
-     * @param context the context
+     * @param context     the context
      */
     public AsyncViewBindingInflate(@NonNull Context context) {
         mInflater = new BasicInflater(context);
@@ -89,7 +89,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         InflateRequest<VB> request = (InflateRequest<VB>) msg.obj;
         if (request.binding == null) {
             try {
-                request.binding = ViewBindingUtils.inflate(request.vbClass, mInflater, request.parent, false);
+                request.binding = inflate(request.vbClass, mInflater, request.parent, false);
             } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 request.callback.onInflateError(e);
             }
@@ -101,6 +101,8 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
 
     /**
      * The interface On inflate finished listener.
+     *
+     * @param <VB> the type parameter
      */
     public interface OnInflateFinishedListener<VB> {
         /**
@@ -293,7 +295,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         public void run() {
             isRunning = true;
             try {
-                request.binding = ViewBindingUtils.inflate(request.vbClass, request.inflater.mInflater, request.parent, false);
+                request.binding = inflate(request.vbClass, request.inflater.mInflater, request.parent, false);
             } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -339,6 +341,10 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         mRequestPool.release(obj);
     }
 
+    public static <T> T inflate(Class<T> tClass, LayoutInflater layoutInflater, ViewGroup parent, boolean attachToParent) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method inflateMethod = tClass.getMethod("inflate", LayoutInflater.class, ViewGroup.class, boolean.class);
+        return (T) inflateMethod.invoke(null, layoutInflater, parent, attachToParent);
+    }
 
     /**
      * Cancel.

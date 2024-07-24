@@ -113,33 +113,10 @@ c、混淆规则
              return null;
           }
           
-          @Override
-          protected boolean isAsyncLoadView() {
-              //是否异步加载视图
-              return false;
-          }
-      
-          @Override
-          protected String setBindViewClass() {
-              //动态布局
-               Class<?> cls;
-               if (i == 1) {
-                  cls = ActivityMainBinding.class;
-               } else {
-                  cls = XxxBinding.class;
-               }
-               return (Class<ViewBinding>) cls;
-          }
           
           @Override
           protected void initObject() {
               //初始化对象
-          }
-          
-          @Override
-          protected ActivityMainBinding inflateView() {
-              //可重写后手动实现视图初始化
-              return super.inflateView();
           }
           
           @Override
@@ -164,18 +141,43 @@ c、混淆规则
           }
           
           @Override
+          public void antiShakingClick(View v) {
+              super.antiShakingClick(v);
+              //点击事件
+          }
+      
+          @Override
           public boolean isFastClick(int time) {
               //传递需要的防抖时间阈值
-              return PublicEvent.super.isFastClick(time);
+              return super.isFastClick(time);
           }
-          
+      
           @Override
-          public void antiShakingClick(View v) {
-              //点击处理
+          public ViewBinding inflateView(Object o, LayoutInflater layoutInflater) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+              //可重写后手动实现视图初始化
+              return super.inflateView(o, layoutInflater);
           }
-          
+      
           @Override
-          protected void initPermission(String[] permissions) {
+          public Class<ViewBinding> setBindViewClass() {
+              //动态布局
+              Class<?> cls;
+              if (i == 1) {
+                  cls = ActivityMainBinding.class;
+              } else {
+                  cls = XxxBinding.class;
+              }
+              return (Class<ViewBinding>) cls;
+          }
+      
+          @Override
+          public boolean isAsyncLoadView() {
+              //是否异步加载视图
+              return false;
+          }
+      
+          @Override
+          public void initPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions) {
               //去除超类
               //比如需要申请前的说明
               //封装后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
@@ -186,7 +188,7 @@ c、混淆规则
                       .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                           @Override
                           public void onClick(DialogInterface dialog, int which) {
-                              dealPermission(permissions, new PermissionCallBack() {
+                              dealPermission(activity, owner, permissions, new PermissionCallBack() {
                                   @Override
                                   public void agree() {
       
@@ -199,6 +201,11 @@ c、混淆规则
       
                                   @Override
                                   public void ban(List<String> name) {
+      
+                                  }
+      
+                                  @Override
+                                  public void fail(String msg, @Nullable Throwable e) {
       
                                   }
                               });
@@ -240,34 +247,11 @@ c、混淆规则
              //设置需要获取的权限，无需申请可传null或空数组
              return null;
           }
-          
-          @Override
-          protected boolean isAsyncLoadView() {
-              //是否异步加载视图
-              return false;
-          }
-      
-          @Override
-          protected String setBindViewClass() {
-              //动态布局
-               Class<?> cls;
-               if (i == 1) {
-                  cls = ActivityMainBinding.class;
-               } else {
-                  cls = XxxBinding.class;
-               }
-               return (Class<ViewBinding>) cls;
-          }
 
           @Override
           protected LoadMode getLoadMode() {
+              //设置加载模式
               return LoadMode.LAZY_VIEW_AND_DATA;
-          }
-          
-          @Override
-          protected FragmentMainBinding inflateView() {
-              //可重写后实现视图初始化
-              return super.inflateView();
           }
           
           @Override
@@ -302,29 +286,54 @@ c、混淆规则
           }
           
           @Override
+          public void antiShakingClick(View v) {
+              super.antiShakingClick(v);
+              //点击事件
+          }
+      
+          @Override
           public boolean isFastClick(int time) {
               //传递需要的防抖时间阈值
-              return PublicEvent.super.isFastClick(time);
+              return super.isFastClick(time);
           }
-          
+      
           @Override
-          public void antiShakingClick(View v) {
-              //点击处理
+          public ViewBinding inflateView(Object o, LayoutInflater layoutInflater) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+              //可重写后手动实现视图初始化
+              return super.inflateView(o, layoutInflater);
           }
-          
+      
           @Override
-          protected void initPermission(String[] permissions) {
+          public Class<ViewBinding> setBindViewClass() {
+              //动态布局
+              Class<?> cls;
+              if (i == 1) {
+                  cls = ActivityMainBinding.class;
+              } else {
+                  cls = XxxBinding.class;
+              }
+              return (Class<ViewBinding>) cls;
+          }
+      
+          @Override
+          public boolean isAsyncLoadView() {
+              //是否异步加载视图
+              return false;
+          }
+      
+          @Override
+          public void initPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions) {
               //去除超类
-              //重写例子，比如需要申请前的说明
-              //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
+              //比如需要申请前的说明
+              //封装后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
               //需要自己获取回调，需实现PermissionCallBack接口
               //不需要直接传null
               //任意控件事件动态申请权限，请使用PermissionUtils
-              new AlertDialog.Builder(getActivity())
+              new AlertDialog.Builder(this)
                       .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                           @Override
                           public void onClick(DialogInterface dialog, int which) {
-                              dealPermission(permissions, new PermissionCallBack() {
+                              dealPermission(activity, owner, permissions, new PermissionCallBack() {
                                   @Override
                                   public void agree() {
       
@@ -337,6 +346,11 @@ c、混淆规则
       
                                   @Override
                                   public void ban(List<String> name) {
+      
+                                  }
+      
+                                  @Override
+                                  public void fail(String msg, @Nullable Throwable e) {
       
                                   }
                               });

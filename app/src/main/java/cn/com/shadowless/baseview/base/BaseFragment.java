@@ -19,20 +19,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
-
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 
-import cn.com.shadowless.baseview.event.PublicEvent;
-import cn.com.shadowless.baseview.permission.Permission;
+import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
-import cn.com.shadowless.baseview.utils.PermissionUtils;
-import cn.com.shadowless.baseview.utils.ViewBindingUtils;
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
 
 /**
  * 基类Fragment
@@ -41,7 +34,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
  * @author sHadowLess
  */
 public abstract class BaseFragment<VB extends ViewBinding> extends Fragment implements
-        PublicEvent<VB> {
+        ViewPublicEvent<VB> {
 
     /**
      * 视图绑定
@@ -56,7 +49,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     /**
      * The Call back.
      */
-    private PublicEvent.AsyncLoadViewCallBack callBack;
+    private ViewPublicEvent.AsyncLoadViewCallBack callBack;
 
     /**
      * The Main handler.
@@ -64,7 +57,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     /**
-     * The Is first.
+     * 是否懒加载标识符
      */
     private boolean isLazyInitSuccess = false;
 
@@ -109,7 +102,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                initEvent();
+                mainHandler.postDelayed(this::initEvent,100);
                 return defaultView;
         }
     }
@@ -163,56 +156,12 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     }
 
     /**
-     * Is lazy init boolean.
+     * 获取懒加载状态
      *
      * @return the boolean
      */
     protected boolean isLazyInitSuccess() {
         return isLazyInitSuccess;
-    }
-
-    /**
-     * Init sync view async load view call back.
-     *
-     * @return the async load view call back
-     */
-    protected PublicEvent.AsyncLoadViewCallBack initSyncView() {
-        return null;
-    }
-
-    /**
-     * Inflate view vb.
-     *
-     * @return the vb
-     * @throws InvocationTargetException the invocation target exception
-     * @throws IllegalAccessException    the illegal access exception
-     * @throws NoSuchMethodException     the no such method exception
-     */
-    protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        return ViewBindingUtils.inflate(initGenericsClass(), getLayoutInflater());
-    }
-
-    /**
-     * 设置绑定视图
-     *
-     * @return the 视图
-     */
-    protected Class<VB> setBindViewClass() {
-        return null;
-    }
-
-    /**
-     * Gets inflate view.
-     *
-     * @return the inflate view
-     */
-    private View getInflateView() {
-        try {
-            bind = inflateView();
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
-        }
-        return bind.getRoot();
     }
 
     /**
@@ -226,16 +175,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     }
 
     /**
-     * Is async load view boolean.
-     *
-     * @return the boolean
-     */
-    protected boolean isAsyncLoadView() {
-        return false;
-    }
-
-    /**
-     * Gets load mode.
+     * 获取加载模式
      *
      * @return the load mode
      */
@@ -253,85 +193,21 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     }
 
     /**
-     * Init permission.
+     * 获取视图
      *
-     * @param permissions the permissions
+     * @return the inflate view
      */
-    protected void initPermission(String[] permissions) {
-        dealPermission(permissions, null);
-    }
-
-    /**
-     * Deal permission.
-     *
-     * @param permissions the permissions
-     * @param callBack    the call back
-     */
-    protected void dealPermission(String[] permissions, PublicEvent.PermissionCallBack callBack) {
-        final List<String> disagree = new ArrayList<>();
-        final List<String> ban = new ArrayList<>();
-        PermissionUtils
-                .getPermissionObservable(this, this, permissions)
-                .subscribe(new Observer<Permission>() {
-
-                    @Override
-                    public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(@NonNull Permission permission) {
-                        if (permission.shouldShowRequestPermissionRationale) {
-                            ban.add(permission.name);
-                        } else if (!permission.granted) {
-                            disagree.add(permission.name);
-                        }
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        if (callBack != null) {
-                            callBack.fail("处理权限错误", e);
-                        }
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        if (ban.isEmpty() && disagree.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.agree();
-                            }
-                            initObject();
-                            initData();
-                            initView();
-                        } else if (!ban.isEmpty()) {
-                            if (callBack != null) {
-                                callBack.ban(ban);
-                            }
-                        } else {
-                            if (callBack != null) {
-                                callBack.disagree(disagree);
-                            }
-                        }
-                    }
-                });
-    }
-
-    /**
-     * Init generics class class.
-     *
-     * @return the class
-     */
-    private Class<VB> initGenericsClass() {
-        Class<VB> genericsCls = this.initGenericsClass(this);
-        if (genericsCls == ViewBinding.class) {
-            genericsCls = setBindViewClass();
+    private View getInflateView() {
+        try {
+            bind = inflateView(this, getLayoutInflater());
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
         }
-        return genericsCls;
+        return bind.getRoot();
     }
 
     /**
-     * Init sync.
+     * 同步加载布局
      *
      * @param viewGroup the view group
      */
@@ -369,7 +245,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     }
 
     /**
-     * Init async.
+     * 异步加载布局
      *
      * @param group the group
      */
@@ -381,7 +257,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
             @Override
             public void run() {
                 AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-                asyncViewBindingInflate.inflate(initGenericsClass(), group,
+                asyncViewBindingInflate.inflate(initGenericsClass(this), group,
                         new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                             @Override
                             public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -436,57 +312,6 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         initObject();
         initView();
         initViewListener();
-        initPermissionAndInitData();
+        initPermissionAndInitData((FragmentActivity) getAttachActivity(), getViewLifecycleOwner());
     }
-
-    /**
-     * 初始化权限
-     */
-    private void initPermissionAndInitData() {
-        String[] permissions = permissions();
-        if (null == permissions || permissions.length == 0) {
-            initData();
-            initDataListener();
-            return;
-        }
-        initPermission(permissions);
-    }
-
-    /**
-     * 需要申请的权限
-     *
-     * @return the 权限组
-     */
-    @Nullable
-    protected abstract String[] permissions();
-
-    /**
-     * 碎片第一次创建
-     */
-    protected abstract void initFirst();
-
-    /**
-     * 初始化对象
-     */
-    protected abstract void initObject();
-
-    /**
-     * 初始化视图绑定数据监听
-     */
-    protected abstract void initView();
-
-    /**
-     * 初始化视图监听
-     */
-    protected abstract void initViewListener();
-
-    /**
-     * 初始化数据
-     */
-    protected abstract void initData();
-
-    /**
-     * Bind data to view.
-     */
-    protected abstract void initDataListener();
 }

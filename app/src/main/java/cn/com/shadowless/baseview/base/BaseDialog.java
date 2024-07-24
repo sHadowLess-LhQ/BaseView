@@ -19,8 +19,7 @@ import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
 
-import cn.com.shadowless.baseview.event.PublicEvent;
-import cn.com.shadowless.baseview.utils.ViewBindingUtils;
+import cn.com.shadowless.baseview.event.ViewPublicEvent;
 
 
 /**
@@ -30,7 +29,7 @@ import cn.com.shadowless.baseview.utils.ViewBindingUtils;
  * @author sHadowLess
  */
 public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements
-        PublicEvent<VB>, BaseQuickLifecycle {
+        ViewPublicEvent<VB>, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数
@@ -331,37 +330,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     }
 
     /**
-     * Inflate view vb.
-     *
-     * @return the vb
-     */
-    protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        return ViewBindingUtils.inflate(initGenericsClass(), getLayoutInflater());
-    }
-
-    /**
-     * 设置绑定视图
-     *
-     * @return the 视图
-     */
-    protected Class<VB> setBindViewClass() {
-        return null;
-    }
-
-    /**
-     * Init generics class class.
-     *
-     * @return the class
-     */
-    private Class<VB> initGenericsClass() {
-        Class<VB> genericsCls = this.initGenericsClass(this);
-        if (genericsCls == ViewBinding.class) {
-            genericsCls = setBindViewClass();
-        }
-        return genericsCls;
-    }
-
-    /**
      * Init dialog attr relative layout.
      */
     private void initDialogAttr() {
@@ -372,7 +340,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         this.setCanceledOnTouchOutside(setting.isCancelOutside());
         //动态创建/初始化顶层容器
         try {
-            bind = inflateView();
+            bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
         }
@@ -387,6 +355,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     /**
      * Init dialog position.
      */
+    @SuppressLint("WrongConstant")
     private void initDialog() {
         if (!setting.isHasShadow()) {
             window.setDimAmount(0f);
@@ -458,29 +427,4 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      * @return the dialog param
      */
     protected abstract DialogSetting setDialogParam();
-
-    /**
-     * 初始化对象
-     */
-    protected abstract void initObject();
-
-    /**
-     * 初始化绑定视图数据监听
-     */
-    protected abstract void initView();
-
-    /**
-     * 初始化监听
-     */
-    protected abstract void initViewListener();
-
-    /**
-     * 初始化数据
-     */
-    protected abstract void initData();
-
-    /**
-     * Init data listener.
-     */
-    protected abstract void initDataListener();
 }
