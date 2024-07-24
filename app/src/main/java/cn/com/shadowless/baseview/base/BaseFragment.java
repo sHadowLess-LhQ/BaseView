@@ -26,8 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.com.shadowless.baseview.callback.PermissionCallBack;
-import cn.com.shadowless.baseview.click.AntiShakingOnClickListener;
+import cn.com.shadowless.baseview.event.PublicEvent;
 import cn.com.shadowless.baseview.permission.Permission;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 import cn.com.shadowless.baseview.utils.PermissionUtils;
@@ -42,7 +41,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
  * @author sHadowLess
  */
 public abstract class BaseFragment<VB extends ViewBinding> extends Fragment implements
-        AntiShakingOnClickListener {
+        PublicEvent<VB> {
 
     /**
      * 视图绑定
@@ -57,7 +56,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     /**
      * The Call back.
      */
-    private AsyncLoadViewCallBack callBack;
+    private PublicEvent.AsyncLoadViewCallBack callBack;
 
     /**
      * The Main handler.
@@ -177,7 +176,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      *
      * @return the async load view call back
      */
-    protected AsyncLoadViewCallBack initSyncView() {
+    protected PublicEvent.AsyncLoadViewCallBack initSyncView() {
         return null;
     }
 
@@ -185,9 +184,21 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      * Inflate view vb.
      *
      * @return the vb
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
+     * @throws NoSuchMethodException     the no such method exception
      */
     protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        return ViewBindingUtils.inflate(setBindViewClass(), getLayoutInflater());
+        return ViewBindingUtils.inflate(initGenericsClass(), getLayoutInflater());
+    }
+
+    /**
+     * 设置绑定视图
+     *
+     * @return the 视图
+     */
+    protected Class<VB> setBindViewClass() {
+        return null;
     }
 
     /**
@@ -199,7 +210,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         try {
             bind = inflateView();
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入绝对路径或重写自实现inflateView方法捕捉堆栈" + Log.getStackTraceString(e));
+            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
         }
         return bind.getRoot();
     }
@@ -256,7 +267,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      * @param permissions the permissions
      * @param callBack    the call back
      */
-    protected void dealPermission(String[] permissions, PermissionCallBack callBack) {
+    protected void dealPermission(String[] permissions, PublicEvent.PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
         PermissionUtils
@@ -304,6 +315,19 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
                         }
                     }
                 });
+    }
+
+    /**
+     * Init generics class class.
+     *
+     * @return the class
+     */
+    private Class<VB> initGenericsClass() {
+        Class<VB> genericsCls = this.initGenericsClass(this);
+        if (genericsCls == ViewBinding.class) {
+            genericsCls = setBindViewClass();
+        }
+        return genericsCls;
     }
 
     /**
@@ -357,7 +381,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
             @Override
             public void run() {
                 AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-                asyncViewBindingInflate.inflate(setBindViewClass(), group,
+                asyncViewBindingInflate.inflate(initGenericsClass(), group,
                         new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                             @Override
                             public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -435,14 +459,6 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      */
     @Nullable
     protected abstract String[] permissions();
-
-    /**
-     * 设置绑定视图
-     *
-     * @return the 视图
-     */
-    @NonNull
-    protected abstract Class<VB> setBindViewClass();
 
     /**
      * 碎片第一次创建

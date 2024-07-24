@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,9 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 import androidx.viewbinding.ViewBinding;
 
-import cn.com.shadowless.baseview.click.AntiShakingOnClickListener;
+import java.lang.reflect.InvocationTargetException;
+
+import cn.com.shadowless.baseview.event.PublicEvent;
 import cn.com.shadowless.baseview.utils.ViewBindingUtils;
 
 
@@ -27,7 +30,7 @@ import cn.com.shadowless.baseview.utils.ViewBindingUtils;
  * @author sHadowLess
  */
 public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements
-        AntiShakingOnClickListener, BaseQuickLifecycle {
+        PublicEvent<VB>, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数
@@ -332,13 +335,30 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      *
      * @return the vb
      */
-    protected VB inflateView() {
-        try {
-            return ViewBindingUtils.inflate(setBindViewClass(), getLayoutInflater());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        return ViewBindingUtils.inflate(initGenericsClass(), getLayoutInflater());
+    }
+
+    /**
+     * 设置绑定视图
+     *
+     * @return the 视图
+     */
+    protected Class<VB> setBindViewClass() {
         return null;
+    }
+
+    /**
+     * Init generics class class.
+     *
+     * @return the class
+     */
+    private Class<VB> initGenericsClass() {
+        Class<VB> genericsCls = this.initGenericsClass(this);
+        if (genericsCls == ViewBinding.class) {
+            genericsCls = setBindViewClass();
+        }
+        return genericsCls;
     }
 
     /**
@@ -351,9 +371,10 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         //子类设置是否外部关闭
         this.setCanceledOnTouchOutside(setting.isCancelOutside());
         //动态创建/初始化顶层容器
-        bind = inflateView();
-        if (bind == null) {
-            throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入正确或重写自实现inflateView方法");
+        try {
+            bind = inflateView();
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
         }
         //是否清除边框
         if (setting.isClearPadding()) {
@@ -430,14 +451,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
             return false;
         }
     }
-
-    /**
-     * 设置绑定视图
-     *
-     * @return the bind view
-     */
-    @NonNull
-    protected abstract Class<VB> setBindViewClass();
 
     /**
      * Sets dialog param.

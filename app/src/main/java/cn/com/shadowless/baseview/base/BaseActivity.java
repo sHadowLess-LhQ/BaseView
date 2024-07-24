@@ -2,13 +2,11 @@ package cn.com.shadowless.baseview.base;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,8 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.com.shadowless.baseview.callback.PermissionCallBack;
-import cn.com.shadowless.baseview.click.AntiShakingOnClickListener;
+import cn.com.shadowless.baseview.event.PublicEvent;
 import cn.com.shadowless.baseview.permission.Permission;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 import cn.com.shadowless.baseview.utils.PermissionUtils;
@@ -35,7 +32,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
  * @author sHadowLess
  */
 public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActivity implements
-        AntiShakingOnClickListener {
+        PublicEvent<VB> {
 
     /**
      * 视图绑定
@@ -45,7 +42,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     /**
      * The Call back.
      */
-    private AsyncLoadViewCallBack callBack;
+    private PublicEvent.AsyncLoadViewCallBack callBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +86,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
      *
      * @return the async load view call back
      */
-    protected AsyncLoadViewCallBack initSyncView() {
+    protected PublicEvent.AsyncLoadViewCallBack initSyncView() {
         return null;
     }
 
@@ -111,20 +108,16 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
      * @throws NoSuchMethodException     the no such method exception
      */
     protected VB inflateView() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        return ViewBindingUtils.inflate(setBindViewClass(), getLayoutInflater());
+        return ViewBindingUtils.inflate(initGenericsClass(), getLayoutInflater());
     }
 
     /**
-     * 初始化权限
+     * 设置绑定视图
+     *
+     * @return the 视图
      */
-    private void initPermissionAndInitData() {
-        String[] permissions = permissions();
-        if (null == permissions || permissions.length == 0) {
-            initData();
-            initDataListener();
-            return;
-        }
-        initPermission(permissions);
+    protected Class<VB> setBindViewClass() {
+        return null;
     }
 
     /**
@@ -136,14 +129,13 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         dealPermission(permissions, null);
     }
 
-
     /**
      * Deal permission.
      *
      * @param permissions the permissions
      * @param callBack    the call back
      */
-    protected void dealPermission(String[] permissions, PermissionCallBack callBack) {
+    protected void dealPermission(String[] permissions, PublicEvent.PermissionCallBack callBack) {
         final List<String> disagree = new ArrayList<>();
         final List<String> ban = new ArrayList<>();
         PermissionUtils
@@ -192,6 +184,32 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     }
 
     /**
+     * Init generics class class.
+     *
+     * @return the class
+     */
+    private Class<VB> initGenericsClass() {
+        Class<VB> genericsCls = this.initGenericsClass(this);
+        if (genericsCls == ViewBinding.class) {
+            genericsCls = setBindViewClass();
+        }
+        return genericsCls;
+    }
+
+    /**
+     * 初始化权限
+     */
+    private void initPermissionAndInitData() {
+        String[] permissions = permissions();
+        if (null == permissions || permissions.length == 0) {
+            initData();
+            initDataListener();
+            return;
+        }
+        initPermission(permissions);
+    }
+
+    /**
      * 初始化视图
      */
     private void initBindView() {
@@ -200,7 +218,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
             try {
                 bind = inflateView();
             } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                throw new RuntimeException("视图无法反射初始化，请检查setBindViewClassName是否传入绝对路径或重写自实现inflateView方法捕捉堆栈" + Log.getStackTraceString(e));
+                throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
             }
             setContentView(bind.getRoot());
             initObject();
@@ -214,7 +232,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(this);
-        asyncViewBindingInflate.inflate(setBindViewClass(), null,
+        asyncViewBindingInflate.inflate(initGenericsClass(), null,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -254,12 +272,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                         if (callBack != null) {
                             callBack.dismissLoadView();
                         }
-                        TextView textView = new TextView(BaseActivity.this);
-                        String error = "异步加载视图错误：" + Log.getStackTraceString(e);
-                        textView.setText(error);
-                        textView.setTextColor(Color.RED);
-                        setContentView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
+                        throw new RuntimeException("异步加载视图错误：" + Log.getStackTraceString(e));
                     }
                 });
     }
@@ -271,14 +284,6 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
      */
     @Nullable
     protected abstract String[] permissions();
-
-    /**
-     * 设置绑定视图
-     *
-     * @return the 视图
-     */
-    @NonNull
-    protected abstract Class<VB> setBindViewClass();
 
     /**
      * 初始化对象

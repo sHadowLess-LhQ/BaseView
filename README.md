@@ -57,7 +57,7 @@ a、克隆引入
 
 b、远程仓库引入
 
-[[![](https://jitpack.io/v/com.gitee.shadowless_lhq/base-view.svg)](https://jitpack.io/#com.gitee.shadowless_lhq/base-view)
+[![](https://jitpack.io/v/com.gitee.shadowless_lhq/base-view.svg)](https://jitpack.io/#com.gitee.shadowless_lhq/base-view)
 
 ```
     dependencies {
@@ -98,12 +98,12 @@ c、混淆规则
       //接口的对象，供基类调用，显示和关闭
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理，请重写antiShakingClick接口
-      //填入传递数据类型
       //设置Activity主题，请重写initTheme()方法
-      //设置initData所处线程，请重写setScheduler()方法
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
       //如果单个Activity需要动态使用不同的布局文件，请给BaseActivity的泛型类型
-      //传递ViewBinding，并在setBindViewClass抽象方法里实现不同布局类的传递
+      //传递ViewBinding，并重写setBindViewClass模板方法,传递不同ViewBinding类
+      //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
+      //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       public class MainActivity extends BaseActivity<ActivityMainBinding> {
     
           @Nullable
@@ -112,13 +112,16 @@ c、混淆规则
              //设置需要获取的权限，无需申请可传null或空数组
              return null;
           }
+          
+          @Override
+          protected boolean isAsyncLoadView() {
+              //是否异步加载视图
+              return false;
+          }
       
-          @NonNull
           @Override
           protected String setBindViewClass() {
-              //返回ViewBinding类
-              return ActivityMainBinding.class;
-              //或者动态布局
+              //动态布局
                Class<?> cls;
                if (i == 1) {
                   cls = ActivityMainBinding.class;
@@ -161,6 +164,12 @@ c、混淆规则
           }
           
           @Override
+          public boolean isFastClick(int time) {
+              //传递需要的防抖时间阈值
+              return PublicEvent.super.isFastClick(time);
+          }
+          
+          @Override
           public void antiShakingClick(View v) {
               //点击处理
           }
@@ -169,7 +178,7 @@ c、混淆规则
           protected void initPermission(String[] permissions) {
               //去除超类
               //比如需要申请前的说明
-              //包裹后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
+              //封装后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
               //需要自己获取回调，需实现PermissionCallBack接口
               //不需要直接传null
               //任意控件事件动态申请权限，请使用PermissionUtils
@@ -210,17 +219,19 @@ c、混淆规则
       //通过重写getLoadMode方法，返回不同的加载枚举
       //基类会执行不同的加载逻辑，不重写为DEFAULT
       //可通过isLazyInitSuccess方法，获取懒加载是否成功
+      //基类已实现异步布局加载，如需异步加载，请重写isAsyncLoadView方法
+      //并返回true
       //若异步加载需要加载弹窗，需要重写initSyncView，并返回实现AsyncLoadViewCallBack
-      //接口的对象，供基类调用，显示和关闭
       //默认没有异步加载弹窗
+      //接口的对象，供基类调用，显示和关闭
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理，请重写antiShakingClick接口
-      //填入传递数据类型
       //设置Activity主题，请重写initTheme()方法
-      //设置initData所处线程，请重写setScheduler()方法
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
-      //如果单个Activity需要动态使用不同的布局文件，请给BaseActivity的泛型类型
-      //传递ViewBinding，并在setBindViewClass抽象方法里实现不同布局类的传递
+      //如果单个Fragment需要动态使用不同的布局文件，请给BaseFragment的泛型类型
+      //传递ViewBinding，并重写setBindViewClass模板方法,传递不同ViewBinding类
+      //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
+      //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       public class MainFragment extends BaseFragment<FragmentMainBinding> {
   
           @Nullable
@@ -229,13 +240,16 @@ c、混淆规则
              //设置需要获取的权限，无需申请可传null或空数组
              return null;
           }
+          
+          @Override
+          protected boolean isAsyncLoadView() {
+              //是否异步加载视图
+              return false;
+          }
       
-          @NonNull
           @Override
           protected String setBindViewClass() {
-              //返回ViewBinding类
-              return FragmentMainBinding.class;
-              //或者动态布局
+              //动态布局
                Class<?> cls;
                if (i == 1) {
                   cls = ActivityMainBinding.class;
@@ -288,6 +302,17 @@ c、混淆规则
           }
           
           @Override
+          public boolean isFastClick(int time) {
+              //传递需要的防抖时间阈值
+              return PublicEvent.super.isFastClick(time);
+          }
+          
+          @Override
+          public void antiShakingClick(View v) {
+              //点击处理
+          }
+          
+          @Override
           protected void initPermission(String[] permissions) {
               //去除超类
               //重写例子，比如需要申请前的说明
@@ -330,8 +355,10 @@ c、混淆规则
       //自身支持Lifecycle
       //支持监听其他Lifcycle
       //click监听已做快速点击处理，请重写antiShakingClick接口
+      //如果单个Dialog需要动态使用不同的布局文件，请给BaseDialog的泛型类型
+      //传递ViewBinding，并重写setBindViewClass模板方法,传递不同ViewBinding类
       //继承示例
-      public class TestDialog extends BaseDialog<PopTestBinding,String> {
+      public class TestDialog extends BaseDialog<PopTestBinding> {
       
             public TestDialog(@NonNull Context context) {
                 super(context);
@@ -345,11 +372,16 @@ c、混淆规则
                 //如不合要求，请自定义后传入
             }
         
-            @NonNull
             @Override
             protected String setBindViewClass() {
-                //返回ViewBinding类
-                return PopTestBinding.class;
+                //动态布局
+                 Class<?> cls;
+                 if (i == 1) {
+                    cls = ActivityMainBinding.class;
+                 } else {
+                    cls = XxxBinding.class;
+                 }
+                 return (Class<ViewBinding>) cls;
             }
             
             @Override
@@ -401,6 +433,17 @@ c、混淆规则
             @Override
             protected void initDataListener() {
                //初始化数据监听
+            }
+            
+            @Override
+            public boolean isFastClick(int time) {
+                //传递需要的防抖时间阈值
+                return PublicEvent.super.isFastClick(time);
+            }
+            
+            @Override
+            public void antiShakingClick(View v) {
+                //点击处理
             }
             
             @Override
