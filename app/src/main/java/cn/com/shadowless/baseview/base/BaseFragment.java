@@ -34,7 +34,8 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  * @author sHadowLess
  */
 public abstract class BaseFragment<VB extends ViewBinding> extends Fragment implements
-        ViewPublicEvent<VB> {
+        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitEvent,
+        ViewPublicEvent.InitViewClick, ViewPublicEvent.InitFragmentEvent {
 
     /**
      * 视图绑定
@@ -49,7 +50,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     /**
      * The Call back.
      */
-    private ViewPublicEvent.AsyncLoadViewCallBack callBack;
+    private ViewPublicEvent.InitViewBinding.AsyncLoadViewCallBack callBack;
 
     /**
      * The Main handler.
@@ -102,7 +103,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                mainHandler.postDelayed(this::initEvent,100);
+                mainHandler.postDelayed(this::initEvent, 100);
                 return defaultView;
         }
     }

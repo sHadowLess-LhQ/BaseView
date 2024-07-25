@@ -101,7 +101,9 @@ c、混淆规则
       //设置Activity主题，请重写initTheme()方法
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
       //如果单个Activity需要动态使用不同的布局文件，请给BaseActivity的泛型类型
-      //传递ViewBinding，并重写setBindViewClass模板方法,传递不同ViewBinding类
+      //传递ViewBinding，并重写setBindViewClass模板方法,传递不同ViewBinding类的class
+      //如果不想用默认的反射去动态使用不同的布局，请重写inflateView模板方法
+      //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       public class MainActivity extends BaseActivity<ActivityMainBinding> {
@@ -153,14 +155,8 @@ c、混淆规则
           }
       
           @Override
-          public ViewBinding inflateView(Object o, LayoutInflater layoutInflater) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-              //可重写后手动实现视图初始化
-              return super.inflateView(o, layoutInflater);
-          }
-      
-          @Override
           public Class<ViewBinding> setBindViewClass() {
-              //动态布局
+              //反射动态布局
               Class<?> cls;
               if (i == 1) {
                   cls = ActivityMainBinding.class;
@@ -168,6 +164,16 @@ c、混淆规则
                   cls = XxxBinding.class;
               }
               return (Class<ViewBinding>) cls;
+          }
+          
+          @Override
+          public ViewBinding inflateView(Object o, LayoutInflater layoutInflater) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+              //手动动态布局或手动初始化布局
+              int i = 0;
+              if (i == 0){
+                  return TestBinding.inflate(getLayoutInflater());
+              }
+              return Test1Binding.inflate(getLayoutInflater());
           }
       
           @Override
@@ -237,6 +243,8 @@ c、混淆规则
       //设置权限申请前置步骤，请重写initPermission(String[] permissions)方法
       //如果单个Fragment需要动态使用不同的布局文件，请给BaseFragment的泛型类型
       //传递ViewBinding，并重写setBindViewClass模板方法,传递不同ViewBinding类
+      //如果不想用默认的反射去动态使用不同的布局，请重写inflateView模板方法
+      //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       public class MainFragment extends BaseFragment<FragmentMainBinding> {
@@ -299,8 +307,12 @@ c、混淆规则
       
           @Override
           public ViewBinding inflateView(Object o, LayoutInflater layoutInflater) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-              //可重写后手动实现视图初始化
-              return super.inflateView(o, layoutInflater);
+              //手动动态布局或手动初始化布局
+              int i = 0;
+              if (i == 0){
+                  return TestBinding.inflate(getLayoutInflater());
+              }
+              return Test1Binding.inflate(getLayoutInflater());
           }
       
           @Override

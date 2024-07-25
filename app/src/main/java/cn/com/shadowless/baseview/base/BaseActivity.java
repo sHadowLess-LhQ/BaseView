@@ -25,7 +25,7 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  * @author sHadowLess
  */
 public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActivity implements
-        ViewPublicEvent<VB> {
+        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitEvent, ViewPublicEvent.InitViewClick {
 
     /**
      * 视图绑定
@@ -35,7 +35,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
     /**
      * The Call back.
      */
-    private ViewPublicEvent.AsyncLoadViewCallBack callBack;
+    private ViewPublicEvent.InitViewBinding.AsyncLoadViewCallBack callBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
