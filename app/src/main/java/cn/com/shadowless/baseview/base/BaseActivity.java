@@ -45,11 +45,11 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         }
         super.onCreate(savedInstanceState);
         boolean isAsync = isAsyncLoadView();
-        if (!isAsync) {
-            syncInitView();
+        if (isAsync) {
+            asyncInitView();
             return;
         }
-        asyncInitView();
+        syncInitView();
     }
 
     @Override

@@ -213,36 +213,28 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
      * @param viewGroup the view group
      */
     private void initSync(ViewGroup viewGroup) {
-        if (callBack != null) {
-            callBack.showLoadView();
-        }
-        mainHandler.postDelayed(() -> {
-            View contentView = getInflateView();
-            contentView.setAlpha(0);
-            contentView
-                    .animate()
-                    .alpha(0)
-                    .alpha(1)
-                    .setDuration(500)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-                            super.onAnimationStart(animation);
-                            viewGroup.addView(contentView);
-                        }
+        View contentView = getInflateView();
+        contentView.setAlpha(0);
+        contentView
+                .animate()
+                .alpha(0)
+                .alpha(1)
+                .setDuration(500)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        super.onAnimationStart(animation);
+                        viewGroup.addView(contentView);
+                    }
 
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            initEvent();
-                        }
-                    })
-                    .setInterpolator(new LinearInterpolator())
-                    .start();
-            if (callBack != null) {
-                callBack.dismissLoadView();
-            }
-        }, 500);
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        initEvent();
+                    }
+                })
+                .setInterpolator(new LinearInterpolator())
+                .start();
     }
 
     /**
@@ -258,7 +250,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
             @Override
             public void run() {
                 AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-                asyncViewBindingInflate.inflate(initGenericsClass(this), group,
+                asyncViewBindingInflate.inflate(initGenericsClass(BaseFragment.this), group,
                         new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                             @Override
                             public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
