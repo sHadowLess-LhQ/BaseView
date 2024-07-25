@@ -29,7 +29,8 @@ import cn.com.shadowless.baseview.event.ViewPublicEvent;
  * @author sHadowLess
  */
 public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements
-        ViewPublicEvent<VB>, BaseQuickLifecycle {
+        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitEvent,
+        ViewPublicEvent.InitViewClick, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数

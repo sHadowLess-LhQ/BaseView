@@ -412,7 +412,7 @@ c、混淆规则
             
             @Override
             protected PopTestBinding inflateView() {
-                //可重写后实现视图初始化
+                //可重写后实现视图初始化或手动动态布局
                 return super.inflateView();
             }
             
