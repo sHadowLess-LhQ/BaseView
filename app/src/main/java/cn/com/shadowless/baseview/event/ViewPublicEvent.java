@@ -27,7 +27,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
  *
  * @author sHadowLess
  */
-public interface ViewPublicEvent extends View.OnClickListener {
+public interface ViewPublicEvent {
 
     /**
      * The interface Init fragment event.
