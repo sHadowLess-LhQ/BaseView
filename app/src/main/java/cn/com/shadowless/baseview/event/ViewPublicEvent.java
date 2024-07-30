@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 
 import cn.com.shadowless.baseview.base.BaseCons;
 import cn.com.shadowless.permissionlib.PermissionConfig;
@@ -272,7 +273,24 @@ public interface ViewPublicEvent {
             PermissionConfig config = new PermissionConfig(activity);
             config.setNormalPermission(normalPermission);
             config.setSpecialPermission(specialPermission);
-            config.requestPermissions(callBack);
+            config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
+                @Override
+                public void agree() {
+                    initData();
+                    initDataListener();
+                    callBack.agree();
+                }
+
+                @Override
+                public void disagree(List<String> name) {
+                    callBack.disagree(name);
+                }
+
+                @Override
+                public void ban(List<String> name) {
+                    callBack.ban(name);
+                }
+            });
         }
 
         /**
@@ -287,7 +305,24 @@ public interface ViewPublicEvent {
             PermissionConfig config = new PermissionConfig(fragment);
             config.setNormalPermission(normalPermission);
             config.setSpecialPermission(specialPermission);
-            config.requestPermissions(callBack);
+            config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
+                @Override
+                public void agree() {
+                    initData();
+                    initDataListener();
+                    callBack.agree();
+                }
+
+                @Override
+                public void disagree(List<String> name) {
+                    callBack.disagree(name);
+                }
+
+                @Override
+                public void ban(List<String> name) {
+                    callBack.ban(name);
+                }
+            });
         }
     }
 
