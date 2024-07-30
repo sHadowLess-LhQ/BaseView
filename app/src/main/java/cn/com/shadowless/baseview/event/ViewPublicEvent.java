@@ -210,8 +210,8 @@ public interface ViewPublicEvent {
         default void initPermissionAndInitData(FragmentActivity activity) {
             String[] normalPermissions = normalPermissions();
             String[] specialPermissions = specialPermissions();
-            boolean hasNormal = null == normalPermissions || normalPermissions.length == 0;
-            boolean hasSpecial = null == specialPermissions || specialPermissions.length == 0;
+            boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
+            boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
             if (!hasNormal && !hasSpecial) {
                 initData();
                 initDataListener();
@@ -228,8 +228,8 @@ public interface ViewPublicEvent {
         default void initPermissionAndInitData(Fragment fragment) {
             String[] normalPermissions = normalPermissions();
             String[] specialPermissions = specialPermissions();
-            boolean hasNormal = null == normalPermissions || normalPermissions.length == 0;
-            boolean hasSpecial = null == specialPermissions || specialPermissions.length == 0;
+            boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
+            boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
             if (!hasNormal && !hasSpecial) {
                 initData();
                 initDataListener();
