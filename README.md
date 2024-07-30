@@ -62,9 +62,7 @@ b、远程仓库引入
 ```
     dependencies {
         implementation 'com.gitee.shadowless_lhq:base-view:Tag'
-        implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
-        implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
-        implementation 'com.github.liujingxing.rxlife:rxlife-rxjava3:2.2.2'
+        implementation 'com.gitee.shadowless_lhq:permission-lib:1.0.0'
     }
 ```
 
@@ -106,15 +104,27 @@ c、混淆规则
       //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
+      //需要在获取权限，请重写normalPermissions和specialPermissions方法
       public class MainActivity extends BaseActivity<ActivityMainBinding> {
-    
+  
           @Nullable
           @Override
-          protected String[] permissions() {
-             //设置需要获取的权限，无需申请可传null或空数组
-             return null;
+          public String[] normalPermissions() {
+              //设置需要动态获取的普通权限，无需申请可传null或空数组
+              //目前仅支持以下特殊权限：
+              //Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
+              //Settings.ACTION_MANAGE_OVERLAY_PERMISSION
+              //Settings.ACTION_MANAGE_WRITE_SETTINGS
+              //Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+              return super.normalPermissions();
           }
-          
+      
+          @Nullable
+          @Override
+          public String[] specialPermissions() {
+              //设置需要动态获取的特殊权限，无需申请可传null或空数组
+              return super.specialPermissions();
+          }
           
           @Override
           protected void initObject() {
@@ -247,13 +257,26 @@ c、混淆规则
       //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
+      //需要在获取权限，请重写normalPermissions和specialPermissions方法
       public class MainFragment extends BaseFragment<FragmentMainBinding> {
   
           @Nullable
           @Override
-          protected String[] permissions() {
-             //设置需要获取的权限，无需申请可传null或空数组
-             return null;
+          public String[] normalPermissions() {
+              //设置需要动态获取的普通权限，无需申请可传null或空数组
+              //目前仅支持以下特殊权限：
+              //Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
+              //Settings.ACTION_MANAGE_OVERLAY_PERMISSION
+              //Settings.ACTION_MANAGE_WRITE_SETTINGS
+              //Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+              return super.normalPermissions();
+          }
+      
+          @Nullable
+          @Override
+          public String[] specialPermissions() {
+              //设置需要动态获取的特殊权限，无需申请可传null或空数组
+              return super.specialPermissions();
           }
 
           @Override

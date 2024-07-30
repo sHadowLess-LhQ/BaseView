@@ -3,24 +3,20 @@ package cn.com.shadowless.baseview.event;
 import android.view.LayoutInflater;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 
 import cn.com.shadowless.baseview.base.BaseCons;
-import cn.com.shadowless.baseview.permission.Permission;
-import cn.com.shadowless.baseview.utils.PermissionUtils;
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
+import cn.com.shadowless.permissionlib.PermissionConfig;
+import cn.com.shadowless.permissionlib.PermissionsFragment;
+
 
 /**
  * The interface Public event.
@@ -167,7 +163,19 @@ public interface ViewPublicEvent {
          * @return the 权限组
          */
         @Nullable
-        String[] permissions();
+        default String[] normalPermissions() {
+            return new String[0];
+        }
+
+        /**
+         * Special permissions string [ ].
+         *
+         * @return the string [ ]
+         */
+        @Nullable
+        default String[] specialPermissions() {
+            return new String[0];
+        }
 
         /**
          * 初始化对象
@@ -198,116 +206,89 @@ public interface ViewPublicEvent {
          * Init permission and init data.
          *
          * @param activity the activity
-         * @param owner    the owner
          */
-        default void initPermissionAndInitData(FragmentActivity activity, LifecycleOwner owner) {
-            String[] permissions = permissions();
-            if (null == permissions || permissions.length == 0) {
+        default void initPermissionAndInitData(FragmentActivity activity) {
+            String[] normalPermissions = normalPermissions();
+            String[] specialPermissions = specialPermissions();
+            boolean hasNormal = null == normalPermissions || normalPermissions.length == 0;
+            boolean hasSpecial = null == specialPermissions || specialPermissions.length == 0;
+            if (!hasNormal && !hasSpecial) {
                 initData();
                 initDataListener();
                 return;
             }
-            initPermission(activity, owner, permissions);
+            initPermission(activity, normalPermissions, specialPermissions);
+        }
+
+        /**
+         * Init permission and init data.
+         *
+         * @param fragment the fragment
+         */
+        default void initPermissionAndInitData(Fragment fragment) {
+            String[] normalPermissions = normalPermissions();
+            String[] specialPermissions = specialPermissions();
+            boolean hasNormal = null == normalPermissions || normalPermissions.length == 0;
+            boolean hasSpecial = null == specialPermissions || specialPermissions.length == 0;
+            if (!hasNormal && !hasSpecial) {
+                initData();
+                initDataListener();
+                return;
+            }
+            initPermission(fragment, normalPermissions, specialPermissions);
         }
 
         /**
          * Init permission.
          *
-         * @param activity    the activity
-         * @param owner       the owner
-         * @param permissions the permissions
+         * @param activity          the activity
+         * @param normalPermission  the normal permission
+         * @param specialPermission the special permission
          */
-        default void initPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions) {
-            dealPermission(activity, owner, permissions, null);
+        default void initPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission) {
+            dealPermission(activity, normalPermission, specialPermission, null);
+        }
+
+        /**
+         * Init permission.
+         *
+         * @param fragment          the fragment
+         * @param normalPermission  the normal permission
+         * @param specialPermission the special permission
+         */
+        default void initPermission(Fragment fragment, String[] normalPermission, String[] specialPermission) {
+            dealPermission(fragment, normalPermission, specialPermission, null);
         }
 
         /**
          * Deal permission.
          *
-         * @param activity    the activity
-         * @param owner       the owner
-         * @param permissions the permissions
-         * @param callBack    the call back
+         * @param activity          the activity
+         * @param normalPermission  the normal permission
+         * @param specialPermission the special permission
+         * @param callBack          the call back
          */
-        default void dealPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack) {
-            final List<String> disagree = new ArrayList<>();
-            final List<String> ban = new ArrayList<>();
-            PermissionUtils.getPermissionObservable(activity, owner, permissions).subscribe(new Observer<Permission>() {
-
-                @Override
-                public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Disposable d) {
-
-                }
-
-                @Override
-                public void onNext(@NonNull Permission permission) {
-                    if (permission.shouldShowRequestPermissionRationale) {
-                        ban.add(permission.name);
-                    } else if (!permission.granted) {
-                        disagree.add(permission.name);
-                    }
-                }
-
-                @Override
-                public void onError(@NonNull Throwable e) {
-                    if (callBack != null) {
-                        callBack.fail("处理权限错误", e);
-                    }
-                }
-
-                @Override
-                public void onComplete() {
-                    if (ban.isEmpty() && disagree.isEmpty()) {
-                        if (callBack != null) {
-                            callBack.agree();
-                        }
-                        initData();
-                        initDataListener();
-                    } else if (!ban.isEmpty()) {
-                        if (callBack != null) {
-                            callBack.ban(ban);
-                        }
-                    } else {
-                        if (callBack != null) {
-                            callBack.disagree(disagree);
-                        }
-                    }
-                }
-            });
+        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, PermissionsFragment.PermissionCallBack callBack) {
+            PermissionConfig config = new PermissionConfig(activity);
+            config.setNormalPermission(normalPermission);
+            config.setSpecialPermission(specialPermission);
+            config.requestPermissions(callBack);
         }
 
         /**
-         * The interface Permission call back.
+         * Deal permission.
+         *
+         * @param fragment          the fragment
+         * @param normalPermission  the normal permission
+         * @param specialPermission the special permission
+         * @param callBack          the call back
          */
-        interface PermissionCallBack {
-            /**
-             * Agree.
-             */
-            void agree();
-
-            /**
-             * Disagree.
-             *
-             * @param name the name
-             */
-            void disagree(List<String> name);
-
-            /**
-             * Ban.
-             *
-             * @param name the name
-             */
-            void ban(List<String> name);
-
-            /**
-             * Fail.
-             *
-             * @param msg the msg
-             * @param e   the e
-             */
-            void fail(String msg, @Nullable Throwable e);
+        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, PermissionsFragment.PermissionCallBack callBack) {
+            PermissionConfig config = new PermissionConfig(fragment);
+            config.setNormalPermission(normalPermission);
+            config.setSpecialPermission(specialPermission);
+            config.requestPermissions(callBack);
         }
-
     }
 
 

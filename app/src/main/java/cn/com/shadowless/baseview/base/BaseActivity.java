@@ -92,7 +92,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         initObject();
         initView();
         initViewListener();
-        initPermissionAndInitData(this, this);
+        initPermissionAndInitData(this);
     }
 
     /**
@@ -132,7 +132,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                                         initObject();
                                         initView();
                                         initViewListener();
-                                        initPermissionAndInitData(BaseActivity.this, BaseActivity.this);
+                                        initPermissionAndInitData(BaseActivity.this);
                                     }
                                 })
                                 .setInterpolator(new LinearInterpolator())

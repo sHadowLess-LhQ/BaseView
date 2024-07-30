@@ -19,7 +19,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
@@ -305,6 +304,6 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         initObject();
         initView();
         initViewListener();
-        initPermissionAndInitData((FragmentActivity) getAttachActivity(), getViewLifecycleOwner());
+        initPermissionAndInitData(this);
     }
 }
