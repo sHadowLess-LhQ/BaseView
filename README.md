@@ -636,20 +636,3 @@ c、混淆规则
           }
       }
 ```
-
-### PermissionUtils
-
-```
-      //获取权限观察者
-      PermissionUtils.getPermissionObservable(Fragment fragment, View view, String[] permissions)
-      PermissionUtils.getPermissionObservable(FragmentActivity activity, View view, String[] permissions)
-      PermissionUtils.getPermissionObservable(Fragment fragment, LifecycleOwner owner, String[] permissions)
-      PermissionUtils.getPermissionObservable(FragmentActivity activity, LifecycleOwner owner, String[] permissions);
-      //处理权限
-      PermissionUtils.dealPermission(FragmentActivity activity, View view, String[] permissions, PermissionCallBack callBack)
-      PermissionUtils.dealPermission(Fragment fragment, View view, String[] permissions, PermissionCallBack callBack)
-      PermissionUtils.dealPermission(Fragment fragment, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack)
-      PermissionUtils.dealPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions, PermissionCallBack callBack)
-      //检查是否获取权限
-      PermissionUtils.checkHasPermission(Context context, String name)
-```
