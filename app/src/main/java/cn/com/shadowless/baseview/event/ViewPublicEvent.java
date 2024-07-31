@@ -2,6 +2,7 @@ package cn.com.shadowless.baseview.event;
 
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -80,6 +81,23 @@ public interface ViewPublicEvent {
         default VB inflateView(Object o, LayoutInflater layoutInflater) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
             Method inflateMethod = initGenericsClass(o).getMethod("inflate", LayoutInflater.class);
             return (VB) inflateMethod.invoke(null, layoutInflater);
+        }
+
+        /**
+         * Inflate view vb.
+         *
+         * @param o              the o
+         * @param layoutInflater the layout inflater
+         * @param parent         the parent
+         * @param attachToParent the attach to parent
+         * @return the vb
+         * @throws InvocationTargetException the invocation target exception
+         * @throws IllegalAccessException    the illegal access exception
+         * @throws NoSuchMethodException     the no such method exception
+         */
+        default VB inflateView(Object o, LayoutInflater layoutInflater, ViewGroup parent, boolean attachToParent) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+            Method inflateMethod = initGenericsClass(o).getMethod("inflate", LayoutInflater.class, ViewGroup.class, boolean.class);
+            return (VB) inflateMethod.invoke(null, layoutInflater, parent, attachToParent);
         }
 
         /**
@@ -218,7 +236,7 @@ public interface ViewPublicEvent {
                 initDataListener();
                 return;
             }
-            initPermission(activity, normalPermissions, specialPermissions);
+            dealPermission(activity, normalPermissions, specialPermissions);
         }
 
         /**
@@ -236,7 +254,7 @@ public interface ViewPublicEvent {
                 initDataListener();
                 return;
             }
-            initPermission(fragment, normalPermissions, specialPermissions);
+            dealPermission(fragment, normalPermissions, specialPermissions);
         }
 
         /**
@@ -246,7 +264,7 @@ public interface ViewPublicEvent {
          * @param normalPermission  the normal permission
          * @param specialPermission the special permission
          */
-        default void initPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission) {
+        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission) {
             dealPermission(activity, normalPermission, specialPermission, null);
         }
 
@@ -257,7 +275,7 @@ public interface ViewPublicEvent {
          * @param normalPermission  the normal permission
          * @param specialPermission the special permission
          */
-        default void initPermission(Fragment fragment, String[] normalPermission, String[] specialPermission) {
+        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission) {
             dealPermission(fragment, normalPermission, specialPermission, null);
         }
 
