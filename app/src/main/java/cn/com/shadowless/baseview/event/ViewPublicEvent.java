@@ -1,5 +1,6 @@
 package cn.com.shadowless.baseview.event;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,16 @@ public interface ViewPublicEvent {
      * @param <VB> the type parameter
      */
     interface InitViewBinding<VB extends ViewBinding> {
+
+        /**
+         * Sets compare generic super class name.
+         *
+         * @return the compare generic super class name
+         */
+        default String setCompareGenericSuperClassName() {
+            return null;
+        }
+
         /**
          * Init generics class class.
          *
@@ -52,11 +63,22 @@ public interface ViewPublicEvent {
         default Class<VB> initGenericsClass(Object o) {
             Type superClass = o.getClass().getGenericSuperclass();
             ParameterizedType parameterized = (ParameterizedType) superClass;
-            Class<VB> genericsCls = (Class<VB>) parameterized.getActualTypeArguments()[0];
-            if (genericsCls == ViewBinding.class) {
-                genericsCls = setBindViewClass();
+            Type[] types = parameterized.getActualTypeArguments();
+            String compareName = setCompareGenericSuperClassName();
+            if (TextUtils.isEmpty(compareName)) {
+                compareName = "Binding";
             }
-            return genericsCls;
+            for (Type type : types) {
+                Class<?> genericsCls = (Class<?>) type;
+                if (!genericsCls.getSimpleName().contains(compareName)) {
+                    continue;
+                }
+                if (genericsCls == ViewBinding.class) {
+                    genericsCls = setBindViewClass();
+                }
+                return (Class<VB>) genericsCls;
+            }
+            throw new RuntimeException("传入的泛型未找到与ViewBinding相关的泛型超类，请检查参数或手动初始化ViewBinding");
         }
 
         /**
