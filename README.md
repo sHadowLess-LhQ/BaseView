@@ -191,44 +191,6 @@ c、混淆规则
               //是否异步加载视图
               return false;
           }
-      
-          @Override
-          public void initPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions) {
-              //去除超类
-              //比如需要申请前的说明
-              //封装后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
-              //需要自己获取回调，需实现PermissionCallBack接口
-              //不需要直接传null
-              //任意控件事件动态申请权限，请使用PermissionUtils
-              new AlertDialog.Builder(this)
-                      .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              dealPermission(activity, owner, permissions, new PermissionCallBack() {
-                                  @Override
-                                  public void agree() {
-      
-                                  }
-      
-                                  @Override
-                                  public void disagree(List<String> name) {
-      
-                                  }
-      
-                                  @Override
-                                  public void ban(List<String> name) {
-      
-                                  }
-      
-                                  @Override
-                                  public void fail(String msg, @Nullable Throwable e) {
-      
-                                  }
-                              });
-                          }
-                      })
-                      .show();
-          }
       }
 ```
 
@@ -354,44 +316,6 @@ c、混淆规则
           public boolean isAsyncLoadView() {
               //是否异步加载视图
               return false;
-          }
-      
-          @Override
-          public void initPermission(FragmentActivity activity, LifecycleOwner owner, String[] permissions) {
-              //去除超类
-              //比如需要申请前的说明
-              //封装后调用dealPermission(String[] permissions, PermissionCallBack callBack)方法
-              //需要自己获取回调，需实现PermissionCallBack接口
-              //不需要直接传null
-              //任意控件事件动态申请权限，请使用PermissionUtils
-              new AlertDialog.Builder(this)
-                      .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              dealPermission(activity, owner, permissions, new PermissionCallBack() {
-                                  @Override
-                                  public void agree() {
-      
-                                  }
-      
-                                  @Override
-                                  public void disagree(List<String> name) {
-      
-                                  }
-      
-                                  @Override
-                                  public void ban(List<String> name) {
-      
-                                  }
-      
-                                  @Override
-                                  public void fail(String msg, @Nullable Throwable e) {
-      
-                                  }
-                              });
-                          }
-                      })
-                      .show();
           }
       }
 ```
