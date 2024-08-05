@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.base;
+package cn.com.shadowless.baseview.base.view;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -20,6 +20,7 @@ import androidx.viewbinding.ViewBinding;
 import java.lang.reflect.InvocationTargetException;
 
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
+import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
 
 
 /**
@@ -29,7 +30,7 @@ import cn.com.shadowless.baseview.event.ViewPublicEvent;
  * @author sHadowLess
  */
 public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements
-        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitEvent,
+        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitBindingEvent,
         ViewPublicEvent.InitViewClick, BaseQuickLifecycle {
 
     /**

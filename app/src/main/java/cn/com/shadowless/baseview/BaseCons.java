@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.base;
+package cn.com.shadowless.baseview;
 
 /**
  * The type Base cons.

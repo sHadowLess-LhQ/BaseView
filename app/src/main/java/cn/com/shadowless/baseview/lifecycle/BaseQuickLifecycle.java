@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.base;
+package cn.com.shadowless.baseview.lifecycle;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle;
@@ -19,5 +19,28 @@ public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwn
     @NonNull
     @Override
     Lifecycle getLifecycle();
+
+    /**
+     * Sets stop event.
+     *
+     * @return the stop event
+     */
+    @NonNull
+    Lifecycle.Event setStopEvent();
+
+    /**
+     * On terminate.
+     *
+     * @param event the event
+     */
+    void onTerminate(Lifecycle.Event event);
+
+    /**
+     * Observe lifecycle lifecycle owner.
+     *
+     * @return the lifecycle owner
+     */
+    @NonNull
+    LifecycleOwner observeLifecycle();
 
 }

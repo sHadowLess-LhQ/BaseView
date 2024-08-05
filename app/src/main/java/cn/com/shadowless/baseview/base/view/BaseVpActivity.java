@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.base;
+package cn.com.shadowless.baseview.base.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -24,8 +24,8 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActivity implements
-        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitEvent, ViewPublicEvent.InitViewClick {
+public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatActivity implements
+        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitBindingEvent, ViewPublicEvent.InitViewClick {
 
     /**
      * 视图绑定
@@ -86,7 +86,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
+            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         setContentView(bind.getRoot());
         initObject();
@@ -104,7 +104,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(this);
-        asyncViewBindingInflate.inflate(initGenericsClass(this), null,
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), null,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -132,7 +132,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                                         initObject();
                                         initView();
                                         initViewListener();
-                                        initPermissionAndInitData(BaseActivity.this);
+                                        initPermissionAndInitData(BaseVpActivity.this);
                                     }
                                 })
                                 .setInterpolator(new LinearInterpolator())
@@ -144,7 +144,7 @@ public abstract class BaseActivity<VB extends ViewBinding> extends AppCompatActi
                         if (callBack != null) {
                             callBack.dismissLoadView();
                         }
-                        throw new RuntimeException("异步加载视图错误：" + Log.getStackTraceString(e));
+                        throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
     }

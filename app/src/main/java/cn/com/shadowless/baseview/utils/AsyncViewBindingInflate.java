@@ -52,17 +52,17 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
     /**
      * The M dispatcher.
      */
-    Dispather mDispatcher;
+    Dispather<VB> mDispatcher;
 
     /**
      * Instantiates a new Async layout inflate plus.
      *
-     * @param context     the context
+     * @param context the context
      */
     public AsyncViewBindingInflate(@NonNull Context context) {
         mInflater = new BasicInflater(context);
         mHandler = new Handler(Looper.getMainLooper(), mHandlerCallback);
-        mDispatcher = new Dispather();
+        mDispatcher = new Dispather<>();
     }
 
     /**
@@ -73,7 +73,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
      * @param callback the callback
      */
     @UiThread
-    public void inflate(Class<VB> vbClass, @Nullable ViewGroup parent, @NonNull OnInflateFinishedListener callback) {
+    public void inflate(Class<VB> vbClass, @Nullable ViewGroup parent, @NonNull OnInflateFinishedListener<VB> callback) {
         InflateRequest<VB> request = obtainRequest();
         request.inflater = this;
         request.vbClass = vbClass;
@@ -126,11 +126,11 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
      *
      * @param <VB> the type parameter
      */
-    private static class InflateRequest<VB> {
+    private static class InflateRequest<VB extends ViewBinding> {
         /**
          * The Inflater.
          */
-        AsyncViewBindingInflate inflater;
+        AsyncViewBindingInflate<VB> inflater;
         /**
          * The Parent.
          */
@@ -160,7 +160,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
     /**
      * The type Dispather.
      */
-    private static class Dispather {
+    private static class Dispather<VB extends ViewBinding> {
 
         /**
          * 获得当前CPU的核心数
@@ -182,7 +182,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         /**
          * The constant sThreadFactory.
          */
-        private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+        private static final ThreadFactory S_THREAD_FACTORY = new ThreadFactory() {
             private final AtomicInteger mCount = new AtomicInteger(1);
 
             public Thread newThread(Runnable r) {
@@ -193,7 +193,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         /**
          * LinkedBlockingQueue 默认构造器，队列容量是Integer.MAX_VALUE
          */
-        private static final BlockingQueue<Runnable> sPoolWorkQueue =
+        private static final BlockingQueue<Runnable> S_POOL_WORK_QUEUE =
                 new LinkedBlockingQueue<Runnable>();
 
         /**
@@ -204,7 +204,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         static {
             ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                     CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_SECONDS, TimeUnit.SECONDS,
-                    sPoolWorkQueue, sThreadFactory);
+                    S_POOL_WORK_QUEUE, S_THREAD_FACTORY);
             threadPoolExecutor.allowCoreThreadTimeOut(true);
             THREAD_POOL_EXECUTOR = threadPoolExecutor;
         }
@@ -214,7 +214,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
          *
          * @param request the request
          */
-        public void enqueue(InflateRequest request) {
+        public void enqueue(InflateRequest<VB> request) {
             THREAD_POOL_EXECUTOR.execute((new InflateRunnable(request)));
 
         }
@@ -272,11 +272,11 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
     /**
      * The type Inflate runnable.
      */
-    private static class InflateRunnable implements Runnable {
+    private static class InflateRunnable<VB extends ViewBinding> implements Runnable {
         /**
          * The Request.
          */
-        private final InflateRequest request;
+        private final InflateRequest<VB> request;
         /**
          * The Is running.
          */
@@ -287,7 +287,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
          *
          * @param request the request
          */
-        public InflateRunnable(InflateRequest request) {
+        public InflateRunnable(InflateRequest<VB> request) {
             this.request = request;
         }
 
@@ -341,7 +341,20 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         mRequestPool.release(obj);
     }
 
-    public static <T> T inflate(Class<T> tClass, LayoutInflater layoutInflater, ViewGroup parent, boolean attachToParent) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    /**
+     * Inflate t.
+     *
+     * @param <T>            the type parameter
+     * @param tClass         the t class
+     * @param layoutInflater the layout inflater
+     * @param parent         the parent
+     * @param attachToParent the attach to parent
+     * @return the t
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
+     * @throws NoSuchMethodException     the no such method exception
+     */
+    public static <T extends ViewBinding> T inflate(Class<T> tClass, LayoutInflater layoutInflater, ViewGroup parent, boolean attachToParent) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Method inflateMethod = tClass.getMethod("inflate", LayoutInflater.class, ViewGroup.class, boolean.class);
         return (T) inflateMethod.invoke(null, layoutInflater, parent, attachToParent);
     }

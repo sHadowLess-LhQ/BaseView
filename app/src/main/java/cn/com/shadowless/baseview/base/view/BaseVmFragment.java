@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.base;
+package cn.com.shadowless.baseview.base.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -32,9 +32,11 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseFragment<VB extends ViewBinding> extends Fragment implements
-        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitEvent,
-        ViewPublicEvent.InitViewClick, ViewPublicEvent.InitFragmentEvent {
+public abstract class BaseVmFragment<VB extends ViewBinding>
+        extends Fragment
+        implements ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitViewModel<VB>,
+        ViewPublicEvent.InitModelEvent, ViewPublicEvent.InitViewClick,
+        ViewPublicEvent.InitFragmentEvent {
 
     /**
      * 视图绑定
@@ -49,7 +51,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
     /**
      * The Call back.
      */
-    private ViewPublicEvent.InitViewBinding.AsyncLoadViewCallBack callBack;
+    private AsyncLoadViewCallBack callBack;
 
     /**
      * The Main handler.
@@ -201,7 +203,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建" + Log.getStackTraceString(e));
+            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         return bind.getRoot();
     }
@@ -249,7 +251,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
             @Override
             public void run() {
                 AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-                asyncViewBindingInflate.inflate(initGenericsClass(BaseFragment.this), group,
+                asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseVmFragment.this), group,
                         new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                             @Override
                             public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -287,7 +289,7 @@ public abstract class BaseFragment<VB extends ViewBinding> extends Fragment impl
                                     callBack.dismissLoadView();
                                 }
                                 TextView textView = new TextView(getAttachActivity());
-                                String error = "异步加载视图错误：" + Log.getStackTraceString(e);
+                                String error = "异步加载视图错误：\n" + Log.getStackTraceString(e);
                                 textView.setText(error);
                                 textView.setTextColor(Color.RED);
                                 group.addView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
