@@ -51,20 +51,37 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
         this.lifecycleOwner.getLifecycle().addObserver(this);
         mutableLiveDataList = new ArrayList<>();
         if (isReflectSet) {
-            Class<?> clazz = getClass();
-            Field[] fields = clazz.getDeclaredFields();
-            for (Field field : fields) {
-                field.setAccessible(true);
-                if (field.getType() != MutableLiveData.class) {
+            getAllFields(this.getClass(), this);
+        }
+    }
+
+    /**
+     * Gets all fields.
+     *
+     * @param cls the cls
+     * @param obj the obj
+     */
+    private void getAllFields(Class<?> cls, Object obj) {
+        if (cls == null) {
+            return;
+        }
+        Field[] fields = cls.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            if (field.getType() != MutableLiveData.class) {
+                continue;
+            }
+            try {
+                Object o = field.get(obj);
+                if (o != null) {
                     continue;
                 }
-                try {
-                    field.set(this, new MutableLiveData<>());
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
+                field.set(this, new MutableLiveData<>());
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
         }
+        getAllFields(cls.getSuperclass(), obj);
     }
 
     /**
