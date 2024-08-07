@@ -8,12 +8,7 @@ package cn.com.shadowless.baseview.event;
 public interface ViewModelEvent {
 
     /**
-     * Init object.
-     */
-    void initObject();
-
-    /**
      * Init data observe.
      */
-    void onCreate();
+    void onModelCreated();
 }

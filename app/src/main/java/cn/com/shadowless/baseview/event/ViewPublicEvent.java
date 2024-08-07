@@ -179,8 +179,7 @@ public interface ViewPublicEvent {
             viewModel.setOwner(activity);
             viewModel.setActivity(activity);
             viewModel.setBindView(vb);
-            viewModel.initObject();
-            viewModel.onCreate();
+            viewModel.onModelCreated();
             return (VM) viewModel;
         }
 
@@ -198,8 +197,7 @@ public interface ViewPublicEvent {
             viewModel.setOwner(fragment);
             viewModel.setFragment(fragment);
             viewModel.setBindView(vb);
-            viewModel.initObject();
-            viewModel.onCreate();
+            viewModel.onModelCreated();
             return (VM) viewModel;
         }
     }
