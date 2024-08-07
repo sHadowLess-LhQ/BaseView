@@ -4,7 +4,7 @@
 
 个人Android项目快速搭建框架基类
 
-### 【注】：1.x和2.x不兼容
+### 【注】：1.x和2.x包结构不同
 
 #### 安装教程
 
@@ -758,13 +758,9 @@ c、混淆规则
           }
       
           @Override
-          public void initObject() {
+          public void onModelCreated() {
               this.testMutable = new TestMutable(observeLifecycle());
               this.presenter = new TestPresenter(observeLifecycle());
-          }
-      
-          @Override
-          public void onCreate() {
               presenter.getMutable().getTestInteger().observe(observeLifecycle(), integer -> getBindView().test.setText(integer + ""));
           }
       
