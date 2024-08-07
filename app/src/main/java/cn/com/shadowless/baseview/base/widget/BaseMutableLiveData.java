@@ -76,7 +76,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
                 if (o != null) {
                     continue;
                 }
-                field.set(this, new MutableLiveData<>());
+                field.set(obj, new MutableLiveData<>());
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
