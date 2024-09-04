@@ -335,7 +335,7 @@ public interface ViewPublicEvent {
          * @param specialPermissions the special permissions
          */
         default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermissions) {
-            dealPermission(activity, normalPermission, specialPermissions, null, null);
+            dealPermission(activity, normalPermission, specialPermissions, null);
         }
 
         /**
@@ -358,7 +358,7 @@ public interface ViewPublicEvent {
          * @param specialPermissions the special permissions
          */
         default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermissions) {
-            dealPermission(fragment, normalPermission, specialPermissions, null, null);
+            dealPermission(fragment, normalPermission, specialPermissions, null);
         }
 
         /**
@@ -366,10 +366,10 @@ public interface ViewPublicEvent {
          *
          * @param fragment          the fragment
          * @param normalPermission  the normal permission
-         * @param adapter           the adapter
          * @param specialPermission the special permission
+         * @param adapter           the adapter
          */
-        default void dealPermission(Fragment fragment, String[] normalPermission, CheckSpecialAdapter adapter, String[] specialPermission) {
+        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter) {
             dealPermission(fragment, normalPermission, specialPermission, adapter, null);
         }
 
