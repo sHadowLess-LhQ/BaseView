@@ -1,5 +1,6 @@
 package cn.com.shadowless.baseview.event;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import java.util.List;
 
 import cn.com.shadowless.baseview.BaseCons;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
+import cn.com.shadowless.permissionlib.CheckSpecialAdapter;
 import cn.com.shadowless.permissionlib.PermissionConfig;
 import cn.com.shadowless.permissionlib.PermissionsFragment;
 
@@ -326,25 +328,49 @@ public interface ViewPublicEvent {
         }
 
         /**
-         * Init permission.
+         * Deal permission.
          *
-         * @param activity          the activity
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
+         * @param activity           the activity
+         * @param normalPermission   the normal permission
+         * @param specialPermissions the special permissions
          */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission) {
-            dealPermission(activity, normalPermission, specialPermission, null);
+        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermissions) {
+            dealPermission(activity, normalPermission, specialPermissions, null, null);
         }
 
         /**
          * Init permission.
          *
-         * @param fragment          the fragment
+         * @param activity          the activity
          * @param normalPermission  the normal permission
          * @param specialPermission the special permission
+         * @param adapter           the adapter
          */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission) {
-            dealPermission(fragment, normalPermission, specialPermission, null);
+        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter) {
+            dealPermission(activity, normalPermission, specialPermission, adapter, null);
+        }
+
+        /**
+         * Init permission.
+         *
+         * @param fragment           the fragment
+         * @param normalPermission   the normal permission
+         * @param specialPermissions the special permissions
+         */
+        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermissions) {
+            dealPermission(fragment, normalPermission, specialPermissions, null, null);
+        }
+
+        /**
+         * Deal permission.
+         *
+         * @param fragment          the fragment
+         * @param normalPermission  the normal permission
+         * @param adapter           the adapter
+         * @param specialPermission the special permission
+         */
+        default void dealPermission(Fragment fragment, String[] normalPermission, CheckSpecialAdapter adapter, String[] specialPermission) {
+            dealPermission(fragment, normalPermission, specialPermission, adapter, null);
         }
 
         /**
@@ -353,12 +379,14 @@ public interface ViewPublicEvent {
          * @param activity          the activity
          * @param normalPermission  the normal permission
          * @param specialPermission the special permission
+         * @param adapter           the adapter
          * @param callBack          the call back
          */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, PermissionsFragment.PermissionCallBack callBack) {
+        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, PermissionsFragment.PermissionCallBack callBack) {
             PermissionConfig config = new PermissionConfig(activity);
             config.setNormalPermission(normalPermission);
             config.setSpecialPermission(specialPermission);
+            config.setSpecialAdapter(adapter);
             config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
                 @Override
                 public void agree() {
@@ -385,12 +413,14 @@ public interface ViewPublicEvent {
          * @param fragment          the fragment
          * @param normalPermission  the normal permission
          * @param specialPermission the special permission
+         * @param adapter           the adapter
          * @param callBack          the call back
          */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, PermissionsFragment.PermissionCallBack callBack) {
+        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, PermissionsFragment.PermissionCallBack callBack) {
             PermissionConfig config = new PermissionConfig(fragment);
             config.setNormalPermission(normalPermission);
             config.setSpecialPermission(specialPermission);
+            config.setSpecialAdapter(adapter);
             config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
                 @Override
                 public void agree() {
