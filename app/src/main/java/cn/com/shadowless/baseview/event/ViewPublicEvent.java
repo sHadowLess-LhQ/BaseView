@@ -253,7 +253,7 @@ public interface ViewPublicEvent {
          */
         @Nullable
         default String[] normalPermissions() {
-            return new String[0];
+            return null;
         }
 
         /**
@@ -263,7 +263,7 @@ public interface ViewPublicEvent {
          */
         @Nullable
         default String[] specialPermissions() {
-            return new String[0];
+            return null;
         }
 
         /**
@@ -391,16 +391,25 @@ public interface ViewPublicEvent {
                 public void agree() {
                     initData();
                     initDataListener();
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.agree();
                 }
 
                 @Override
                 public void disagree(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.disagree(name);
                 }
 
                 @Override
                 public void ban(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.ban(name);
                 }
             });
@@ -424,16 +433,25 @@ public interface ViewPublicEvent {
                 public void agree() {
                     initData();
                     initDataListener();
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.agree();
                 }
 
                 @Override
                 public void disagree(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.disagree(name);
                 }
 
                 @Override
                 public void ban(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.ban(name);
                 }
             });
@@ -452,7 +470,7 @@ public interface ViewPublicEvent {
          */
         @Nullable
         default String[] normalPermissions() {
-            return new String[0];
+            return null;
         }
 
         /**
@@ -462,7 +480,7 @@ public interface ViewPublicEvent {
          */
         @Nullable
         default String[] specialPermissions() {
-            return new String[0];
+            return null;
         }
 
         /**
@@ -582,16 +600,25 @@ public interface ViewPublicEvent {
                 @Override
                 public void agree() {
                     initModelObserve();
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.agree();
                 }
 
                 @Override
                 public void disagree(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.disagree(name);
                 }
 
                 @Override
                 public void ban(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.ban(name);
                 }
             });
@@ -614,16 +641,25 @@ public interface ViewPublicEvent {
                 @Override
                 public void agree() {
                     initModelObserve();
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.agree();
                 }
 
                 @Override
                 public void disagree(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.disagree(name);
                 }
 
                 @Override
                 public void ban(List<String> name) {
+                    if (callBack == null) {
+                        return;
+                    }
                     callBack.ban(name);
                 }
             });
