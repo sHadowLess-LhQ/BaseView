@@ -37,6 +37,11 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
      */
     private ViewPublicEvent.InitViewBinding.AsyncLoadViewCallBack callBack;
 
+    /**
+     * 是否懒加载成功标识符
+     */
+    private boolean isLazyInitSuccess = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         int customTheme = initTheme();
@@ -80,6 +85,15 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     }
 
     /**
+     * 获取懒加载状态
+     *
+     * @return the boolean
+     */
+    protected boolean isLazyInitSuccess() {
+        return isLazyInitSuccess;
+    }
+
+    /**
      * 同步加载布局
      */
     private void syncInitView() {
@@ -93,6 +107,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
         initView();
         initViewListener();
         initPermissionAndInitData(this);
+        isLazyInitSuccess = true;
     }
 
     /**
@@ -133,6 +148,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                                         initView();
                                         initViewListener();
                                         initPermissionAndInitData(BaseVpActivity.this);
+                                        isLazyInitSuccess = true;
                                     }
                                 })
                                 .setInterpolator(new LinearInterpolator())

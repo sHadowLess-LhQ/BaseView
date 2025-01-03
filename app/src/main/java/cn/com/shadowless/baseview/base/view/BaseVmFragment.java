@@ -61,6 +61,11 @@ public abstract class BaseVmFragment<VB extends ViewBinding>
     /**
      * 是否懒加载标识符
      */
+    private boolean isLazyInit = false;
+
+    /**
+     * 是否懒加载成功标识符
+     */
     private boolean isLazyInitSuccess = false;
 
     /**
@@ -117,8 +122,8 @@ public abstract class BaseVmFragment<VB extends ViewBinding>
             mainHandler.postDelayed(() -> {
                 if (this.isAdded()) {
                     //防止多次加载标志位
-                    if (!isLazyInitSuccess) {
-                        isLazyInitSuccess = true;
+                    if (!isLazyInit) {
+                        isLazyInit = true;
                         switch (mode) {
                             case ONLY_LAZY_DATA:
                                 initEvent();
@@ -307,5 +312,6 @@ public abstract class BaseVmFragment<VB extends ViewBinding>
         initView();
         initViewListener();
         initPermissionAndInitData(this);
+        isLazyInitSuccess = true;
     }
 }

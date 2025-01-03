@@ -26,7 +26,7 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  */
 public abstract class BaseVmActivity<VB extends ViewBinding>
         extends AppCompatActivity
-        implements ViewPublicEvent.InitViewBinding<VB>,ViewPublicEvent.InitViewModel<VB>,
+        implements ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitViewModel<VB>,
         ViewPublicEvent.InitModelEvent, ViewPublicEvent.InitViewClick {
 
     /**
@@ -38,6 +38,11 @@ public abstract class BaseVmActivity<VB extends ViewBinding>
      * The Call back.
      */
     private AsyncLoadViewCallBack callBack;
+
+    /**
+     * 是否懒加载成功标识符
+     */
+    private boolean isLazyInitSuccess = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +87,15 @@ public abstract class BaseVmActivity<VB extends ViewBinding>
     }
 
     /**
+     * 获取懒加载状态
+     *
+     * @return the boolean
+     */
+    protected boolean isLazyInitSuccess() {
+        return isLazyInitSuccess;
+    }
+
+    /**
      * 同步加载布局
      */
     private void syncInitView() {
@@ -95,6 +109,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding>
         initView();
         initViewListener();
         initPermissionAndInitData(this);
+        isLazyInitSuccess = true;
     }
 
     /**
@@ -135,6 +150,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding>
                                         initView();
                                         initViewListener();
                                         initPermissionAndInitData(BaseVmActivity.this);
+                                        isLazyInitSuccess = true;
                                     }
                                 })
                                 .setInterpolator(new LinearInterpolator())
