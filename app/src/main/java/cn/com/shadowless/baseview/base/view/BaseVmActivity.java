@@ -24,8 +24,7 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseVmActivity<VB extends ViewBinding>
-        extends AppCompatActivity
+public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatActivity
         implements ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitViewModel<VB>,
         ViewPublicEvent.InitModelEvent, ViewPublicEvent.InitViewClick {
 
@@ -72,8 +71,8 @@ public abstract class BaseVmActivity<VB extends ViewBinding>
      *
      * @return the 视图
      */
-    @NonNull
-    protected VB getBindView() {
+    @Override
+    public VB getBindView() {
         return bind;
     }
 

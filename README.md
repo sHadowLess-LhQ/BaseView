@@ -64,7 +64,7 @@ b、远程仓库引入
 ```
     dependencies {
         implementation 'com.gitee.shadowless_lhq:base-view:Tag'
-        implementation 'com.gitee.shadowless_lhq:permission-lib:1.0.0'
+        implementation 'com.gitee.shadowless_lhq:permission-lib:1.0.7'
     }
 ```
 
@@ -114,10 +114,6 @@ c、混淆规则
           public String[] normalPermissions() {
               //设置需要动态获取的普通权限，无需申请可传null或空数组
               //目前仅支持以下特殊权限：
-              //Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-              //Settings.ACTION_MANAGE_OVERLAY_PERMISSION
-              //Settings.ACTION_MANAGE_WRITE_SETTINGS
-              //Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
               return super.normalPermissions();
           }
       
@@ -126,6 +122,15 @@ c、混淆规则
           public String[] specialPermissions() {
               //设置需要动态获取的特殊权限，无需申请可传null或空数组
               return super.specialPermissions();
+          }
+
+          @Override
+          public void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
+                PermissionsFragment.PermissionCallBack callBack) {
+                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
+                //若使用基类获取权限，可重写此方法
+                //用于传递特殊权限验证适配器
+                //和权限获取结果回调
           }
           
           @Override
@@ -228,11 +233,6 @@ c、混淆规则
           @Override
           public String[] normalPermissions() {
               //设置需要动态获取的普通权限，无需申请可传null或空数组
-              //目前仅支持以下特殊权限：
-              //Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-              //Settings.ACTION_MANAGE_OVERLAY_PERMISSION
-              //Settings.ACTION_MANAGE_WRITE_SETTINGS
-              //Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
               return super.normalPermissions();
           }
       
@@ -241,6 +241,15 @@ c、混淆规则
           public String[] specialPermissions() {
               //设置需要动态获取的特殊权限，无需申请可传null或空数组
               return super.specialPermissions();
+          }
+
+          @Override
+          public void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
+                PermissionsFragment.PermissionCallBack callBack) {
+                super.dealPermission(fragment, normalPermission, specialPermission, adapter, callBack);
+                //若使用基类获取权限，可重写此方法
+                //用于传递特殊权限验证适配器
+                //和权限获取结果回调
           }
 
           @Override
@@ -349,11 +358,6 @@ c、混淆规则
           @Override
           public String[] normalPermissions() {
               //设置需要动态获取的普通权限，无需申请可传null或空数组
-              //目前仅支持以下特殊权限：
-              //Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-              //Settings.ACTION_MANAGE_OVERLAY_PERMISSION
-              //Settings.ACTION_MANAGE_WRITE_SETTINGS
-              //Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
               return super.normalPermissions();
           }
       
@@ -362,6 +366,15 @@ c、混淆规则
           public String[] specialPermissions() {
               //设置需要动态获取的特殊权限，无需申请可传null或空数组
               return super.specialPermissions();
+          }
+
+          @Override
+          public void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
+                PermissionsFragment.PermissionCallBack callBack) {
+                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
+                //若使用基类获取权限，可重写此方法
+                //用于传递特殊权限验证适配器
+                //和权限获取结果回调
           }
           
           @Override
@@ -465,11 +478,6 @@ c、混淆规则
           @Override
           public String[] normalPermissions() {
               //设置需要动态获取的普通权限，无需申请可传null或空数组
-              //目前仅支持以下特殊权限：
-              //Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-              //Settings.ACTION_MANAGE_OVERLAY_PERMISSION
-              //Settings.ACTION_MANAGE_WRITE_SETTINGS
-              //Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
               return super.normalPermissions();
           }
       
@@ -478,6 +486,15 @@ c、混淆规则
           public String[] specialPermissions() {
               //设置需要动态获取的特殊权限，无需申请可传null或空数组
               return super.specialPermissions();
+          }
+
+          @Override
+          public void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
+                PermissionsFragment.PermissionCallBack callBack) {
+                super.dealPermission(fragment, normalPermission, specialPermission, adapter, callBack);
+                //若使用基类获取权限，可重写此方法
+                //用于传递特殊权限验证适配器
+                //和权限获取结果回调
           }
 
           @Override

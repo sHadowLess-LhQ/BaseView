@@ -1,6 +1,7 @@
 package cn.com.shadowless.baseview.base.view;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -54,9 +55,14 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     private VB bind;
 
     /**
+     * The Is resumed.
+     */
+    private boolean isResumed = false;
+
+    /**
      * The Lifecycle registry.
      */
-    private final LifecycleRegistry lifecycleRegistry;
+    private final LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
 
     /**
      * The Setting.
@@ -229,10 +235,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      * @param context the context
      */
     public BaseDialog(@NonNull Context context) {
-        super(context);
-        this.context = context;
-        this.setting = setDialogParam();
-        lifecycleRegistry = new LifecycleRegistry(this);
+        this(context, 0);
     }
 
     /**
@@ -245,13 +248,15 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         super(context, themeResId);
         this.context = context;
         this.setting = setDialogParam();
-        lifecycleRegistry = new LifecycleRegistry(this);
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+        getWindow().getDecorView().addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                checkVisibility()
+        );
         initDialogAttr();
         initObject();
         initView();
@@ -259,27 +264,46 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
+    public void show() {
+        super.show();
+        handleLifecycleEvent(Lifecycle.Event.ON_START);
+        handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+        isResumed = true;
+        initDialog();
+        initData();
+        initDataListener();
     }
 
     @Override
-    public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+    public void dismiss() {
+        super.dismiss();
+        handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+        handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+        handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
+        isResumed = false;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!isResumed) {
+            handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+            isResumed = true;
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+        handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+        isResumed = false;
     }
 
     @Override
     public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP);
-    }
-
-    @Override
-    protected void onStop() {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
-        super.onStop();
+        handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
     }
 
     @NonNull
@@ -296,12 +320,49 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         }
     }
 
+    /**
+     * 获取绑定视图控件
+     *
+     * @return the bind view
+     */
     @Override
-    public void show() {
-        super.show();
-        initDialog();
-        initData();
-        initDataListener();
+    public VB getBindView() {
+        return bind;
+    }
+
+    /**
+     * Gets attach activity.
+     *
+     * @return the attach activity
+     */
+    public Activity getAttachActivity() {
+        return (Activity) this.context;
+    }
+
+    /**
+     * Check visibility.
+     */
+    private void checkVisibility() {
+        boolean isVisible = getWindow().getDecorView().getVisibility() == View.VISIBLE;
+        if (isVisible && !isResumed) {
+            handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+            isResumed = true;
+        } else if (!isVisible && isResumed) {
+            handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+            handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+            isResumed = false;
+        }
+    }
+
+    /**
+     * Handle lifecycle event.
+     *
+     * @param event the event
+     */
+    private void handleLifecycleEvent(Lifecycle.Event event) {
+        if (lifecycleRegistry.getCurrentState() != Lifecycle.State.DESTROYED) {
+            lifecycleRegistry.handleLifecycleEvent(event);
+        }
     }
 
     /**
@@ -311,24 +372,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      */
     public void setNeedObserveLifecycle(LifecycleOwner owner) {
         owner.getLifecycle().addObserver(this);
-    }
-
-    /**
-     * 获取绑定视图控件
-     *
-     * @return the bind view
-     */
-    protected VB getBindView() {
-        return bind;
-    }
-
-    /**
-     * Gets activity context.
-     *
-     * @return the activity context
-     */
-    protected Context getActivityContext() {
-        return this.context;
     }
 
     /**

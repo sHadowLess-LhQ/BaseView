@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.fragment.app.DialogFragment;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
@@ -27,12 +27,12 @@ import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
- * 基类Fragment
+ * The type Base dialog fragment.
  *
- * @param <VB> the type 视图
+ * @param <VB> the type parameter
  * @author sHadowLess
  */
-public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment implements
+public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogFragment implements
         ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitBindingEvent,
         ViewPublicEvent.InitViewClick, ViewPublicEvent.InitFragmentEvent {
 
@@ -80,7 +80,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         LoadMode mode = getLoadMode();
         switch (mode) {
             case ONLY_LAZY_DATA:
@@ -228,7 +228,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
             @Override
             public void run() {
                 AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-                asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseVpFragment.this), group,
+                asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseDialogFragment.this), group,
                         new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                             @Override
                             public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {

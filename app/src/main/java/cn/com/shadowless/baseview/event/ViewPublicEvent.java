@@ -1,6 +1,6 @@
 package cn.com.shadowless.baseview.event;
 
-import android.content.Context;
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +40,42 @@ public interface ViewPublicEvent {
          * Init first.
          */
         void initFirst();
+
+        /**
+         * Gets activity.
+         *
+         * @return the activity
+         */
+        default Activity getAttachActivity() {
+            return null;
+        }
+
+        /**
+         * 获取加载模式
+         *
+         * @return the load mode
+         */
+        default LoadMode getLoadMode() {
+            return LoadMode.DEFAULT;
+        }
+
+        /**
+         * The enum Load mode.
+         */
+        enum LoadMode {
+            /**
+             * Default lazy mode.
+             */
+            DEFAULT,
+            /**
+             * Only lazy data lazy mode.
+             */
+            ONLY_LAZY_DATA,
+            /**
+             * All lazy lazy mode.
+             */
+            LAZY_VIEW_AND_DATA
+        }
     }
 
     /**
@@ -48,6 +84,13 @@ public interface ViewPublicEvent {
      * @param <VB> the type parameter
      */
     interface InitViewBinding<VB extends ViewBinding> {
+
+        /**
+         * Gets bind view.
+         *
+         * @return the bind view
+         */
+        VB getBindView();
 
         /**
          * Get view binding generics class type [ ].

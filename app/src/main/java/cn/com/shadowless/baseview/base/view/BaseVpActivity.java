@@ -70,8 +70,8 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
      *
      * @return the 视图
      */
-    @NonNull
-    protected VB getBindView() {
+    @Override
+    public VB getBindView() {
         return bind;
     }
 

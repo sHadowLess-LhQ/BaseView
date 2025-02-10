@@ -32,8 +32,7 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseVmFragment<VB extends ViewBinding>
-        extends Fragment
+public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         implements ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitViewModel<VB>,
         ViewPublicEvent.InitModelEvent, ViewPublicEvent.InitViewClick,
         ViewPublicEvent.InitFragmentEvent {
@@ -67,24 +66,6 @@ public abstract class BaseVmFragment<VB extends ViewBinding>
      * 是否懒加载成功标识符
      */
     private boolean isLazyInitSuccess = false;
-
-    /**
-     * The enum Lazy mode.
-     */
-    protected enum LoadMode {
-        /**
-         * Default lazy mode.
-         */
-        DEFAULT,
-        /**
-         * Only lazy data lazy mode.
-         */
-        ONLY_LAZY_DATA,
-        /**
-         * All lazy lazy mode.
-         */
-        LAZY_VIEW_AND_DATA
-    }
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -163,15 +144,6 @@ public abstract class BaseVmFragment<VB extends ViewBinding>
     }
 
     /**
-     * 获取懒加载状态
-     *
-     * @return the boolean
-     */
-    protected boolean isLazyInitSuccess() {
-        return isLazyInitSuccess;
-    }
-
-    /**
      * 获取绑定视图
      *
      * @return the bind
@@ -182,21 +154,22 @@ public abstract class BaseVmFragment<VB extends ViewBinding>
     }
 
     /**
-     * 获取加载模式
-     *
-     * @return the load mode
-     */
-    protected LoadMode getLoadMode() {
-        return LoadMode.DEFAULT;
-    }
-
-    /**
      * 获取绑定的activity
      *
      * @return the bind activity
      */
-    protected Activity getAttachActivity() {
+    @Override
+    public Activity getAttachActivity() {
         return mActivity;
+    }
+
+    /**
+     * 获取懒加载状态
+     *
+     * @return the boolean
+     */
+    protected boolean isLazyInitSuccess() {
+        return isLazyInitSuccess;
     }
 
     /**
