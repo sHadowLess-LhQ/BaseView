@@ -41,6 +41,6 @@ public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwn
      * @return the lifecycle owner
      */
     @NonNull
-    LifecycleOwner observeLifecycle();
+    LifecycleOwner getLifecycleOwner();
 
 }

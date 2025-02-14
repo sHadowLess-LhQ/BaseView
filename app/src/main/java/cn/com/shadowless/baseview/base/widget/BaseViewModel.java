@@ -16,6 +16,7 @@ import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
  * The type Base view model.
  *
  * @param <VB> the type parameter
+ * @param <LD> the type parameter
  * @author sHadowLess
  */
 public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutableLiveData> extends ViewModel
@@ -105,12 +106,11 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
         return fragment;
     }
 
-
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == setStopEvent()) {
             onTerminate(event);
-            observeLifecycle().getLifecycle().removeObserver(this);
+            getLifecycle().removeObserver(this);
         }
     }
 
@@ -122,14 +122,14 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
 
     @NonNull
     @Override
-    public LifecycleOwner observeLifecycle() {
+    public LifecycleOwner getLifecycleOwner() {
         return observeLifecycle;
     }
 
     @NonNull
     @Override
     public Lifecycle getLifecycle() {
-        return null;
+        return observeLifecycle.getLifecycle();
     }
 
     /**

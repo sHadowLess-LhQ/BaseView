@@ -33,7 +33,7 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == setStopEvent()) {
             onTerminate(event);
-            observeLifecycle().getLifecycle().removeObserver(this);
+            getLifecycle().removeObserver(this);
         }
     }
 
@@ -45,14 +45,14 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
 
     @NonNull
     @Override
-    public LifecycleOwner observeLifecycle() {
+    public LifecycleOwner getLifecycleOwner() {
         return observeLifecycle;
     }
 
     @NonNull
     @Override
     public Lifecycle getLifecycle() {
-        return null;
+        return observeLifecycle.getLifecycle();
     }
 
     /**
