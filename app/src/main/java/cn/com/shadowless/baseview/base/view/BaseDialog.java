@@ -25,14 +25,14 @@ import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
 
 
 /**
- * 父类Dialog
+ * 基类Dialog
  *
  * @param <VB> the type parameter
  * @author sHadowLess
  */
 public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements
         ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitBindingEvent,
-        ViewPublicEvent.InitViewClick, BaseQuickLifecycle {
+        ViewPublicEvent.InitViewClick, BaseQuickLifecycle, LifecycleOwner {
 
     /**
      * Dialog窗体参数
