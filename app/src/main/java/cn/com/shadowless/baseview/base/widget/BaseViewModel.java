@@ -110,7 +110,7 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == setStopEvent()) {
             onTerminate(event);
-            getLifecycle().removeObserver(this);
+            getObserveLifecycleOwner().getLifecycle().removeObserver(this);
         }
     }
 
@@ -122,14 +122,8 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
 
     @NonNull
     @Override
-    public LifecycleOwner getLifecycleOwner() {
+    public LifecycleOwner getObserveLifecycleOwner() {
         return observeLifecycle;
-    }
-
-    @NonNull
-    @Override
-    public Lifecycle getLifecycle() {
-        return observeLifecycle.getLifecycle();
     }
 
     /**

@@ -11,14 +11,10 @@ import androidx.lifecycle.LifecycleOwner;
  *
  * @author sHadowLess
  */
-public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwner {
+public interface BaseQuickLifecycle extends LifecycleEventObserver {
 
     @Override
     void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event);
-
-    @NonNull
-    @Override
-    Lifecycle getLifecycle();
 
     /**
      * Sets stop event.
@@ -41,6 +37,6 @@ public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwn
      * @return the lifecycle owner
      */
     @NonNull
-    LifecycleOwner getLifecycleOwner();
+    LifecycleOwner getObserveLifecycleOwner();
 
 }

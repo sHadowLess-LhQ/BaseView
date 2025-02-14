@@ -687,7 +687,7 @@ c、混淆规则
      //MutableLiveData聚合类
      //目的是解耦发散在Presenter或ViewModel中定义的MutableLiveData
      //已实现LifecycleEventObserver、LifecycleOwner接口
-     //支持监听和被监听生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
+     //支持监听生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
      //定义的全局MutableLiveData变量默认无需手动实例化
      //BaseMutableLiveData自动反射实例化子类定义的所有全局MutableLiveData变量
      //若不想反射，则在构造超类中，第二参数传递false后，手动实例化即可
@@ -729,7 +729,7 @@ c、混淆规则
 ```
      //Prsenter基类
      //已实现LifecycleEventObserver、LifecycleOwner接口
-     //支持监听和被监听生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
+     //支持监听和生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
      public class TestPresenter extends BasePresenter<TestMutable> {
 
           private final TestMutable testMutable;
@@ -761,7 +761,7 @@ c、混淆规则
 ```
      //ViewModel基类
      //已实现LifecycleEventObserver、LifecycleOwner接口
-     //支持监听和被监听生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
+     //支持监听和生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
      //可搭配presenter使用，进行数据获取解耦，model内只处理业务数据逻辑和页面数据绑定
      public class TestViewModel extends BaseViewModel<ActivityMain2Binding, TestMutable> {
 

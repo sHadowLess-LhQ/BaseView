@@ -119,7 +119,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
         if (event == setStopEvent()) {
             onTerminate(event);
             clearAllForEverObserver(source);
-            getLifecycle().removeObserver(this);
+            getObserveLifecycleOwner().getLifecycle().removeObserver(this);
         }
     }
 
@@ -131,13 +131,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
 
     @NonNull
     @Override
-    public LifecycleOwner getLifecycleOwner() {
+    public LifecycleOwner getObserveLifecycleOwner() {
         return lifecycleOwner;
-    }
-
-    @NonNull
-    @Override
-    public Lifecycle getLifecycle() {
-        return lifecycleOwner.getLifecycle();
     }
 }
