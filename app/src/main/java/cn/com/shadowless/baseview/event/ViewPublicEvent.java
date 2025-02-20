@@ -225,6 +225,7 @@ public interface ViewPublicEvent {
             viewModel.setActivity(activity);
             viewModel.setBindView(vb);
             viewModel.onModelCreated();
+            viewModel.onModelInitData();
             return (VM) viewModel;
         }
 
@@ -243,6 +244,7 @@ public interface ViewPublicEvent {
             viewModel.setFragment(fragment);
             viewModel.setBindView(vb);
             viewModel.onModelCreated();
+            viewModel.onModelInitData();
             return (VM) viewModel;
         }
     }

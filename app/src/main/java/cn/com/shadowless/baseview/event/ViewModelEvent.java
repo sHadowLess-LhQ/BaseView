@@ -11,4 +11,9 @@ public interface ViewModelEvent {
      * Init data observe.
      */
     void onModelCreated();
+
+    /**
+     * On model init data.
+     */
+    void onModelInitData();
 }

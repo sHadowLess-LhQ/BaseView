@@ -780,6 +780,11 @@ c、混淆规则
               this.presenter = new TestPresenter(observeLifecycle());
               presenter.getMutable().getTestInteger().observe(observeLifecycle(), integer -> getBindView().test.setText(integer + ""));
           }
+          
+          @Override
+          public void onModelInitData() {
+              
+          }
       
           @Override
           public void onTerminate(Lifecycle.Event event) {
