@@ -386,6 +386,13 @@ c、混淆规则
               viewModel = createActivityViewModel(this, TestViewModel.class, getBindView());
           }
           
+          @NonNull
+          @Override
+          public List<BaseViewModel<ActivityMainBinding, ?>> setViewModels() {
+              //设置已经初始化的ViewModel
+              return Collections.singletonList(viewModel);
+          }
+          
           @Override
           protected void initView() {
              //初始化视图
@@ -398,8 +405,7 @@ c、混淆规则
           }
       
           @Override
-          protected void initModelObserve() {
-             super.initModelObserve();
+          protected void initModelListener() {
              //初始化ViewModel通讯订阅
           }
           
@@ -518,6 +524,13 @@ c、混淆规则
              viewModel = createFragmentViewModel(this, TestViewModel.class, getBindView());
           }
           
+          @NonNull
+          @Override
+          public List<BaseViewModel<FragmentMainBinding, ?>> setViewModels() {
+              //设置已经初始化的ViewModel
+              return Collections.singletonList(viewModel);
+          }
+          
           @Override
           protected void initView() {
              //初始化视图
@@ -530,8 +543,7 @@ c、混淆规则
           }
           
           @Override
-          protected void initModelObserve() {
-             super.initModelObserve();
+          protected void initModelListener() {
              //初始化ViewModel通讯订阅
           }
           

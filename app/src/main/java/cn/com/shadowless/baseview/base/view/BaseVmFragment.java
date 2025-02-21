@@ -166,7 +166,8 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
 
     @Override
     public void initModelObserve() {
-        for (BaseViewModel<?, ?> model : setViewModel()) {
+        initModelListener();
+        for (BaseViewModel<?, ?> model : setViewModels()) {
             model.onModelInitData();
         }
     }

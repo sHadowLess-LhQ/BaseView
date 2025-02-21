@@ -14,9 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
-import cn.com.shadowless.baseview.base.widget.BaseMutableLiveData;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
@@ -81,7 +79,8 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
 
     @Override
     public void initModelObserve() {
-        for (BaseViewModel<?, ?> model : setViewModel()) {
+        initModelListener();
+        for (BaseViewModel<?, ?> model : setViewModels()) {
             model.onModelInitData();
         }
     }

@@ -217,7 +217,7 @@ public interface ViewPublicEvent {
          * @return the base view model
          */
         @NonNull
-        List<BaseViewModel<VB, ?>> setViewModel();
+        List<BaseViewModel<VB, ?>> setViewModels();
 
         /**
          * Create activity view model vm.
@@ -554,6 +554,11 @@ public interface ViewPublicEvent {
          * Init model observe.
          */
         void initModelObserve();
+
+        /**
+         * Init model listener.
+         */
+        void initModelListener();
 
         /**
          * Init permission and init data.
