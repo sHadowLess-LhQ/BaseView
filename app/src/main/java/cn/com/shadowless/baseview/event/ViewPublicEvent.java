@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -211,6 +212,14 @@ public interface ViewPublicEvent {
     interface InitViewModel<VB extends ViewBinding> {
 
         /**
+         * Sets view model.
+         *
+         * @return the base view model
+         */
+        @NonNull
+        List<BaseViewModel<VB, ?>> setViewModel();
+
+        /**
          * Create activity view model vm.
          *
          * @param <VM>     the type parameter
@@ -225,7 +234,6 @@ public interface ViewPublicEvent {
             viewModel.setActivity(activity);
             viewModel.setBindView(vb);
             viewModel.onModelCreated();
-            viewModel.onModelInitData();
             return (VM) viewModel;
         }
 
@@ -244,7 +252,6 @@ public interface ViewPublicEvent {
             viewModel.setFragment(fragment);
             viewModel.setBindView(vb);
             viewModel.onModelCreated();
-            viewModel.onModelInitData();
             return (VM) viewModel;
         }
     }
@@ -327,14 +334,14 @@ public interface ViewPublicEvent {
         void initViewListener();
 
         /**
-         * 初始化数据
-         */
-        void initData();
-
-        /**
          * Bind data to view.
          */
         void initDataListener();
+
+        /**
+         * 初始化数据
+         */
+        void initData();
 
         /**
          * Init permission and init data.
@@ -347,8 +354,8 @@ public interface ViewPublicEvent {
             boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
             boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
             if (!hasNormal && !hasSpecial) {
-                initData();
                 initDataListener();
+                initData();
                 return;
             }
             dealPermission(activity, normalPermissions, specialPermissions);
@@ -365,8 +372,8 @@ public interface ViewPublicEvent {
             boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
             boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
             if (!hasNormal && !hasSpecial) {
-                initData();
                 initDataListener();
+                initData();
                 return;
             }
             dealPermission(fragment, normalPermissions, specialPermissions);
@@ -434,8 +441,8 @@ public interface ViewPublicEvent {
             config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
                 @Override
                 public void agree() {
-                    initData();
                     initDataListener();
+                    initData();
                     if (callBack == null) {
                         return;
                     }
@@ -476,8 +483,8 @@ public interface ViewPublicEvent {
             config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
                 @Override
                 public void agree() {
-                    initData();
                     initDataListener();
+                    initData();
                     if (callBack == null) {
                         return;
                     }

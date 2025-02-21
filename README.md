@@ -399,6 +399,7 @@ c、混淆规则
       
           @Override
           protected void initModelObserve() {
+             super.initModelObserve();
              //初始化ViewModel通讯订阅
           }
           
@@ -530,6 +531,7 @@ c、混淆规则
           
           @Override
           protected void initModelObserve() {
+             super.initModelObserve();
              //初始化ViewModel通讯订阅
           }
           

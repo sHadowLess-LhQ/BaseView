@@ -270,8 +270,8 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
         isResumed = true;
         initDialog();
-        initData();
         initDataListener();
+        initData();
     }
 
     @Override

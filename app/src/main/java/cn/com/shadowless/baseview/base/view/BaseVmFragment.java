@@ -23,6 +23,7 @@ import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
 
+import cn.com.shadowless.baseview.base.widget.BaseViewModel;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
@@ -161,6 +162,13 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     @Override
     public Activity getAttachActivity() {
         return mActivity;
+    }
+
+    @Override
+    public void initModelObserve() {
+        for (BaseViewModel<?, ?> model : setViewModel()) {
+            model.onModelInitData();
+        }
     }
 
     /**
