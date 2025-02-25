@@ -23,7 +23,7 @@ public class SingleMutableLiveData<T> extends MutableLiveData<T> {
     /**
      * The Is single event.
      */
-    private final AtomicBoolean isSingleEvent = new AtomicBoolean(false);
+    private final AtomicBoolean isSingleEvent = new AtomicBoolean(true);
 
     @Override
     public void observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
