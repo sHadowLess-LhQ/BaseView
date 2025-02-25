@@ -911,3 +911,13 @@ c、混淆规则
           }
       }
 ```
+
+### SingleMutableLiveData<T>
+
+```
+      //可动态变更是否粘性接收的LiveData
+      //使用和正常的LiveData相同
+      //新增方法：
+      //设置是否粘性接收（发送前或接收后设置）
+      SingleMutableLiveData<?>.setSingleEvent(boolean singleEvent);
+```
