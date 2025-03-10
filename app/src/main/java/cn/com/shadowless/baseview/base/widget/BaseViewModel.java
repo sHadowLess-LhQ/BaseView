@@ -1,5 +1,6 @@
 package cn.com.shadowless.baseview.base.widget;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,7 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
     /**
      * The Activity.
      */
+    @SuppressLint("StaticFieldLeak")
     private Activity activity;
 
     /**

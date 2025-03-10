@@ -134,7 +134,7 @@ c、混淆规则
           }
           
           @Override
-          protected void initObject() {
+          protected void initObject(Bundle savedInstanceState) {
               //初始化对象
           }
           
@@ -264,7 +264,7 @@ c、混淆规则
           }
           
           @Override
-          protected void initObject() {
+          protected void initObject(Bundle savedInstanceState) {
              //初始化对象
           }
           
@@ -390,6 +390,7 @@ c、混淆规则
           @Override
           public List<BaseViewModel<ActivityMainBinding, ?>> setViewModels() {
               //设置已经初始化的ViewModel
+              //有多个需传递多个
               return Collections.singletonList(viewModel);
           }
           
@@ -528,6 +529,7 @@ c、混淆规则
           @Override
           public List<BaseViewModel<FragmentMainBinding, ?>> setViewModels() {
               //设置已经初始化的ViewModel
+              //有多个需传递多个
               return Collections.singletonList(viewModel);
           }
           
@@ -792,6 +794,10 @@ c、混淆规则
           public void onModelCreated() {
               this.testMutable = new TestMutable(observeLifecycle());
               this.presenter = new TestPresenter(observeLifecycle());
+          }
+          
+          @Override
+          public void onModelInitDataListener() {
               presenter.getMutable().getTestInteger().observe(observeLifecycle(), integer -> getBindView().test.setText(integer + ""));
           }
           
@@ -817,6 +823,7 @@ c、混淆规则
       //支持应用前后台判断
       //已接入MyActivityManager，可直接使用
       //已接入MyApplicationManager，可直接使用
+      //已实现ViewModelStoreOwner，可通过getGlobalViewModel()获取全局ViewModel
       public class MyApplication extends BaseApplication {
       
           @Override

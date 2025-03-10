@@ -1,6 +1,7 @@
 package cn.com.shadowless.baseview.event;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -234,6 +235,7 @@ public interface ViewPublicEvent {
             viewModel.setActivity(activity);
             viewModel.setBindView(vb);
             viewModel.onModelCreated();
+            viewModel.onModelInitDataListener();
             return (VM) viewModel;
         }
 
@@ -252,6 +254,7 @@ public interface ViewPublicEvent {
             viewModel.setFragment(fragment);
             viewModel.setBindView(vb);
             viewModel.onModelCreated();
+            viewModel.onModelInitDataListener();
             return (VM) viewModel;
         }
     }
@@ -320,8 +323,10 @@ public interface ViewPublicEvent {
 
         /**
          * 初始化对象
+         *
+         * @param savedInstanceState the saved instance state
          */
-        void initObject();
+        void initObject(Bundle savedInstanceState);
 
         /**
          * 给视图绑定数据

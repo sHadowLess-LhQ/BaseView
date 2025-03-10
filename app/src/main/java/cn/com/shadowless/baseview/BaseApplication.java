@@ -2,10 +2,15 @@ package cn.com.shadowless.baseview;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStore;
+import androidx.lifecycle.ViewModelStoreOwner;
 
 import cn.com.shadowless.baseview.manager.ActivityManager;
 import cn.com.shadowless.baseview.manager.ContextManager;
@@ -16,16 +21,23 @@ import cn.com.shadowless.baseview.manager.ContextManager;
  *
  * @author sHadowLess
  */
-public abstract class BaseApplication extends Application implements Application.ActivityLifecycleCallbacks {
+public abstract class BaseApplication extends Application implements
+        Application.ActivityLifecycleCallbacks, ViewModelStoreOwner {
 
     /**
      * The constant foregroundCount.
      */
     private static int foregroundCount = 0;
 
+    /**
+     * The M view model store.
+     */
+    private ViewModelStore mViewModelStore;
+
     @Override
     public void onCreate() {
         super.onCreate();
+        mViewModelStore = new ViewModelStore();
         ContextManager.INSTANCE.setCurrentContext(this);
         registerActivityLifecycleCallbacks(this);
         init();
@@ -65,6 +77,24 @@ public abstract class BaseApplication extends Application implements Application
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
 
+    }
+
+    @NonNull
+    @Override
+    public ViewModelStore getViewModelStore() {
+        return mViewModelStore;
+    }
+
+    /**
+     * Gets global view model.
+     *
+     * @param <T>        the type parameter
+     * @param modelClass the model class
+     * @return the global view model
+     */
+    public static <T extends ViewModel> T getGlobalViewModel(@NonNull Class<T> modelClass) {
+        BaseApplication context = (BaseApplication) ContextManager.INSTANCE.getCurrentContext();
+        return new ViewModelProvider(context.getViewModelStore(), ViewModelProvider.AndroidViewModelFactory.getInstance(context)).get(modelClass);
     }
 
     /**

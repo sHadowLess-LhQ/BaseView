@@ -51,10 +51,10 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
         super.onCreate(savedInstanceState);
         boolean isAsync = isAsyncLoadView();
         if (isAsync) {
-            asyncInitView();
+            asyncInitView(savedInstanceState);
             return;
         }
-        syncInitView();
+        syncInitView(savedInstanceState);
     }
 
     @Override
@@ -96,14 +96,14 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     /**
      * 同步加载布局
      */
-    private void syncInitView() {
+    private void syncInitView(Bundle savedInstanceState) {
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         setContentView(bind.getRoot());
-        initObject();
+        initObject(savedInstanceState);
         initView();
         initViewListener();
         initPermissionAndInitData(this);
@@ -113,7 +113,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     /**
      * 异步加载布局
      */
-    private void asyncInitView() {
+    private void asyncInitView(Bundle savedInstanceState) {
         callBack = initSyncView();
         if (callBack != null) {
             callBack.showLoadView();
@@ -144,7 +144,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                                     @Override
                                     public void onAnimationEnd(Animator animation) {
                                         super.onAnimationEnd(animation);
-                                        initObject();
+                                        initObject(savedInstanceState);
                                         initView();
                                         initViewListener();
                                         initPermissionAndInitData(BaseVpActivity.this);
