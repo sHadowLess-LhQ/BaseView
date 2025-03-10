@@ -655,7 +655,7 @@ c、混淆规则
             }
         
             @Override
-            protected void initObject() {
+            protected void initObject(Bundle savedInstanceState) {
                //初始化对象
             }
             

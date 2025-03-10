@@ -258,7 +258,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
                 checkVisibility()
         );
         initDialogAttr();
-        initObject();
+        initObject(savedInstanceState);
         initView();
         initViewListener();
     }

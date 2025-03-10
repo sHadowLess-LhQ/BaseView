@@ -66,6 +66,11 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      */
     private boolean isLazyInitSuccess = false;
 
+    /**
+     * The Saved instance state.
+     */
+    private Bundle savedInstanceState;
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -81,6 +86,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        this.savedInstanceState = savedInstanceState;
         LoadMode mode = getLoadMode();
         switch (mode) {
             case ONLY_LAZY_DATA:
@@ -89,7 +95,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                mainHandler.postDelayed(this::initEvent, 100);
+                mainHandler.postDelayed(() -> initEvent(this.savedInstanceState), 100);
                 return defaultView;
         }
     }
@@ -106,7 +112,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                         isLazyInit = true;
                         switch (mode) {
                             case ONLY_LAZY_DATA:
-                                initEvent();
+                                initEvent(this.savedInstanceState);
                                 break;
                             case LAZY_VIEW_AND_DATA:
                                 //获取空布局
@@ -208,7 +214,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
-                        initEvent();
+                        initEvent(savedInstanceState);
                     }
                 })
                 .setInterpolator(new LinearInterpolator())
@@ -253,7 +259,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                                             @Override
                                             public void onAnimationEnd(Animator animation) {
                                                 super.onAnimationEnd(animation);
-                                                initEvent();
+                                                initEvent(savedInstanceState);
                                             }
                                         })
                                         .setInterpolator(new LinearInterpolator())
@@ -279,8 +285,8 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
     /**
      * Init.
      */
-    private void initEvent() {
-        initObject();
+    private void initEvent(Bundle savedInstanceState) {
+        initObject(savedInstanceState);
         initView();
         initViewListener();
         initPermissionAndInitData(this);
