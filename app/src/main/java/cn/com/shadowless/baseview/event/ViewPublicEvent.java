@@ -14,6 +14,10 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewbinding.ViewBinding;
 
+import com.hjq.permissions.OnPermissionCallback;
+import com.hjq.permissions.OnPermissionInterceptor;
+import com.hjq.permissions.XXPermissions;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -22,9 +26,6 @@ import java.util.List;
 
 import cn.com.shadowless.baseview.BaseCons;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
-import cn.com.shadowless.permissionlib.CheckSpecialAdapter;
-import cn.com.shadowless.permissionlib.PermissionConfig;
-import cn.com.shadowless.permissionlib.PermissionsFragment;
 
 
 /**
@@ -307,17 +308,7 @@ public interface ViewPublicEvent {
          * @return the 权限组
          */
         @Nullable
-        default String[] normalPermissions() {
-            return null;
-        }
-
-        /**
-         * Special permissions string [ ].
-         *
-         * @return the string [ ]
-         */
-        @Nullable
-        default String[] specialPermissions() {
+        default String[] permissions() {
             return null;
         }
 
@@ -354,16 +345,14 @@ public interface ViewPublicEvent {
          * @param activity the activity
          */
         default void initPermissionAndInitData(FragmentActivity activity) {
-            String[] normalPermissions = normalPermissions();
-            String[] specialPermissions = specialPermissions();
-            boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
-            boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
-            if (!hasNormal && !hasSpecial) {
+            String[] permissions = permissions();
+            boolean hasPermission = null != permissions && permissions.length != 0;
+            if (!hasPermission) {
                 initDataListener();
                 initData();
                 return;
             }
-            dealPermission(activity, normalPermissions, specialPermissions);
+            dealPermission(activity, permissions);
         }
 
         /**
@@ -372,102 +361,69 @@ public interface ViewPublicEvent {
          * @param fragment the fragment
          */
         default void initPermissionAndInitData(Fragment fragment) {
-            String[] normalPermissions = normalPermissions();
-            String[] specialPermissions = specialPermissions();
-            boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
-            boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
-            if (!hasNormal && !hasSpecial) {
+            String[] permissions = permissions();
+            boolean hasPermission = null != permissions && permissions.length != 0;
+            if (!hasPermission) {
                 initDataListener();
                 initData();
                 return;
             }
-            dealPermission(fragment, normalPermissions, specialPermissions);
+            dealPermission(fragment, permissions);
         }
 
         /**
          * Deal permission.
          *
-         * @param activity           the activity
-         * @param normalPermission   the normal permission
-         * @param specialPermissions the special permissions
+         * @param activity    the activity
+         * @param permissions the permissions
          */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermissions) {
-            dealPermission(activity, normalPermission, specialPermissions, null);
-        }
-
-        /**
-         * Init permission.
-         *
-         * @param activity          the activity
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
-         */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter) {
-            dealPermission(activity, normalPermission, specialPermission, adapter, null);
-        }
-
-        /**
-         * Init permission.
-         *
-         * @param fragment           the fragment
-         * @param normalPermission   the normal permission
-         * @param specialPermissions the special permissions
-         */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermissions) {
-            dealPermission(fragment, normalPermission, specialPermissions, null);
+        default void dealPermission(FragmentActivity activity, String[] permissions) {
+            dealPermission(activity, permissions, null, null);
         }
 
         /**
          * Deal permission.
          *
-         * @param fragment          the fragment
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
+         * @param activity    the activity
+         * @param permissions the permissions
+         * @param interceptor the interceptor
          */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter) {
-            dealPermission(fragment, normalPermission, specialPermission, adapter, null);
+        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor) {
+            dealPermission(activity, permissions, interceptor, null);
         }
 
         /**
          * Deal permission.
          *
-         * @param activity          the activity
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
-         * @param callBack          the call back
+         * @param activity    the activity
+         * @param permissions the permissions
+         * @param interceptor the interceptor
+         * @param callBack    the call back
          */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, PermissionsFragment.PermissionCallBack callBack) {
-            PermissionConfig config = new PermissionConfig(activity);
-            config.setNormalPermission(normalPermission);
-            config.setSpecialPermission(specialPermission, adapter);
-            config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
+        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
+            if (XXPermissions.isGranted(activity, permissions)) {
+                initDataListener();
+                initData();
+                return;
+            }
+            XXPermissions.with(activity).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
+
                 @Override
-                public void agree() {
+                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
                     initDataListener();
                     initData();
                     if (callBack == null) {
                         return;
                     }
-                    callBack.agree();
+                    callBack.onGranted(permissions, allGranted);
                 }
 
                 @Override
-                public void disagree(List<String> name) {
+                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
                     if (callBack == null) {
                         return;
                     }
-                    callBack.disagree(name);
-                }
-
-                @Override
-                public void ban(List<String> name) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.ban(name);
+                    callBack.onDenied(permissions, doNotAskAgain);
                 }
             });
         }
@@ -475,41 +431,56 @@ public interface ViewPublicEvent {
         /**
          * Deal permission.
          *
-         * @param fragment          the fragment
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
-         * @param callBack          the call back
+         * @param fragment    the fragment
+         * @param permissions the permissions
          */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, PermissionsFragment.PermissionCallBack callBack) {
-            PermissionConfig config = new PermissionConfig(fragment);
-            config.setNormalPermission(normalPermission);
-            config.setSpecialPermission(specialPermission, adapter);
-            config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
+        default void dealPermission(Fragment fragment, String[] permissions) {
+            dealPermission(fragment, permissions, null, null);
+        }
+
+        /**
+         * Deal permission.
+         *
+         * @param fragment    the fragment
+         * @param permissions the permissions
+         * @param interceptor the interceptor
+         */
+        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor) {
+            dealPermission(fragment, permissions, interceptor, null);
+        }
+
+        /**
+         * Deal permission.
+         *
+         * @param fragment    the fragment
+         * @param permissions the permissions
+         * @param interceptor the interceptor
+         * @param callBack    the call back
+         */
+        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
+            if (XXPermissions.isGranted(fragment.requireContext(), permissions)) {
+                initDataListener();
+                initData();
+                return;
+            }
+            XXPermissions.with(fragment).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
+
                 @Override
-                public void agree() {
+                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
                     initDataListener();
                     initData();
                     if (callBack == null) {
                         return;
                     }
-                    callBack.agree();
+                    callBack.onGranted(permissions, allGranted);
                 }
 
                 @Override
-                public void disagree(List<String> name) {
+                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
                     if (callBack == null) {
                         return;
                     }
-                    callBack.disagree(name);
-                }
-
-                @Override
-                public void ban(List<String> name) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.ban(name);
+                    callBack.onDenied(permissions, doNotAskAgain);
                 }
             });
         }
@@ -525,18 +496,7 @@ public interface ViewPublicEvent {
          *
          * @return the 权限组
          */
-        @Nullable
-        default String[] normalPermissions() {
-            return null;
-        }
-
-        /**
-         * Special permissions string [ ].
-         *
-         * @return the string [ ]
-         */
-        @Nullable
-        default String[] specialPermissions() {
+        default String[] permissions() {
             return null;
         }
 
@@ -571,15 +531,13 @@ public interface ViewPublicEvent {
          * @param activity the activity
          */
         default void initPermissionAndInitData(FragmentActivity activity) {
-            String[] normalPermissions = normalPermissions();
-            String[] specialPermissions = specialPermissions();
-            boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
-            boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
-            if (!hasNormal && !hasSpecial) {
+            String[] permissions = permissions();
+            boolean hasPermission = null != permissions && permissions.length != 0;
+            if (!hasPermission) {
                 initModelObserve();
                 return;
             }
-            dealPermission(activity, normalPermissions, specialPermissions);
+            dealPermission(activity, permissions);
         }
 
         /**
@@ -588,100 +546,66 @@ public interface ViewPublicEvent {
          * @param fragment the fragment
          */
         default void initPermissionAndInitData(Fragment fragment) {
-            String[] normalPermissions = normalPermissions();
-            String[] specialPermissions = specialPermissions();
-            boolean hasNormal = null != normalPermissions && normalPermissions.length != 0;
-            boolean hasSpecial = null != specialPermissions && specialPermissions.length != 0;
-            if (!hasNormal && !hasSpecial) {
+            String[] permissions = permissions();
+            boolean hasPermission = null != permissions && permissions.length != 0;
+            if (!hasPermission) {
                 initModelObserve();
                 return;
             }
-            dealPermission(fragment, normalPermissions, specialPermissions);
-        }
-
-        /**
-         * Init permission.
-         *
-         * @param activity          the activity
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission) {
-            dealPermission(activity, normalPermission, specialPermission, null);
+            dealPermission(fragment, permissions);
         }
 
         /**
          * Deal permission.
          *
-         * @param activity          the activity
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
+         * @param activity    the activity
+         * @param permissions the permissions
          */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter) {
-            dealPermission(activity, normalPermission, specialPermission, adapter, null);
-        }
-
-        /**
-         * Init permission.
-         *
-         * @param fragment          the fragment
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission) {
-            dealPermission(fragment, normalPermission, specialPermission, null);
+        default void dealPermission(FragmentActivity activity, String[] permissions) {
+            dealPermission(activity, permissions, null, null);
         }
 
         /**
          * Deal permission.
          *
-         * @param fragment          the fragment
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
+         * @param activity    the activity
+         * @param permissions the permissions
+         * @param interceptor the interceptor
          */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter) {
-            dealPermission(fragment, normalPermission, specialPermission, adapter, null);
+        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor) {
+            dealPermission(activity, permissions, interceptor, null);
         }
 
         /**
          * Deal permission.
          *
-         * @param activity          the activity
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
-         * @param callBack          the call back
+         * @param activity    the activity
+         * @param permissions the permissions
+         * @param interceptor the interceptor
+         * @param callBack    the call back
          */
-        default void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, PermissionsFragment.PermissionCallBack callBack) {
-            PermissionConfig config = new PermissionConfig(activity);
-            config.setNormalPermission(normalPermission);
-            config.setSpecialPermission(specialPermission, adapter);
-            config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
+        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
+            if (XXPermissions.isGranted(activity, permissions)) {
+                initModelObserve();
+                return;
+            }
+            XXPermissions.with(activity).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
+
                 @Override
-                public void agree() {
+                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
                     initModelObserve();
                     if (callBack == null) {
                         return;
                     }
-                    callBack.agree();
+                    callBack.onGranted(permissions, allGranted);
                 }
 
                 @Override
-                public void disagree(List<String> name) {
+                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
                     if (callBack == null) {
                         return;
                     }
-                    callBack.disagree(name);
-                }
-
-                @Override
-                public void ban(List<String> name) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.ban(name);
+                    callBack.onDenied(permissions, doNotAskAgain);
                 }
             });
         }
@@ -689,40 +613,54 @@ public interface ViewPublicEvent {
         /**
          * Deal permission.
          *
-         * @param fragment          the fragment
-         * @param normalPermission  the normal permission
-         * @param specialPermission the special permission
-         * @param adapter           the adapter
-         * @param callBack          the call back
+         * @param fragment    the fragment
+         * @param permissions the permissions
          */
-        default void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, PermissionsFragment.PermissionCallBack callBack) {
-            PermissionConfig config = new PermissionConfig(fragment);
-            config.setNormalPermission(normalPermission);
-            config.setSpecialPermission(specialPermission, adapter);
-            config.requestPermissions(new PermissionsFragment.PermissionCallBack() {
+        default void dealPermission(Fragment fragment, String[] permissions) {
+            dealPermission(fragment, permissions, null, null);
+        }
+
+        /**
+         * Deal permission.
+         *
+         * @param fragment    the fragment
+         * @param permissions the permissions
+         * @param interceptor the interceptor
+         */
+        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor) {
+            dealPermission(fragment, permissions, interceptor, null);
+        }
+
+        /**
+         * Deal permission.
+         *
+         * @param fragment    the fragment
+         * @param permissions the permissions
+         * @param interceptor the interceptor
+         * @param callBack    the call back
+         */
+        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
+            if (XXPermissions.isGranted(fragment.requireContext(), permissions)) {
+                initModelObserve();
+                return;
+            }
+            XXPermissions.with(fragment).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
+
                 @Override
-                public void agree() {
+                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
                     initModelObserve();
                     if (callBack == null) {
                         return;
                     }
-                    callBack.agree();
+                    callBack.onGranted(permissions, allGranted);
                 }
 
                 @Override
-                public void disagree(List<String> name) {
+                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
                     if (callBack == null) {
                         return;
                     }
-                    callBack.disagree(name);
-                }
-
-                @Override
-                public void ban(List<String> name) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.ban(name);
+                    callBack.onDenied(permissions, doNotAskAgain);
                 }
             });
         }

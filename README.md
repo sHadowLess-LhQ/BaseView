@@ -64,7 +64,7 @@ b、远程仓库引入
 ```
     dependencies {
         implementation 'com.gitee.shadowless_lhq:base-view:Tag'
-        implementation 'com.gitee.shadowless_lhq:permission-lib:1.0.8'
+        implementation 'com.github.getActivity:XXPermissions:21.3'
     }
 ```
 
