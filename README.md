@@ -63,7 +63,7 @@ b、远程仓库引入
 
 ```
     dependencies {
-        implementation 'com.gitee.shadowless_lhq:base-view:Tag'
+        implementation 'com.github.sHadowLess-LhQ:BaseView:Tag'
         implementation 'com.github.getActivity:XXPermissions:21.3'
     }
 ```
