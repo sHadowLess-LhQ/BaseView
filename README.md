@@ -59,7 +59,7 @@ a、克隆引入
 
 b、远程仓库引入
 
-[![](https://jitpack.io/v/com.gitee.shadowless_lhq/base-view.svg)](https://jitpack.io/#com.gitee.shadowless_lhq/base-view)
+[![](https://jitpack.io/v/sHadowLess-LhQ/BaseView.svg)](https://jitpack.io/#sHadowLess-LhQ/BaseView)
 
 ```
     dependencies {
