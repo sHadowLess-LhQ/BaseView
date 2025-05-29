@@ -106,31 +106,22 @@ c、混淆规则
       //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
-      //需要在获取权限，请重写normalPermissions和specialPermissions方法
+      //需要在获取权限，请重写permissions方法
       public class MainActivity extends BaseVpActivity<ActivityMainBinding> {
   
           @Nullable
           @Override
-          public String[] normalPermissions() {
-              //设置需要动态获取的普通权限，无需申请可传null或空数组
-              //目前仅支持以下特殊权限：
-              return super.normalPermissions();
-          }
-      
-          @Nullable
-          @Override
-          public String[] specialPermissions() {
-              //设置需要动态获取的特殊权限，无需申请可传null或空数组
-              return super.specialPermissions();
+          public String[] permissions() {
+              //设置需要动态获取的权限
+              return super.permissions();
           }
 
           @Override
-          public void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
-                PermissionsFragment.PermissionCallBack callBack) {
+          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
                 super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
                 //若使用基类获取权限，可重写此方法
-                //用于传递特殊权限验证适配器
-                //和权限获取结果回调
+                //设置权限拦截器
+                //权限获取结果回调
           }
           
           @Override
@@ -226,30 +217,22 @@ c、混淆规则
       //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
-      //需要在获取权限，请重写normalPermissions和specialPermissions方法
+      //需要在获取权限，请重写permissions方法
       public class MainFragment extends BaseVpFragment<FragmentMainBinding> {
   
           @Nullable
           @Override
-          public String[] normalPermissions() {
-              //设置需要动态获取的普通权限，无需申请可传null或空数组
-              return super.normalPermissions();
-          }
-      
-          @Nullable
-          @Override
-          public String[] specialPermissions() {
-              //设置需要动态获取的特殊权限，无需申请可传null或空数组
-              return super.specialPermissions();
+          public String[] permissions() {
+              //设置需要动态获取的权限
+              return super.permissions();
           }
 
           @Override
-          public void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
-                PermissionsFragment.PermissionCallBack callBack) {
-                super.dealPermission(fragment, normalPermission, specialPermission, adapter, callBack);
+          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
+                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
                 //若使用基类获取权限，可重写此方法
-                //用于传递特殊权限验证适配器
-                //和权限获取结果回调
+                //设置权限拦截器
+                //权限获取结果回调
           }
 
           @Override
@@ -349,32 +332,24 @@ c、混淆规则
       //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
-      //需要在获取权限，请重写normalPermissions和specialPermissions方法
+      //需要在获取权限，请重写permissionss方法
       public class MainActivity extends BaseVmActivity<ActivityMainBinding> {
       
           private TestViewModel viewModel;
   
           @Nullable
           @Override
-          public String[] normalPermissions() {
-              //设置需要动态获取的普通权限，无需申请可传null或空数组
-              return super.normalPermissions();
-          }
-      
-          @Nullable
-          @Override
-          public String[] specialPermissions() {
-              //设置需要动态获取的特殊权限，无需申请可传null或空数组
-              return super.specialPermissions();
+          public String[] permissions() {
+              //设置需要动态获取的权限
+              return super.permissions();
           }
 
           @Override
-          public void dealPermission(FragmentActivity activity, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
-                PermissionsFragment.PermissionCallBack callBack) {
+          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
                 super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
                 //若使用基类获取权限，可重写此方法
-                //用于传递特殊权限验证适配器
-                //和权限获取结果回调
+                //设置权限拦截器
+                //权限获取结果回调
           }
           
           @Override
@@ -477,32 +452,24 @@ c、混淆规则
       //手动传递和实现ViewBinding类的实例
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
-      //需要在获取权限，请重写normalPermissions和specialPermissions方法
+      //需要在获取权限，请重写permissions方法
       public class MainFragment extends BaseVmFragment<FragmentMainBinding> {
       
           private TestViewModel viewModel;
   
           @Nullable
           @Override
-          public String[] normalPermissions() {
-              //设置需要动态获取的普通权限，无需申请可传null或空数组
-              return super.normalPermissions();
-          }
-      
-          @Nullable
-          @Override
-          public String[] specialPermissions() {
-              //设置需要动态获取的特殊权限，无需申请可传null或空数组
-              return super.specialPermissions();
+          public String[] permissions() {
+              //设置需要动态获取的权限
+              return super.permissions();
           }
 
           @Override
-          public void dealPermission(Fragment fragment, String[] normalPermission, String[] specialPermission, CheckSpecialAdapter adapter, 
-                PermissionsFragment.PermissionCallBack callBack) {
-                super.dealPermission(fragment, normalPermission, specialPermission, adapter, callBack);
+          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
+                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
                 //若使用基类获取权限，可重写此方法
-                //用于传递特殊权限验证适配器
-                //和权限获取结果回调
+                //设置权限拦截器
+                //权限获取结果回调
           }
 
           @Override
