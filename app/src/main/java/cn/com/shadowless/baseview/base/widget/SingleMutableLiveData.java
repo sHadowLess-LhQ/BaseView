@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.lifecycle;
+package cn.com.shadowless.baseview.base.widget;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;

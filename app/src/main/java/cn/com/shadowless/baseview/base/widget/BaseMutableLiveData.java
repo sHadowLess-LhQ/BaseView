@@ -119,7 +119,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
         if (event == setStopEvent()) {
             onTerminate(event);
             clearAllForEverObserver(source);
-            getObserveLifecycleOwner().getLifecycle().removeObserver(this);
+            this.getLifecycle().removeObserver(this);
         }
     }
 

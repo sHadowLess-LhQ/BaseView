@@ -7,11 +7,11 @@ import androidx.lifecycle.LifecycleOwner;
 
 /**
  * 快速实现生命周期接口
- * 支持监听与被监听生命周期
+ * 支持监听生命周期
  *
  * @author sHadowLess
  */
-public interface BaseQuickLifecycle extends LifecycleEventObserver {
+public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwner {
 
     @Override
     void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event);
@@ -39,4 +39,9 @@ public interface BaseQuickLifecycle extends LifecycleEventObserver {
     @NonNull
     LifecycleOwner getObserveLifecycleOwner();
 
+    @NonNull
+    @Override
+    default Lifecycle getLifecycle() {
+        return getObserveLifecycleOwner().getLifecycle();
+    }
 }

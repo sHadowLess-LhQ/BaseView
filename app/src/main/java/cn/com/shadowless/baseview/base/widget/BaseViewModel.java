@@ -112,7 +112,7 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == setStopEvent()) {
             onTerminate(event);
-            getObserveLifecycleOwner().getLifecycle().removeObserver(this);
+            this.getLifecycle().removeObserver(this);
         }
     }
 
