@@ -857,6 +857,13 @@ c、混淆规则
                 //重新启动后的页面
                 .restartActivity(LoginActivity.class)
                 .apply();
+                
+      //需要在AM文件中声明Provider，以启用崩溃组件
+      <provider
+            android:name="cn.com.shadowless.baseview.crash.provider.CrashInitProvider"
+            android:authorities="${applicationId}.customActivityOnCrashInitProvider"
+            android:exported="false"
+            android:initOrder="101" />
 ```
 
 ### BaseQuickLifecycle
