@@ -1,10 +1,7 @@
 package cn.com.shadowless.baseview.base.view;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,10 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -95,7 +91,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                mainHandler.postDelayed(() -> initEvent(this.savedInstanceState), 100);
+                initEvent(savedInstanceState, 100);
                 return defaultView;
         }
     }
@@ -104,20 +100,19 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
     public void onResume() {
         super.onResume();
         LoadMode mode = getLoadMode();
-        if (mode != LoadMode.DEFAULT && this.isAdded()) {
-            mainHandler.postDelayed(() -> {
-                if (this.isAdded()) {
+        if (mode != LoadMode.DEFAULT && isFragmentActive(this)) {
+            requireView().post(() -> {
+                if (isFragmentActive(this)) {
                     //防止多次加载标志位
                     if (!isLazyInit) {
                         isLazyInit = true;
                         switch (mode) {
                             case ONLY_LAZY_DATA:
-                                initEvent(this.savedInstanceState);
+                                initEvent(savedInstanceState);
                                 break;
                             case LAZY_VIEW_AND_DATA:
                                 //获取空布局
-                                FrameLayout layout = (FrameLayout) getView();
-                                callBack = initSyncView();
+                                FrameLayout layout = (FrameLayout) requireView();
                                 //是否异步加载
                                 if (isAsyncLoadView()) {
                                     initAsync(layout);
@@ -130,7 +125,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
                         }
                     }
                 }
-            }, 10);
+            });
         }
     }
 
@@ -139,6 +134,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
         if (bind != null) {
             bind = null;
         }
+        mainHandler.removeCallbacksAndMessages(null);
         super.onDestroyView();
     }
 
@@ -198,27 +194,8 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
      */
     private void initSync(ViewGroup viewGroup) {
         View contentView = getInflateView();
-        contentView.setAlpha(0);
-        contentView
-                .animate()
-                .alpha(0)
-                .alpha(1)
-                .setDuration(500)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                        super.onAnimationStart(animation);
-                        viewGroup.addView(contentView);
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                        initEvent(savedInstanceState);
-                    }
-                })
-                .setInterpolator(new LinearInterpolator())
-                .start();
+        viewGroup.addView(contentView);
+        initEvent(savedInstanceState);
     }
 
     /**
@@ -227,59 +204,51 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
      * @param group the group
      */
     private void initAsync(ViewGroup group) {
+        callBack = initSyncView();
         if (callBack != null) {
             callBack.showLoadView();
         }
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-                asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseVpFragment.this), group,
-                        new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
-                            @Override
-                            public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
-                                if (callBack != null) {
-                                    callBack.dismissLoadView();
+        AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseVpFragment.this), group,
+                new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
+                    @Override
+                    public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
+                        if (callBack != null) {
+                            callBack.dismissLoadView();
+                        }
+                        bind = binding;
+                        View view = bind.getRoot();
+                        if (callBack != null) {
+                            callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
+                                @Override
+                                public void animStart() {
+                                    group.addView(view);
                                 }
-                                bind = binding;
-                                View view = bind.getRoot();
-                                view.setAlpha(0);
-                                view
-                                        .animate()
-                                        .alpha(0)
-                                        .alpha(1)
-                                        .setDuration(500)
-                                        .setListener(new AnimatorListenerAdapter() {
-                                            @Override
-                                            public void onAnimationStart(Animator animation) {
-                                                super.onAnimationStart(animation);
-                                                group.addView(view);
-                                            }
 
-                                            @Override
-                                            public void onAnimationEnd(Animator animation) {
-                                                super.onAnimationEnd(animation);
-                                                initEvent(savedInstanceState);
-                                            }
-                                        })
-                                        .setInterpolator(new LinearInterpolator())
-                                        .start();
-                            }
-
-                            @Override
-                            public void onInflateError(Exception e) {
-                                if (callBack != null) {
-                                    callBack.dismissLoadView();
+                                @Override
+                                public void animEnd() {
+                                    initEvent(savedInstanceState);
                                 }
-                                TextView textView = new TextView(getAttachActivity());
-                                String error = "异步加载视图错误：\n" + Log.getStackTraceString(e);
-                                textView.setText(error);
-                                textView.setTextColor(Color.RED);
-                                group.addView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                            }
-                        });
-            }
-        }, 500);
+                            });
+                            return;
+                        }
+                        group.addView(view);
+                        initEvent(savedInstanceState);
+                    }
+
+                    @Override
+                    public void onInflateError(Exception e) {
+                        if (callBack != null) {
+                            callBack.dismissLoadView();
+                        }
+                        throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
+                    }
+                });
+    }
+
+    @MainThread
+    private void initEvent(Bundle savedInstanceState) {
+        initEvent(savedInstanceState, 0);
     }
 
     /**
@@ -287,11 +256,24 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
      *
      * @param savedInstanceState the saved instance state
      */
-    private void initEvent(Bundle savedInstanceState) {
-        initObject(savedInstanceState);
-        initView();
-        initViewListener();
-        initPermissionAndInitData(this);
-        isLazyInitSuccess = true;
+    @MainThread
+    private void initEvent(Bundle savedInstanceState, int delay) {
+        if (delay <= 0) {
+            mainHandler.post(() -> {
+                initObject(savedInstanceState);
+                initView();
+                initViewListener();
+                initPermissionAndInitData(BaseVpFragment.this);
+                isLazyInitSuccess = true;
+            });
+            return;
+        }
+        mainHandler.postDelayed(() -> {
+            initObject(savedInstanceState);
+            initView();
+            initViewListener();
+            initPermissionAndInitData(BaseVpFragment.this);
+            isLazyInitSuccess = true;
+        }, delay);
     }
 }

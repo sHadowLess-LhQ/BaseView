@@ -1,13 +1,11 @@
 package cn.com.shadowless.baseview.base.view;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -53,10 +51,10 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
         super.onCreate(savedInstanceState);
         boolean isAsync = isAsyncLoadView();
         if (isAsync) {
-            asyncInitView();
+            asyncInitView(savedInstanceState);
             return;
         }
-        syncInitView();
+        syncInitView(savedInstanceState);
     }
 
     @Override
@@ -106,24 +104,20 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
     /**
      * 同步加载布局
      */
-    private void syncInitView() {
+    private void syncInitView(Bundle savedInstanceState) {
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         setContentView(bind.getRoot());
-        initObject();
-        initView();
-        initViewListener();
-        initPermissionAndInitData(this);
-        isLazyInitSuccess = true;
+        initEvent(savedInstanceState);
     }
 
     /**
      * 异步加载布局
      */
-    private void asyncInitView() {
+    private void asyncInitView(Bundle savedInstanceState) {
         callBack = initSyncView();
         if (callBack != null) {
             callBack.showLoadView();
@@ -138,31 +132,22 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                         }
                         bind = binding;
                         View view = bind.getRoot();
-                        view.setAlpha(0);
-                        view
-                                .animate()
-                                .alpha(0)
-                                .alpha(1)
-                                .setDuration(500)
-                                .setListener(new AnimatorListenerAdapter() {
-                                    @Override
-                                    public void onAnimationStart(Animator animation) {
-                                        super.onAnimationStart(animation);
-                                        setContentView(bind.getRoot());
-                                    }
+                        if (callBack != null) {
+                            callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
+                                @Override
+                                public void animStart() {
+                                    setContentView(bind.getRoot());
+                                }
 
-                                    @Override
-                                    public void onAnimationEnd(Animator animation) {
-                                        super.onAnimationEnd(animation);
-                                        initObject();
-                                        initView();
-                                        initViewListener();
-                                        initPermissionAndInitData(BaseVmActivity.this);
-                                        isLazyInitSuccess = true;
-                                    }
-                                })
-                                .setInterpolator(new LinearInterpolator())
-                                .start();
+                                @Override
+                                public void animEnd() {
+                                    initEvent(savedInstanceState);
+                                }
+                            });
+                            return;
+                        }
+                        setContentView(bind.getRoot());
+                        initEvent(savedInstanceState);
                     }
 
                     @Override
@@ -173,5 +158,14 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                         throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
+    }
+
+    @MainThread
+    private void initEvent(Bundle savedInstanceState) {
+        initObject(savedInstanceState);
+        initView();
+        initViewListener();
+        initPermissionAndInitData(this);
+        isLazyInitSuccess = true;
     }
 }
