@@ -1,13 +1,11 @@
 package cn.com.shadowless.baseview.base.view;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -103,11 +101,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         setContentView(bind.getRoot());
-        initObject(savedInstanceState);
-        initView();
-        initViewListener();
-        initPermissionAndInitData(this);
-        isLazyInitSuccess = true;
+        initEvent(savedInstanceState);
     }
 
     /**
@@ -128,31 +122,22 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                         }
                         bind = binding;
                         View view = bind.getRoot();
-                        view.setAlpha(0);
-                        view
-                                .animate()
-                                .alpha(0)
-                                .alpha(1)
-                                .setDuration(500)
-                                .setListener(new AnimatorListenerAdapter() {
-                                    @Override
-                                    public void onAnimationStart(Animator animation) {
-                                        super.onAnimationStart(animation);
-                                        setContentView(bind.getRoot());
-                                    }
+                        if (callBack != null) {
+                            callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
+                                @Override
+                                public void animStart() {
+                                    setContentView(bind.getRoot());
+                                }
 
-                                    @Override
-                                    public void onAnimationEnd(Animator animation) {
-                                        super.onAnimationEnd(animation);
-                                        initObject(savedInstanceState);
-                                        initView();
-                                        initViewListener();
-                                        initPermissionAndInitData(BaseVpActivity.this);
-                                        isLazyInitSuccess = true;
-                                    }
-                                })
-                                .setInterpolator(new LinearInterpolator())
-                                .start();
+                                @Override
+                                public void animEnd() {
+                                    initEvent(savedInstanceState);
+                                }
+                            });
+                            return;
+                        }
+                        setContentView(bind.getRoot());
+                        initEvent(savedInstanceState);
                     }
 
                     @Override
@@ -163,5 +148,14 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                         throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
+    }
+
+    @MainThread
+    private void initEvent(Bundle savedInstanceState) {
+        initObject(savedInstanceState);
+        initView();
+        initViewListener();
+        initPermissionAndInitData(this);
+        isLazyInitSuccess = true;
     }
 }

@@ -1,10 +1,17 @@
 package cn.com.shadowless.baseview.event;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -56,10 +63,19 @@ public interface ViewPublicEvent {
         /**
          * 获取加载模式
          *
-         * @return the load mode
+         * @return the boolean
          */
         default LoadMode getLoadMode() {
             return LoadMode.DEFAULT;
+        }
+
+        /**
+         * 判断Fragment是否处于激活状态
+         *
+         * @return the load mode
+         */
+        default boolean isFragmentActive(Fragment fragment) {
+            return fragment.isAdded() && !fragment.isDetached() && !fragment.isRemoving();
         }
 
         /**
@@ -190,6 +206,12 @@ public interface ViewPublicEvent {
             return false;
         }
 
+        interface AsyncLoadViewAnimCallBack {
+            void animStart();
+
+            void animEnd();
+        }
+
         /**
          * The interface Async load view call back.
          */
@@ -203,6 +225,30 @@ public interface ViewPublicEvent {
              * Dismiss.
              */
             void dismissLoadView();
+
+            default void startAsyncAnimSetView(View view, AsyncLoadViewAnimCallBack callBack) {
+                view.setAlpha(0);
+                view
+                        .animate()
+                        .alpha(0)
+                        .alpha(1)
+                        .setDuration(500)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+                                super.onAnimationStart(animation);
+                                callBack.animStart();
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                callBack.animEnd();
+                            }
+                        })
+                        .setInterpolator(new LinearInterpolator())
+                        .start();
+            }
         }
     }
 
@@ -503,7 +549,7 @@ public interface ViewPublicEvent {
         /**
          * 初始化对象
          */
-        void initObject();
+        void initObject(Bundle savedInstanceState);
 
         /**
          * 给视图绑定数据
