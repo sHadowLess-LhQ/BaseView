@@ -91,7 +91,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                initEvent(savedInstanceState, 100);
+                mainHandler.postDelayed(() -> initEvent(this.savedInstanceState), 100);
                 return defaultView;
         }
     }
@@ -231,20 +231,6 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
         initViewListener();
         initPermissionAndInitData(this);
         isLazyInitSuccess = true;
-    }
-
-    /**
-     * Init.
-     *
-     * @param savedInstanceState the saved instance state
-     */
-    @MainThread
-    private void initEvent(Bundle savedInstanceState, int delay) {
-        if (delay <= 0) {
-            mainHandler.post(() -> initEvent(savedInstanceState));
-            return;
-        }
-        mainHandler.postDelayed(() -> initEvent(savedInstanceState), delay);
     }
 
     /**
