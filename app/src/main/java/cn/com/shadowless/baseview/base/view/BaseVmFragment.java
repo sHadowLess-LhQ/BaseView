@@ -113,14 +113,12 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                                 initEvent(savedInstanceState);
                                 break;
                             case LAZY_VIEW_AND_DATA:
-                                //获取空布局
-                                FrameLayout layout = (FrameLayout) requireView();
                                 //是否异步加载
                                 if (isAsyncLoadView()) {
-                                    initAsync(layout);
+                                    asyncInitView(savedInstanceState);
                                     return;
                                 }
-                                initSync(layout);
+                                syncInitView(savedInstanceState);
                                 break;
                             default:
                                 break;
@@ -147,16 +145,6 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     }
 
     /**
-     * 获取绑定视图
-     *
-     * @return the bind
-     */
-    @NonNull
-    public VB getBindView() {
-        return bind;
-    }
-
-    /**
      * 获取绑定的activity
      *
      * @return the bind activity
@@ -166,29 +154,13 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         return mActivity;
     }
 
-    @Override
-    public void initModelObserve() {
-        initModelListener();
-        for (BaseViewModel<?, ?> model : setViewModels()) {
-            model.onModelInitData();
-        }
-    }
-
-    /**
-     * 获取懒加载状态
-     *
-     * @return the boolean
-     */
-    protected boolean isLazyInitSuccess() {
-        return isLazyInitSuccess;
-    }
-
     /**
      * 获取视图
      *
      * @return the inflate view
      */
-    private View getInflateView() {
+    @Override
+    public View getInflateView() {
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
@@ -199,88 +171,105 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
 
     /**
      * 同步加载布局
-     *
-     * @param viewGroup the view group
      */
-    private void initSync(ViewGroup viewGroup) {
+    @Override
+    public void syncInitView(Bundle savedInstanceState) {
+        ViewGroup group = (ViewGroup) requireView();
         View contentView = getInflateView();
-        viewGroup.addView(contentView);
+        group.addView(contentView);
         initEvent(savedInstanceState);
     }
 
     /**
      * 异步加载布局
-     *
-     * @param group the group
      */
-    private void initAsync(ViewGroup group) {
+    @Override
+    public void asyncInitView(Bundle savedInstanceState) {
+        ViewGroup group = (ViewGroup) requireView();
         callBack = initSyncView();
         if (callBack != null) {
             callBack.showLoadView();
         }
-        mainHandler.postDelayed(() -> {
-            AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-            asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseVmFragment.this), group,
-                    new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
-                        @Override
-                        public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
-                            if (callBack != null) {
-                                callBack.dismissLoadView();
-                            }
-                            bind = binding;
-                            View view = bind.getRoot();
-                            if (callBack != null) {
-                                callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
-                                    @Override
-                                    public void animStart() {
-                                        group.addView(view);
-                                    }
+        AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), group,
+                new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
+                    @Override
+                    public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
+                        bind = binding;
+                        View view = bind.getRoot();
+                        if (callBack != null) {
+                            callBack.dismissLoadView();
+                            callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
+                                @Override
+                                public void animStart() {
+                                    group.addView(view);
+                                }
 
-                                    @Override
-                                    public void animEnd() {
-                                        initEvent(savedInstanceState);
-                                    }
-                                });
-                                return;
-                            }
-                            group.addView(view);
-                            initEvent(savedInstanceState);
+                                @Override
+                                public void animEnd() {
+                                    initEvent(savedInstanceState);
+                                }
+                            });
+                            return;
                         }
+                        group.addView(view);
+                        initEvent(savedInstanceState);
+                    }
 
-                        @Override
-                        public void onInflateError(Exception e) {
-                            if (callBack != null) {
-                                callBack.dismissLoadView();
-                            }
-                            throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
+                    @Override
+                    public void onInflateError(Exception e) {
+                        if (callBack != null) {
+                            callBack.dismissLoadView();
                         }
-                    });
-        }, 500);
+                        throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
+                    }
+                });
     }
 
-    @MainThread
-    private void initEvent(Bundle savedInstanceState) {
-        initEvent(savedInstanceState, 0);
+    @Override
+    public void initEvent(Bundle savedInstanceState) {
+        initObject(savedInstanceState);
+        initView();
+        initViewListener();
+        initPermissionAndInitData(this);
+        isLazyInitSuccess = true;
+    }
+
+    /**
+     * 获取绑定视图
+     *
+     * @return the bind
+     */
+    @NonNull
+    @Override
+    public VB getBindView() {
+        return bind;
+    }
+
+    /**
+     * 获取懒加载状态
+     *
+     * @return the boolean
+     */
+    @Override
+    public boolean isLazyInitSuccess() {
+        return isLazyInitSuccess;
+    }
+
+    @Override
+    public void initModelObserve() {
+        initModelListener();
+        for (BaseViewModel<?, ?> model : setViewModels()) {
+            model.onModelInitData();
+        }
     }
 
     @MainThread
     private void initEvent(Bundle savedInstanceState, int delay) {
         if (delay <= 0) {
-            mainHandler.post(() -> {
-                initObject(savedInstanceState);
-                initView();
-                initViewListener();
-                initPermissionAndInitData(this);
-                isLazyInitSuccess = true;
-            });
+            mainHandler.post(() -> initEvent(savedInstanceState));
             return;
         }
-        mainHandler.postDelayed(() -> {
-            initObject(savedInstanceState);
-            initView();
-            initViewListener();
-            initPermissionAndInitData(this);
-            isLazyInitSuccess = true;
-        }, delay);
+        mainHandler.postDelayed(() -> initEvent(savedInstanceState), delay);
     }
 }

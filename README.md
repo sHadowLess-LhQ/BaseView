@@ -95,6 +95,8 @@ c、混淆规则
       //并返回true
       //若异步加载需要加载弹窗，需要重写initSyncView，并返回实现AsyncLoadViewCallBack
       //默认没有异步加载弹窗
+      //需要实现异步加载View动画，请实现AsyncLoadViewCallBack，并重写startAsyncAnimSetView
+      //一定要回调animStart，否则基类不会把视图添加至根视图
       //接口的对象，供基类调用，显示和关闭
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理，请重写antiShakingClick接口
@@ -206,6 +208,8 @@ c、混淆规则
       //并返回true
       //若异步加载需要加载弹窗，需要重写initSyncView，并返回实现AsyncLoadViewCallBack
       //默认没有异步加载弹窗
+      //需要实现异步加载View动画，请实现AsyncLoadViewCallBack，并重写startAsyncAnimSetView
+      //一定要回调animStart，否则基类不会把视图添加至根视图
       //接口的对象，供基类调用，显示和关闭
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理，请重写antiShakingClick接口
@@ -321,6 +325,8 @@ c、混淆规则
       //并返回true
       //若异步加载需要加载弹窗，需要重写initSyncView，并返回实现AsyncLoadViewCallBack
       //默认没有异步加载弹窗
+      //需要实现异步加载View动画，请实现AsyncLoadViewCallBack，并重写startAsyncAnimSetView
+      //一定要回调animStart，否则基类不会把视图添加至根视图
       //接口的对象，供基类调用，显示和关闭
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理，请重写antiShakingClick接口
@@ -441,6 +447,8 @@ c、混淆规则
       //并返回true
       //若异步加载需要加载弹窗，需要重写initSyncView，并返回实现AsyncLoadViewCallBack
       //默认没有异步加载弹窗
+      //需要实现异步加载View动画，请实现AsyncLoadViewCallBack，并重写startAsyncAnimSetView
+      //一定要回调animStart，否则基类不会把视图添加至根视图
       //接口的对象，供基类调用，显示和关闭
       //创建xml后，点击编译，填入需要绑定的视图和传递数据类型
       //click监听已做快速点击处理，请重写antiShakingClick接口
