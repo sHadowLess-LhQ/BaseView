@@ -64,37 +64,10 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     }
 
     /**
-     * 获取绑定的视图
-     *
-     * @return the 视图
-     */
-    @Override
-    public VB getBindView() {
-        return bind;
-    }
-
-    /**
-     * 初始化主题
-     *
-     * @return the int
-     */
-    protected int initTheme() {
-        return -1;
-    }
-
-    /**
-     * 获取懒加载状态
-     *
-     * @return the boolean
-     */
-    protected boolean isLazyInitSuccess() {
-        return isLazyInitSuccess;
-    }
-
-    /**
      * 同步加载布局
      */
-    private void syncInitView(Bundle savedInstanceState) {
+    @Override
+    public void syncInitView(Bundle savedInstanceState) {
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
@@ -107,7 +80,8 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     /**
      * 异步加载布局
      */
-    private void asyncInitView(Bundle savedInstanceState) {
+    @Override
+    public void asyncInitView(Bundle savedInstanceState) {
         callBack = initSyncView();
         if (callBack != null) {
             callBack.showLoadView();
@@ -117,12 +91,10 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
-                        if (callBack != null) {
-                            callBack.dismissLoadView();
-                        }
                         bind = binding;
                         View view = bind.getRoot();
                         if (callBack != null) {
+                            callBack.dismissLoadView();
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
                                 @Override
                                 public void animStart() {
@@ -150,12 +122,41 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                 });
     }
 
-    @MainThread
-    private void initEvent(Bundle savedInstanceState) {
+    @Override
+    public void initEvent(Bundle savedInstanceState) {
         initObject(savedInstanceState);
         initView();
         initViewListener();
         initPermissionAndInitData(this);
         isLazyInitSuccess = true;
+    }
+
+    /**
+     * 获取绑定的视图
+     *
+     * @return the 视图
+     */
+    @Override
+    public VB getBindView() {
+        return bind;
+    }
+
+    /**
+     * 获取懒加载状态
+     *
+     * @return the boolean
+     */
+    @Override
+    public boolean isLazyInitSuccess() {
+        return isLazyInitSuccess;
+    }
+
+    /**
+     * 初始化主题
+     *
+     * @return the int
+     */
+    protected int initTheme() {
+        return -1;
     }
 }

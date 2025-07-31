@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.TextView;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -56,9 +57,7 @@ public interface ViewPublicEvent {
          *
          * @return the activity
          */
-        default Activity getAttachActivity() {
-            return null;
-        }
+        Activity getAttachActivity();
 
         /**
          * 获取加载模式
@@ -68,6 +67,8 @@ public interface ViewPublicEvent {
         default LoadMode getLoadMode() {
             return LoadMode.DEFAULT;
         }
+
+        View getInflateView();
 
         /**
          * 判断Fragment是否处于激活状态
@@ -205,6 +206,15 @@ public interface ViewPublicEvent {
         default boolean isAsyncLoadView() {
             return false;
         }
+
+        boolean isLazyInitSuccess();
+
+        void syncInitView(Bundle savedInstanceState);
+
+        void asyncInitView(Bundle savedInstanceState);
+
+        @MainThread
+        void initEvent(Bundle savedInstanceState);
 
         interface AsyncLoadViewAnimCallBack {
             void animStart();
