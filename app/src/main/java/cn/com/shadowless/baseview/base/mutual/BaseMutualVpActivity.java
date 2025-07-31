@@ -1,4 +1,4 @@
-package cn.com.shadowless.baseview.base.view;
+package cn.com.shadowless.baseview.base.mutual;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +13,7 @@ import androidx.viewbinding.ViewBinding;
 import java.lang.reflect.InvocationTargetException;
 
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
+import cn.com.shadowless.baseview.manager.ViewDataManager;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
@@ -21,7 +22,7 @@ import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatActivity implements
+public abstract class BaseMutualVpActivity<T, VB extends ViewBinding> extends AppCompatActivity implements
         ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitBindingEvent, ViewPublicEvent.InitViewClick {
 
     /**
@@ -32,12 +33,17 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     /**
      * The Call back.
      */
-    private ViewPublicEvent.InitViewBinding.AsyncLoadViewCallBack callBack;
+    private AsyncLoadViewCallBack callBack;
 
     /**
      * 是否懒加载成功标识符
      */
     private boolean isLazyInitSuccess = false;
+
+    /**
+     * 双向等待管理
+     */
+    private ViewDataManager<T, VB> manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +52,10 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
-        boolean isAsync = isAsyncLoadView();
-        if (isAsync) {
+        if (isAsyncLoadView()) {
+            manager = new ViewDataManager<>();
+            manager.reset();
+            manager.bindLifecycle(this);
             asyncInitView(savedInstanceState);
             return;
         }
@@ -98,17 +106,18 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                                 @Override
                                 public void animStart() {
                                     setContentView(bind.getRoot());
+                                    manager.setViewBinding(bind);
                                 }
 
                                 @Override
                                 public void animEnd() {
-                                    initEvent(savedInstanceState);
+
                                 }
                             });
                             return;
                         }
                         setContentView(bind.getRoot());
-                        initEvent(savedInstanceState);
+                        manager.setViewBinding(bind);
                     }
 
                     @Override
@@ -119,6 +128,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
                         throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
+        initEvent(savedInstanceState);
     }
 
     @Override
@@ -157,5 +167,12 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
      */
     protected int initTheme() {
         return -1;
+    }
+
+    protected ViewDataManager<T, VB> getBindManager() {
+        if (!isAsyncLoadView()) {
+            throw new RuntimeException("请在异步加载视图模式下使用");
+        }
+        return manager;
     }
 }

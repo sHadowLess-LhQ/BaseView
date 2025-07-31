@@ -566,6 +566,57 @@ c、混淆规则
       }
 ```
 
+### BaseMutual*
+
+```
+      //支持双向等待机制的基类
+      //涵盖以上所有Activity和Fragment
+      //机制只有在isAsyncLoadView()为true的异步布局加载情况下生效
+      //同步没必要双向等待
+      //剩余功能完全一致
+      //以MutualVpActivity为简单使用的例子
+      class TestActivity : BaseMutualVpActivity<User, ActivityMain3Binding>() {
+
+          //User实际使用为多个数据聚合后的实体
+          private val userData: MutableLiveData<User> = MutableLiveData()
+      
+          //声明为true
+          //否则使用getBindManager()方法会抛出异常
+          override fun isAsyncLoadView(): Boolean = true
+      
+          override fun initObject(savedInstanceState: Bundle?) {
+              
+          }
+      
+          override fun initView() {
+              //设置绑定器
+              bindManager.setBinder { data, _ ->
+                  Log.e("TAG", "initDataListener: ${data.toString()}")
+              }
+          }
+      
+          override fun initViewListener() {
+              
+          }
+      
+          override fun initDataListener() {
+              userData.observe(this) {
+                  bindManager.setData(it)
+              }
+          }
+      
+          override fun initData() {
+              //模拟异步发送数据
+              lifecycleScope.launch(Dispatchers.IO) {
+                  delay(5000)
+                  withContext(Dispatchers.Main) {
+                      userData.value = User("小王", 18)
+                  }
+              }
+          }
+      }
+```
+
 ### BaseDialog
 
 ```
