@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -93,7 +92,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                initEvent(savedInstanceState, 100);
+                mainHandler.postDelayed(() -> initEvent(this.savedInstanceState), 100);
                 return defaultView;
         }
     }
@@ -262,14 +261,5 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         for (BaseViewModel<?, ?> model : setViewModels()) {
             model.onModelInitData();
         }
-    }
-
-    @MainThread
-    private void initEvent(Bundle savedInstanceState, int delay) {
-        if (delay <= 0) {
-            mainHandler.post(() -> initEvent(savedInstanceState));
-            return;
-        }
-        mainHandler.postDelayed(() -> initEvent(savedInstanceState), delay);
     }
 }

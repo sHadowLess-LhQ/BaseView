@@ -1,10 +1,7 @@
 package cn.com.shadowless.baseview.base.view;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,9 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -112,18 +107,15 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                         isLazyInit = true;
                         switch (mode) {
                             case ONLY_LAZY_DATA:
-                                initEvent(this.savedInstanceState);
+                                initEvent(savedInstanceState);
                                 break;
                             case LAZY_VIEW_AND_DATA:
-                                //获取空布局
-                                FrameLayout layout = (FrameLayout) getView();
-                                callBack = initSyncView();
                                 //是否异步加载
                                 if (isAsyncLoadView()) {
-                                    initAsync(layout);
+                                    asyncInitView(savedInstanceState);
                                     return;
                                 }
-                                initSync(layout);
+                                syncInitView(savedInstanceState);
                                 break;
                             default:
                                 break;
@@ -173,7 +165,8 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      *
      * @return the boolean
      */
-    protected boolean isLazyInitSuccess() {
+    @Override
+    public boolean isLazyInitSuccess() {
         return isLazyInitSuccess;
     }
 
@@ -182,7 +175,8 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      *
      * @return the inflate view
      */
-    private View getInflateView() {
+    @Override
+    public View getInflateView() {
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
@@ -193,99 +187,66 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
 
     /**
      * 同步加载布局
-     *
-     * @param viewGroup the view group
      */
-    private void initSync(ViewGroup viewGroup) {
+    @Override
+    public void syncInitView(Bundle savedInstanceState) {
+        ViewGroup group = (ViewGroup) requireView();
         View contentView = getInflateView();
-        contentView.setAlpha(0);
-        contentView
-                .animate()
-                .alpha(0)
-                .alpha(1)
-                .setDuration(500)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                        super.onAnimationStart(animation);
-                        viewGroup.addView(contentView);
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                        initEvent(savedInstanceState);
-                    }
-                })
-                .setInterpolator(new LinearInterpolator())
-                .start();
+        group.addView(contentView);
+        initEvent(savedInstanceState);
     }
 
     /**
      * 异步加载布局
-     *
-     * @param group the group
      */
-    private void initAsync(ViewGroup group) {
+    @Override
+    public void asyncInitView(Bundle savedInstanceState) {
+        ViewGroup group = (ViewGroup) requireView();
+        callBack = initSyncView();
         if (callBack != null) {
             callBack.showLoadView();
         }
-        mainHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-                asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseDialogFragment.this), group,
-                        new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
-                            @Override
-                            public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
-                                if (callBack != null) {
-                                    callBack.dismissLoadView();
+        AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), group,
+                new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
+                    @Override
+                    public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
+                        bind = binding;
+                        View view = bind.getRoot();
+                        if (callBack != null) {
+                            callBack.dismissLoadView();
+                            callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
+                                @Override
+                                public void animStart() {
+                                    group.addView(view);
                                 }
-                                bind = binding;
-                                View view = bind.getRoot();
-                                view.setAlpha(0);
-                                view
-                                        .animate()
-                                        .alpha(0)
-                                        .alpha(1)
-                                        .setDuration(500)
-                                        .setListener(new AnimatorListenerAdapter() {
-                                            @Override
-                                            public void onAnimationStart(Animator animation) {
-                                                super.onAnimationStart(animation);
-                                                group.addView(view);
-                                            }
 
-                                            @Override
-                                            public void onAnimationEnd(Animator animation) {
-                                                super.onAnimationEnd(animation);
-                                                initEvent(savedInstanceState);
-                                            }
-                                        })
-                                        .setInterpolator(new LinearInterpolator())
-                                        .start();
-                            }
-
-                            @Override
-                            public void onInflateError(Exception e) {
-                                if (callBack != null) {
-                                    callBack.dismissLoadView();
+                                @Override
+                                public void animEnd() {
+                                    initEvent(savedInstanceState);
                                 }
-                                TextView textView = new TextView(getAttachActivity());
-                                String error = "异步加载视图错误：\n" + Log.getStackTraceString(e);
-                                textView.setText(error);
-                                textView.setTextColor(Color.RED);
-                                group.addView(textView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                            }
-                        });
-            }
-        }, 500);
+                            });
+                            return;
+                        }
+                        group.addView(view);
+                        initEvent(savedInstanceState);
+                    }
+
+                    @Override
+                    public void onInflateError(Exception e) {
+                        if (callBack != null) {
+                            callBack.dismissLoadView();
+                        }
+                        throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
+                    }
+                });
     }
 
     /**
      * Init.
      */
-    private void initEvent(Bundle savedInstanceState) {
+    @Override
+    public void initEvent(Bundle savedInstanceState) {
         initObject(savedInstanceState);
         initView();
         initViewListener();
