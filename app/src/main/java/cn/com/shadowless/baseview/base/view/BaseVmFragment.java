@@ -36,37 +36,37 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     /**
      * 视图绑定
      */
-    private VB bind = null;
+    protected VB bind = null;
 
     /**
      * 依附的activity
      */
-    private Activity mActivity = null;
+    protected Activity mActivity = null;
 
     /**
      * The Call back.
      */
-    private AsyncLoadViewCallBack callBack;
+    protected AsyncLoadViewCallBack callBack;
 
     /**
      * The Main handler.
      */
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    protected final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     /**
      * 是否懒加载标识符
      */
-    private boolean isLazyInit = false;
+    protected boolean isLazyInit = false;
 
     /**
      * 是否懒加载成功标识符
      */
-    private boolean isLazyInitSuccess = false;
+    protected boolean isLazyInitSuccess = false;
 
     /**
      * The Saved instance state.
      */
-    private Bundle savedInstanceState;
+    protected Bundle savedInstanceState;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -185,12 +185,12 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     @Override
     public void asyncInitView(Bundle savedInstanceState) {
         ViewGroup group = (ViewGroup) requireView();
-        callBack = initSyncView();
+        callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), group,
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseVmFragment.this), group,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {

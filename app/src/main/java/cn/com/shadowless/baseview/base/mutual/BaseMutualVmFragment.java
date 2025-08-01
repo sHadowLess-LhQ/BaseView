@@ -1,192 +1,26 @@
 package cn.com.shadowless.baseview.base.mutual;
 
-import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
-import java.lang.reflect.InvocationTargetException;
-
+import cn.com.shadowless.baseview.base.view.BaseVmFragment;
+import cn.com.shadowless.baseview.base.widget.BaseMutualViewModel;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
-import cn.com.shadowless.baseview.event.ViewPublicEvent;
-import cn.com.shadowless.baseview.manager.ViewDataManager;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
- * 基类Fragment
+ * 双向等待基类Fragment
  *
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseMutualVmFragment<T, VB extends ViewBinding> extends Fragment
-        implements ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitViewModel<VB>,
-        ViewPublicEvent.InitModelEvent, ViewPublicEvent.InitViewClick,
-        ViewPublicEvent.InitFragmentEvent {
-
-    /**
-     * 视图绑定
-     */
-    private VB bind = null;
-
-    /**
-     * 依附的activity
-     */
-    private Activity mActivity = null;
-
-    /**
-     * The Call back.
-     */
-    private AsyncLoadViewCallBack callBack;
-
-    /**
-     * The Main handler.
-     */
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
-
-    /**
-     * 是否懒加载标识符
-     */
-    private boolean isLazyInit = false;
-
-    /**
-     * 是否懒加载成功标识符
-     */
-    private boolean isLazyInitSuccess = false;
-
-    /**
-     * The Saved instance state.
-     */
-    private Bundle savedInstanceState;
-
-    /**
-     * 双向等待管理
-     */
-    private ViewDataManager<T, VB> manager;
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        this.mActivity = (Activity) context;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        initFirst();
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        this.savedInstanceState = savedInstanceState;
-        LoadMode mode = getLoadMode();
-        switch (mode) {
-            case ONLY_LAZY_DATA:
-                return getInflateView();
-            case LAZY_VIEW_AND_DATA:
-                return new FrameLayout(getAttachActivity());
-            default:
-                View defaultView = getInflateView();
-                mainHandler.postDelayed(() -> initEvent(this.savedInstanceState), 100);
-                return defaultView;
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        LoadMode mode = getLoadMode();
-        if (mode != LoadMode.DEFAULT && isFragmentActive(this)) {
-            requireView().post(() -> {
-                if (isFragmentActive(this)) {
-                    //防止多次加载标志位
-                    if (!isLazyInit) {
-                        isLazyInit = true;
-                        switch (mode) {
-                            case ONLY_LAZY_DATA:
-                                initEvent(savedInstanceState);
-                                break;
-                            case LAZY_VIEW_AND_DATA:
-                                //是否异步加载
-                                if (isAsyncLoadView()) {
-                                    manager = new ViewDataManager<>();
-                                    manager.reset();
-                                    manager.bindLifecycle(this);
-                                    asyncInitView(savedInstanceState);
-                                    return;
-                                }
-                                syncInitView(savedInstanceState);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        if (bind != null) {
-            bind = null;
-        }
-        mainHandler.removeCallbacksAndMessages(null);
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onDetach() {
-        mActivity = null;
-        super.onDetach();
-    }
-
-    /**
-     * 获取绑定的activity
-     *
-     * @return the bind activity
-     */
-    @Override
-    public Activity getAttachActivity() {
-        return mActivity;
-    }
-
-    /**
-     * 获取视图
-     *
-     * @return the inflate view
-     */
-    @Override
-    public View getInflateView() {
-        try {
-            bind = inflateView(this, getLayoutInflater());
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
-        }
-        return bind.getRoot();
-    }
-
-    /**
-     * 同步加载布局
-     */
-    @Override
-    public void syncInitView(Bundle savedInstanceState) {
-        ViewGroup group = (ViewGroup) requireView();
-        View contentView = getInflateView();
-        group.addView(contentView);
-        initEvent(savedInstanceState);
-    }
+public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseVmFragment<VB> {
 
     /**
      * 异步加载布局
@@ -194,12 +28,12 @@ public abstract class BaseMutualVmFragment<T, VB extends ViewBinding> extends Fr
     @Override
     public void asyncInitView(Bundle savedInstanceState) {
         ViewGroup group = (ViewGroup) requireView();
-        callBack = initSyncView();
+        callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), group,
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseMutualVmFragment.this), group,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -211,7 +45,12 @@ public abstract class BaseMutualVmFragment<T, VB extends ViewBinding> extends Fr
                                 @Override
                                 public void animStart() {
                                     group.addView(view);
-                                    manager.setViewBinding(bind);
+                                    for (BaseViewModel<VB, ?> model : setViewModels()) {
+                                        if (!(model instanceof BaseMutualViewModel)) {
+                                            throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
+                                        }
+                                        model.getViewDataManager().setViewBinding(bind);
+                                    }
                                 }
 
                                 @Override
@@ -222,7 +61,12 @@ public abstract class BaseMutualVmFragment<T, VB extends ViewBinding> extends Fr
                             return;
                         }
                         group.addView(view);
-                        manager.setViewBinding(bind);
+                        for (BaseViewModel<VB, ?> model : setViewModels()) {
+                            if (!(model instanceof BaseMutualViewModel)) {
+                                throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
+                            }
+                            model.getViewDataManager().setViewBinding(bind);
+                        }
                     }
 
                     @Override
@@ -234,50 +78,5 @@ public abstract class BaseMutualVmFragment<T, VB extends ViewBinding> extends Fr
                     }
                 });
         initEvent(savedInstanceState);
-    }
-
-    @Override
-    public void initEvent(Bundle savedInstanceState) {
-        initObject(savedInstanceState);
-        initView();
-        initViewListener();
-        initPermissionAndInitData(this);
-        isLazyInitSuccess = true;
-    }
-
-    /**
-     * 获取绑定视图
-     *
-     * @return the bind
-     */
-    @NonNull
-    @Override
-    public VB getBindView() {
-        return bind;
-    }
-
-    /**
-     * 获取懒加载状态
-     *
-     * @return the boolean
-     */
-    @Override
-    public boolean isLazyInitSuccess() {
-        return isLazyInitSuccess;
-    }
-
-    @Override
-    public void initModelObserve() {
-        initModelListener();
-        for (BaseViewModel<?, ?> model : setViewModels()) {
-            model.onModelInitData();
-        }
-    }
-
-    protected ViewDataManager<T, VB> getBindManager() {
-        if (!isAsyncLoadView()) {
-            throw new RuntimeException("请在异步加载视图模式下使用");
-        }
-        return manager;
     }
 }
