@@ -4,10 +4,10 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.MutableLiveData;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,19 +24,30 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     private Lifecycle lifecycle;
 
     /**
-     * 数据键，用于标识不同类型或同类型的不同数据
+     * 数据键接口，用于标识不同类型或同类型的不同数据
      *
      * @param <T> 数据类型
      */
-    public static class DataKey<T> {
-
+    public interface DataKey<T> {
+        /**
+         * 获取键的名称，用于调试和日志
+         *
+         * @return 键名称
+         */
+        default String getName(T key) {
+            return "";
+        }
     }
 
-    public static class DataState<T> {
+    public class DataState<T> {
         private T data;
-        private MutableLiveData<T> binder;
+        private DataBindViewBinder<T> binder;
         private final AtomicBoolean dataReady = new AtomicBoolean(false);
         private final AtomicBoolean bound = new AtomicBoolean(false);
+    }
+
+    public interface DataBindViewBinder<T> {
+        void bindWithViewBinding(@Nullable T data);
     }
 
     /**
@@ -58,7 +69,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     /**
      * 设置指定key的绑定器
      */
-    public <T> void setBinder(DataKey<T> key, MutableLiveData<T> binder) {
+    public <T> void setBinder(DataKey<T> key, DataBindViewBinder<T> binder) {
         lock.writeLock().lock();
         try {
             DataState<T> state = getDataState(key);
@@ -133,7 +144,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         lock.readLock().lock();
         try {
             if (viewReady.get() && state.binder != null) {
-                state.binder.postValue(state.data);
+                state.binder.bindWithViewBinding(state.data);
             }
         } finally {
             lock.readLock().unlock();
@@ -193,17 +204,9 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     /**
      * 检查指定key的数据是否已绑定完成
      */
-    public <T> boolean isBindingCompleted(DataKey<T> key) {
+    public boolean isBindingCompleted(DataKey<?> key) {
         DataState<?> state = dataStates.get(key);
         return state != null && state.bound.get();
-    }
-
-    /**
-     * 获取指定key的数据的观察者
-     */
-    public <T> MutableLiveData<T> getBinder(DataKey<T> key) {
-        DataState<?> state = dataStates.get(key);
-        return (MutableLiveData<T>) state.binder;
     }
 
     /**
