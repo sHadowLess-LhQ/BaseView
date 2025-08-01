@@ -49,7 +49,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                                         if (!(model instanceof BaseMutualViewModel)) {
                                             throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                                         }
-                                        model.getViewDataManager().setViewBinding(bind);
+                                        model.getViewDataManager().setViewBinding();
                                     }
                                 }
 
@@ -65,7 +65,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                             if (!(model instanceof BaseMutualViewModel)) {
                                 throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                             }
-                            model.getViewDataManager().setViewBinding(bind);
+                            model.getViewDataManager().setViewBinding();
                         }
                     }
 

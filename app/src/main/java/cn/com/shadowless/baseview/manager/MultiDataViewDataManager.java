@@ -4,53 +4,39 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.viewbinding.ViewBinding;
+import androidx.lifecycle.MutableLiveData;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class MultiDataViewDataManager<VB extends ViewBinding> implements LifecycleEventObserver {
+public class MultiDataViewDataManager implements LifecycleEventObserver {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final AtomicBoolean viewReady = new AtomicBoolean(false);
     private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Map<DataKey<?>, DataState<?>> dataStates = new ConcurrentHashMap<>();
-
-    private VB viewBinding;
     private Lifecycle lifecycle;
 
     /**
-     * 数据键接口，用于标识不同类型或同类型的不同数据
+     * 数据键，用于标识不同类型或同类型的不同数据
      *
      * @param <T> 数据类型
      */
-    public interface DataKey<T> {
-        /**
-         * 获取键的名称，用于调试和日志
-         *
-         * @return 键名称
-         */
-        default String getName(T key) {
-            return "";
-        }
+    public static class DataKey<T> {
+
     }
 
-    public class DataState<T> {
+    public static class DataState<T> {
         private T data;
-        private DataBindViewBinder<T, VB> binder;
+        private MutableLiveData<T> binder;
         private final AtomicBoolean dataReady = new AtomicBoolean(false);
         private final AtomicBoolean bound = new AtomicBoolean(false);
-    }
-
-    public interface DataBindViewBinder<T, VB> {
-        void bindWithViewBinding(@Nullable T data, @NonNull VB viewBinding);
     }
 
     /**
@@ -72,7 +58,7 @@ public class MultiDataViewDataManager<VB extends ViewBinding> implements Lifecyc
     /**
      * 设置指定key的绑定器
      */
-    public <T> void setBinder(DataKey<T> key, DataBindViewBinder<T, VB> binder) {
+    public <T> void setBinder(DataKey<T> key, MutableLiveData<T> binder) {
         lock.writeLock().lock();
         try {
             DataState<T> state = getDataState(key);
@@ -87,11 +73,10 @@ public class MultiDataViewDataManager<VB extends ViewBinding> implements Lifecyc
      * 设置ViewBinding
      */
     @SuppressWarnings("unchecked")
-    public void setViewBinding(VB viewBinding) {
+    public void setViewBinding() {
         if (isDestroyed.get()) return;
         lock.writeLock().lock();
         try {
-            this.viewBinding = viewBinding;
             viewReady.set(true);
             // 检查所有已注册的数据状态
             for (Map.Entry<DataKey<?>, DataState<?>> entry : dataStates.entrySet()) {
@@ -147,8 +132,8 @@ public class MultiDataViewDataManager<VB extends ViewBinding> implements Lifecyc
     private <T> void performBinding(DataState<T> state) {
         lock.readLock().lock();
         try {
-            if (viewBinding != null && state.binder != null) {
-                state.binder.bindWithViewBinding(state.data, viewBinding);
+            if (viewReady.get() && state.binder != null) {
+                state.binder.postValue(state.data);
             }
         } finally {
             lock.readLock().unlock();
@@ -158,7 +143,7 @@ public class MultiDataViewDataManager<VB extends ViewBinding> implements Lifecyc
     /**
      * 重置指定key的状态，用于重新绑定特定数据
      */
-    public void resetDataState(DataKey<?> key) {
+    public <T> void resetDataState(DataKey<T> key) {
         if (isDestroyed.get()) return;
         lock.writeLock().lock();
         try {
@@ -200,7 +185,6 @@ public class MultiDataViewDataManager<VB extends ViewBinding> implements Lifecyc
             }
             lifecycle = null;
             viewReady.set(false);
-            viewBinding = null;
         } finally {
             lock.writeLock().unlock();
         }
@@ -209,9 +193,17 @@ public class MultiDataViewDataManager<VB extends ViewBinding> implements Lifecyc
     /**
      * 检查指定key的数据是否已绑定完成
      */
-    public boolean isBindingCompleted(DataKey<?> key) {
+    public <T> boolean isBindingCompleted(DataKey<T> key) {
         DataState<?> state = dataStates.get(key);
         return state != null && state.bound.get();
+    }
+
+    /**
+     * 获取指定key的数据的观察者
+     */
+    public <T> MutableLiveData<T> getBinder(DataKey<T> key) {
+        DataState<?> state = dataStates.get(key);
+        return (MutableLiveData<T>) state.binder;
     }
 
     /**
@@ -241,7 +233,6 @@ public class MultiDataViewDataManager<VB extends ViewBinding> implements Lifecyc
                 }
                 isDestroyed.set(true);
                 dataStates.clear();
-                viewBinding = null;
                 lifecycle = null;
             } finally {
                 lock.writeLock().unlock();

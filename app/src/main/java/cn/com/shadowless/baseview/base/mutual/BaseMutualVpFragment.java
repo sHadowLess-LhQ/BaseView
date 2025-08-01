@@ -24,12 +24,12 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
     /**
      * 双向等待管理
      */
-    private MultiDataViewDataManager<VB> manager;
+    private MultiDataViewDataManager manager;
 
     @Override
     public void onResume() {
         if (isAsyncLoadView()) {
-            manager = new MultiDataViewDataManager<>();
+            manager = new MultiDataViewDataManager();
             manager.reset();
             manager.resetAllDataState();
             manager.bindLifecycle(this);
@@ -60,7 +60,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
                                 @Override
                                 public void animStart() {
                                     group.addView(view);
-                                    manager.setViewBinding(bind);
+                                    manager.setViewBinding();
                                 }
 
                                 @Override
@@ -70,7 +70,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
                             return;
                         }
                         group.addView(view);
-                        manager.setViewBinding(binding);
+                        manager.setViewBinding();
                     }
 
                     @Override
@@ -85,7 +85,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
     }
 
     @Nullable
-    protected MultiDataViewDataManager<VB> getBindManager() {
+    protected MultiDataViewDataManager getBindManager() {
         return manager;
     }
 }

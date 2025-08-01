@@ -136,7 +136,7 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
      */
     public abstract LD getMutable();
 
-    public MultiDataViewDataManager<VB> getViewDataManager() {
+    public MultiDataViewDataManager getViewDataManager() {
         return null;
     }
 }
