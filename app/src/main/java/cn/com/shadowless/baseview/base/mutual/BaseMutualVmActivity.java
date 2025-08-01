@@ -12,7 +12,6 @@ import androidx.viewbinding.ViewBinding;
 import cn.com.shadowless.baseview.base.view.BaseVmActivity;
 import cn.com.shadowless.baseview.base.widget.BaseMutualViewModel;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
-import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
@@ -49,7 +48,7 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                                         if (!(model instanceof BaseMutualViewModel)) {
                                             throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                                         }
-                                        model.getViewDataManager().setViewBinding(bind);
+                                        model.getViewDataManager().setViewBinding();
                                     }
                                 }
 
@@ -65,7 +64,7 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                             if (!(model instanceof BaseMutualViewModel)) {
                                 throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                             }
-                            model.getViewDataManager().setViewBinding(bind);
+                            model.getViewDataManager().setViewBinding();
                         }
                     }
 

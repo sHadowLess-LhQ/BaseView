@@ -13,18 +13,18 @@ import cn.com.shadowless.baseview.manager.MultiDataViewDataManager;
  */
 public abstract class BaseMutualViewModel<VB extends ViewBinding, LD extends BaseMutableLiveData> extends BaseViewModel<VB, LD> {
 
-    private MultiDataViewDataManager<VB> manager;
+    private MultiDataViewDataManager manager;
 
     @Override
     public void onModelCreated() {
-        manager = new MultiDataViewDataManager<>();
+        manager = new MultiDataViewDataManager();
         manager.reset();
         manager.resetAllDataState();
         manager.bindLifecycle(this);
     }
 
     @Override
-    public MultiDataViewDataManager<VB> getViewDataManager() {
+    public MultiDataViewDataManager getViewDataManager() {
         return manager;
     }
 }

@@ -24,16 +24,15 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
     /**
      * 双向等待管理
      */
-    private MultiDataViewDataManager<VB> manager;
+    private MultiDataViewDataManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (isAsyncLoadView()) {
-            manager = new MultiDataViewDataManager<>();
+            manager = new MultiDataViewDataManager();
             manager.reset();
             manager.resetAllDataState();
             manager.bindLifecycle(this);
-            return;
         }
         super.onCreate(savedInstanceState);
     }
@@ -60,7 +59,7 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
                                 @Override
                                 public void animStart() {
                                     setContentView(bind.getRoot());
-                                    manager.setViewBinding(bind);
+                                    manager.setViewBinding();
                                 }
 
                                 @Override
@@ -71,7 +70,7 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
                             return;
                         }
                         setContentView(bind.getRoot());
-                        manager.setViewBinding(bind);
+                        manager.setViewBinding();
                     }
 
                     @Override
@@ -86,7 +85,7 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
     }
 
     @Nullable
-    protected MultiDataViewDataManager<VB> getBindManager() {
+    protected MultiDataViewDataManager getBindManager() {
         return manager;
     }
 }
