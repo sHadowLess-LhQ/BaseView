@@ -3,15 +3,11 @@ package cn.com.shadowless.baseview.event;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
-import android.widget.TextView;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -194,7 +190,7 @@ public interface ViewPublicEvent {
          *
          * @return the async load view call back
          */
-        default AsyncLoadViewCallBack initSyncView() {
+        default AsyncLoadViewCallBack AsyncLoadView() {
             return null;
         }
 

@@ -12,6 +12,7 @@ import androidx.viewbinding.ViewBinding;
 
 import cn.com.shadowless.baseview.event.ViewModelEvent;
 import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
+import cn.com.shadowless.baseview.manager.MultiDataViewDataManager;
 
 /**
  * The type Base view model.
@@ -134,4 +135,8 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
      * @return the mutable
      */
     public abstract LD getMutable();
+
+    public MultiDataViewDataManager<VB> getViewDataManager() {
+        return null;
+    }
 }

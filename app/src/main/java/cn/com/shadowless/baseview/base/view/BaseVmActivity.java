@@ -29,17 +29,17 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
     /**
      * 视图绑定
      */
-    private VB bind = null;
+    protected VB bind = null;
 
     /**
      * The Call back.
      */
-    private AsyncLoadViewCallBack callBack;
+    protected AsyncLoadViewCallBack callBack;
 
     /**
      * 是否懒加载成功标识符
      */
-    private boolean isLazyInitSuccess = false;
+    protected boolean isLazyInitSuccess = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,12 +82,12 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
      */
     @Override
     public void asyncInitView(Bundle savedInstanceState) {
-        callBack = initSyncView();
+        callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(this);
-        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), null,
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseVmActivity.this), null,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -98,7 +98,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
                                 @Override
                                 public void animStart() {
-                                    setContentView(bind.getRoot());
+                                    setContentView(view);
                                 }
 
                                 @Override
@@ -108,7 +108,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                             });
                             return;
                         }
-                        setContentView(bind.getRoot());
+                        setContentView(view);
                         initEvent(savedInstanceState);
                     }
 

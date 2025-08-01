@@ -202,12 +202,12 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
     @Override
     public void asyncInitView(Bundle savedInstanceState) {
         ViewGroup group = (ViewGroup) requireView();
-        callBack = initSyncView();
+        callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(getAttachActivity());
-        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), group,
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseDialogFragment.this), group,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {

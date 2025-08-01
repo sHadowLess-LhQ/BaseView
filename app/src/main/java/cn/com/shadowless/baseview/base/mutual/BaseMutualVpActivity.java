@@ -7,81 +7,35 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewbinding.ViewBinding;
 
-import java.lang.reflect.InvocationTargetException;
-
-import cn.com.shadowless.baseview.event.ViewPublicEvent;
-import cn.com.shadowless.baseview.manager.ViewDataManager;
+import cn.com.shadowless.baseview.base.view.BaseVpActivity;
+import cn.com.shadowless.baseview.manager.MultiDataViewDataManager;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
- * 基类Activity
+ * 双向等待基类Activity
  *
  * @param <VB> the type 视图
  * @author sHadowLess
  */
-public abstract class BaseMutualVpActivity<T, VB extends ViewBinding> extends AppCompatActivity implements
-        ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitBindingEvent, ViewPublicEvent.InitViewClick {
-
-    /**
-     * 视图绑定
-     */
-    private VB bind = null;
-
-    /**
-     * The Call back.
-     */
-    private AsyncLoadViewCallBack callBack;
-
-    /**
-     * 是否懒加载成功标识符
-     */
-    private boolean isLazyInitSuccess = false;
+public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseVpActivity<VB> {
 
     /**
      * 双向等待管理
      */
-    private ViewDataManager<T, VB> manager;
+    private MultiDataViewDataManager<VB> manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        int customTheme = initTheme();
-        if (-1 != customTheme) {
-            setTheme(customTheme);
-        }
-        super.onCreate(savedInstanceState);
         if (isAsyncLoadView()) {
-            manager = new ViewDataManager<>();
+            manager = new MultiDataViewDataManager<>();
             manager.reset();
+            manager.resetAllDataState();
             manager.bindLifecycle(this);
-            asyncInitView(savedInstanceState);
             return;
         }
-        syncInitView(savedInstanceState);
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (null != bind) {
-            bind = null;
-        }
-        super.onDestroy();
-    }
-
-    /**
-     * 同步加载布局
-     */
-    @Override
-    public void syncInitView(Bundle savedInstanceState) {
-        try {
-            bind = inflateView(this, getLayoutInflater());
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
-        }
-        setContentView(bind.getRoot());
-        initEvent(savedInstanceState);
+        super.onCreate(savedInstanceState);
     }
 
     /**
@@ -89,12 +43,12 @@ public abstract class BaseMutualVpActivity<T, VB extends ViewBinding> extends Ap
      */
     @Override
     public void asyncInitView(Bundle savedInstanceState) {
-        callBack = initSyncView();
+        callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();
         }
         AsyncViewBindingInflate<VB> asyncViewBindingInflate = new AsyncViewBindingInflate<>(this);
-        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(this), null,
+        asyncViewBindingInflate.inflate(initViewBindingGenericsClass(BaseMutualVpActivity.this), null,
                 new AsyncViewBindingInflate.OnInflateFinishedListener<VB>() {
                     @Override
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
@@ -131,48 +85,8 @@ public abstract class BaseMutualVpActivity<T, VB extends ViewBinding> extends Ap
         initEvent(savedInstanceState);
     }
 
-    @Override
-    public void initEvent(Bundle savedInstanceState) {
-        initObject(savedInstanceState);
-        initView();
-        initViewListener();
-        initPermissionAndInitData(this);
-        isLazyInitSuccess = true;
-    }
-
-    /**
-     * 获取绑定的视图
-     *
-     * @return the 视图
-     */
-    @Override
-    public VB getBindView() {
-        return bind;
-    }
-
-    /**
-     * 获取懒加载状态
-     *
-     * @return the boolean
-     */
-    @Override
-    public boolean isLazyInitSuccess() {
-        return isLazyInitSuccess;
-    }
-
-    /**
-     * 初始化主题
-     *
-     * @return the int
-     */
-    protected int initTheme() {
-        return -1;
-    }
-
-    protected ViewDataManager<T, VB> getBindManager() {
-        if (!isAsyncLoadView()) {
-            throw new RuntimeException("请在异步加载视图模式下使用");
-        }
+    @Nullable
+    protected MultiDataViewDataManager<VB> getBindManager() {
         return manager;
     }
 }
