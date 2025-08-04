@@ -24,22 +24,15 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     private Lifecycle lifecycle;
 
     /**
-     * 数据键接口，用于标识不同类型或同类型的不同数据
+     * 数据键，用于标识不同类型或同类型的不同数据
      *
      * @param <T> 数据类型
      */
-    public interface DataKey<T> {
-        /**
-         * 获取键的名称，用于调试和日志
-         *
-         * @return 键名称
-         */
-        default String getName(T key) {
-            return "";
-        }
+    public static class DataKey<T> {
+
     }
 
-    public class DataState<T> {
+    public static class DataState<T> {
         private T data;
         private DataBindViewBinder<T> binder;
         private final AtomicBoolean dataReady = new AtomicBoolean(false);
@@ -47,7 +40,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     }
 
     public interface DataBindViewBinder<T> {
-        void bindWithViewBinding(@Nullable T data);
+        void bindEvent(@Nullable T data);
     }
 
     /**
@@ -144,7 +137,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         lock.readLock().lock();
         try {
             if (viewReady.get() && state.binder != null) {
-                state.binder.bindWithViewBinding(state.data);
+                state.binder.bindEvent(state.data);
             }
         } finally {
             lock.readLock().unlock();
