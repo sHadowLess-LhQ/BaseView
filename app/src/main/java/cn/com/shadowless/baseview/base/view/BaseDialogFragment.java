@@ -111,7 +111,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                                 break;
                             case LAZY_VIEW_AND_DATA:
                                 //是否异步加载
-                                if (isAsyncLoadView()) {
+                                if (isAsyncLoad()) {
                                     asyncInitView(savedInstanceState);
                                     return;
                                 }

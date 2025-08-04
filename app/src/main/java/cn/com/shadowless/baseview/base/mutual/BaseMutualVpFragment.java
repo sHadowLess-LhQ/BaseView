@@ -28,7 +28,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
 
     @Override
     public void onResume() {
-        if (isAsyncLoadView()) {
+        if (isAsyncLoad()) {
             manager = new MultiDataViewDataManager();
             manager.reset();
             manager.resetAllDataState();

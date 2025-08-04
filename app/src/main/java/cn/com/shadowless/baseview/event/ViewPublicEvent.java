@@ -199,7 +199,7 @@ public interface ViewPublicEvent {
          *
          * @return the boolean
          */
-        default boolean isAsyncLoadView() {
+        default boolean isAsyncLoad() {
             return false;
         }
 
@@ -279,16 +279,14 @@ public interface ViewPublicEvent {
          * @param <VM>     the type parameter
          * @param activity the activity
          * @param cls      the cls
-         * @param vb       the vb
          * @return the vm
          */
-        default <VM extends ViewModel> VM createActivityViewModel(FragmentActivity activity, Class<VM> cls, VB vb) {
+        default <VM extends ViewModel> VM createActivityViewModel(FragmentActivity activity, Class<VM> cls) {
             BaseViewModel<VB, ?> viewModel = (BaseViewModel<VB, ?>) new ViewModelProvider(activity, new ViewModelProvider.NewInstanceFactory()).get(cls);
             viewModel.setOwner(activity);
             viewModel.setActivity(activity);
-            viewModel.setBindView(vb);
             viewModel.onModelCreated();
-            viewModel.onModelInitDataListener();
+            viewModel.onModelInitListener();
             return (VM) viewModel;
         }
 
@@ -298,16 +296,14 @@ public interface ViewPublicEvent {
          * @param <VM>     the type parameter
          * @param fragment the fragment
          * @param cls      the cls
-         * @param vb       the vb
          * @return the vm
          */
-        default <VM extends ViewModel> VM createFragmentViewModel(Fragment fragment, Class<VM> cls, VB vb) {
+        default <VM extends ViewModel> VM createFragmentViewModel(Fragment fragment, Class<VM> cls) {
             BaseViewModel<VB, ?> viewModel = (BaseViewModel<VB, ?>) new ViewModelProvider(fragment, new ViewModelProvider.NewInstanceFactory()).get(cls);
             viewModel.setOwner(fragment);
             viewModel.setFragment(fragment);
-            viewModel.setBindView(vb);
             viewModel.onModelCreated();
-            viewModel.onModelInitDataListener();
+            viewModel.onModelInitListener();
             return (VM) viewModel;
         }
     }

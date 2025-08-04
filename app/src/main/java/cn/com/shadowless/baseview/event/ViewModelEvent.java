@@ -13,9 +13,14 @@ public interface ViewModelEvent {
     void onModelCreated();
 
     /**
+     * Init view.
+     */
+    void onModelInitView();
+
+    /**
      * On model init data.
      */
-    void onModelInitDataListener();
+    void onModelInitListener();
 
     /**
      * On model init data.

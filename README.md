@@ -187,7 +187,7 @@ c、混淆规则
           }
       
           @Override
-          public boolean isAsyncLoadView() {
+          public boolean isAsyncLoad() {
               //是否异步加载视图
               return false;
           }
@@ -311,7 +311,7 @@ c、混淆规则
           }
       
           @Override
-          public boolean isAsyncLoadView() {
+          public boolean isAsyncLoad() {
               //是否异步加载视图
               return false;
           }
@@ -364,7 +364,7 @@ c、混淆规则
               //如果使用的ViewModel是继承自BaseViewModel
               //必须通过createActivityViewModel方法实例化
               //或者按照createActivityViewModel方法的流程，手动赋值
-              viewModel = createActivityViewModel(this, TestViewModel.class, getBindView());
+              viewModel = createActivityViewModel(this, TestViewModel.class);
           }
           
           @NonNull
@@ -426,7 +426,7 @@ c、混淆规则
           }
       
           @Override
-          public boolean isAsyncLoadView() {
+          public boolean isAsyncLoad() {
               //是否异步加载视图
               return false;
           }
@@ -497,7 +497,7 @@ c、混淆规则
              //如果使用的ViewModel是继承自BaseViewModel
              //必须通过createFragmentViewModel方法实例化
              //或者按照createFragmentViewModel方法的流程，手动赋值
-             viewModel = createFragmentViewModel(this, TestViewModel.class, getBindView());
+             viewModel = createFragmentViewModel(this, TestViewModel.class);
           }
           
           @NonNull
@@ -559,7 +559,7 @@ c、混淆规则
           }
       
           @Override
-          public boolean isAsyncLoadView() {
+          public boolean isAsyncLoad() {
               //是否异步加载视图
               return false;
           }
@@ -571,7 +571,7 @@ c、混淆规则
 ```
       //支持双向等待机制的基类
       //涵盖以上所有Activity和Fragment
-      //机制只有在isAsyncLoadView()为true的异步布局加载情况下生效
+      //机制只有在isAsyncLoad()为true的异步布局加载情况下生效
       //同步没必要双向等待
       //剩余功能完全一致
       //以MutualVpActivity为简单使用的例子
@@ -798,12 +798,13 @@ c、混淆规则
       }
 ```
 
-### BaseViewModel
+### BaseViewModel/BaseMutualViewModel
 
 ```
      //ViewModel基类
+     //后者为使用双向等待基类所需使用的配套ViewModel，使用方式无异
      //已实现LifecycleEventObserver、LifecycleOwner接口
-     //支持监听和生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
+     //已支持监听和生命周期事件
      //可搭配presenter使用，进行数据获取解耦，model内只处理业务数据逻辑和页面数据绑定
      public class TestViewModel extends BaseViewModel<ActivityMain2Binding, TestMutable> {
 
@@ -823,7 +824,15 @@ c、混淆规则
           }
           
           @Override
-          public void onModelInitDataListener() {
+          public void onModelInitView() {
+              //视图准备完成
+              //初始化视图
+          }
+          
+          @Override
+          public void onModelInitListener() {
+              //初始化数据监听
+              //若是双向等待，这里可以设置双向监听
               presenter.getMutable().getTestInteger().observe(observeLifecycle(), integer -> getBindView().test.setText(integer + ""));
           }
           

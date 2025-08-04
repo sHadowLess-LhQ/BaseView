@@ -46,7 +46,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
-        if (isAsyncLoadView()) {
+        if (isAsyncLoad()) {
             asyncInitView(savedInstanceState);
             return;
         }

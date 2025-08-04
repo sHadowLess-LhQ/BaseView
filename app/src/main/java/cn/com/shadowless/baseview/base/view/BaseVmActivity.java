@@ -48,7 +48,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
-        if (isAsyncLoadView()) {
+        if (isAsyncLoad()) {
             asyncInitView(savedInstanceState);
             return;
         }
@@ -73,6 +73,10 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
+        for (BaseViewModel<VB, ?> model : setViewModels()) {
+            model.setBindView(bind);
+            model.onModelInitView();
+        }
         setContentView(bind.getRoot());
         initEvent(savedInstanceState);
     }
@@ -93,6 +97,10 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
                         bind = binding;
                         View view = bind.getRoot();
+                        for (BaseViewModel<VB, ?> model : setViewModels()) {
+                            model.setBindView(bind);
+                            model.onModelInitView();
+                        }
                         if (callBack != null) {
                             callBack.dismissLoadView();
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
@@ -154,7 +162,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
     @Override
     public void initModelObserve() {
         initModelListener();
-        for (BaseViewModel<?, ?> model : setViewModels()) {
+        for (BaseViewModel<VB, ?> model : setViewModels()) {
             model.onModelInitData();
         }
     }

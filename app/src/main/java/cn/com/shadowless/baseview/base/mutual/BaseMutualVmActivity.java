@@ -38,6 +38,10 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
                         bind = binding;
                         View view = bind.getRoot();
+                        for (BaseViewModel<VB, ?> model : setViewModels()) {
+                            model.setBindView(bind);
+                            model.onModelInitView();
+                        }
                         if (callBack != null) {
                             callBack.dismissLoadView();
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {

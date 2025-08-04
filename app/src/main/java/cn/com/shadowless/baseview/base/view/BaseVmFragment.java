@@ -113,7 +113,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                                 break;
                             case LAZY_VIEW_AND_DATA:
                                 //是否异步加载
-                                if (isAsyncLoadView()) {
+                                if (isAsyncLoad()) {
                                     asyncInitView(savedInstanceState);
                                     return;
                                 }
@@ -165,6 +165,10 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
+        for (BaseViewModel<VB, ?> model : setViewModels()) {
+            model.setBindView(bind);
+            model.onModelInitView();
+        }
         return bind.getRoot();
     }
 
@@ -196,6 +200,10 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
                         bind = binding;
                         View view = bind.getRoot();
+                        for (BaseViewModel<VB, ?> model : setViewModels()) {
+                            model.setBindView(bind);
+                            model.onModelInitView();
+                        }
                         if (callBack != null) {
                             callBack.dismissLoadView();
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
