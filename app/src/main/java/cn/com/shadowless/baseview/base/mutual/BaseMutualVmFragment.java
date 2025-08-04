@@ -26,7 +26,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
      * 异步加载布局
      */
     @Override
-    public void asyncInitView(Bundle savedInstanceState) {
+    public final void asyncInitView(Bundle savedInstanceState) {
         ViewGroup group = (ViewGroup) requireView();
         callBack = AsyncLoadView();
         if (callBack != null) {

@@ -24,7 +24,7 @@ public abstract class BaseMutualViewModel<VB extends ViewBinding, LD extends Bas
     }
 
     @Override
-    public MultiDataViewDataManager getViewDataManager() {
+    public final MultiDataViewDataManager getViewDataManager() {
         return manager;
     }
 }

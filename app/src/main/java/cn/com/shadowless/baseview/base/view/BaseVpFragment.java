@@ -80,7 +80,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public final View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.savedInstanceState = savedInstanceState;
         LoadMode mode = getLoadMode();
         switch (mode) {
@@ -147,7 +147,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
      * @return the bind activity
      */
     @Override
-    public Activity getAttachActivity() {
+    public final Activity getAttachActivity() {
         return mActivity;
     }
 
@@ -224,7 +224,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
     }
 
     @Override
-    public void initEvent(Bundle savedInstanceState) {
+    public final void initEvent(Bundle savedInstanceState) {
         initObject(savedInstanceState);
         initView();
         initViewListener();
@@ -238,7 +238,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
      * @return the bind
      */
     @Override
-    public VB getBindView() {
+    public final VB getBindView() {
         return bind;
     }
 
@@ -248,7 +248,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
      * @return the boolean
      */
     @Override
-    public boolean isLazyInitSuccess() {
+    public final boolean isLazyInitSuccess() {
         return isLazyInitSuccess;
     }
 }

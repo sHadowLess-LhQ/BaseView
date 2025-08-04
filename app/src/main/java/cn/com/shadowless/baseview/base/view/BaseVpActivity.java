@@ -121,7 +121,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     }
 
     @Override
-    public void initEvent(Bundle savedInstanceState) {
+    public final void initEvent(Bundle savedInstanceState) {
         initObject(savedInstanceState);
         initView();
         initViewListener();
@@ -135,7 +135,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
      * @return the 视图
      */
     @Override
-    public VB getBindView() {
+    public final VB getBindView() {
         return bind;
     }
 
@@ -145,7 +145,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
      * @return the boolean
      */
     @Override
-    public boolean isLazyInitSuccess() {
+    public final boolean isLazyInitSuccess() {
         return isLazyInitSuccess;
     }
 

@@ -33,6 +33,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     }
 
     public static class DataState<T> {
+        private DataKey<T> key;
         private T data;
         private DataBindViewBinder<T> binder;
         private final AtomicBoolean dataReady = new AtomicBoolean(false);
@@ -40,7 +41,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     }
 
     public interface DataBindViewBinder<T> {
-        void bindEvent(@Nullable T data);
+        void bindEvent(@NonNull DataKey<T> key, @Nullable T data);
     }
 
     /**
@@ -52,6 +53,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         try {
             DataState<T> state = getDataState(key);
             state.data = data;
+            state.key = key;
             state.dataReady.set(true);
             checkAndBind(state);
         } finally {
@@ -66,6 +68,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         lock.writeLock().lock();
         try {
             DataState<T> state = getDataState(key);
+            state.key = key;
             state.binder = binder;
             checkAndBind(state);
         } finally {
@@ -137,7 +140,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         lock.readLock().lock();
         try {
             if (viewReady.get() && state.binder != null) {
-                state.binder.bindEvent(state.data);
+                state.binder.bindEvent(state.key, state.data);
             }
         } finally {
             lock.readLock().unlock();

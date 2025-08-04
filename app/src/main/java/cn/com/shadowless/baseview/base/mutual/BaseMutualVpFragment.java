@@ -41,7 +41,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
      * 异步加载布局
      */
     @Override
-    public void asyncInitView(Bundle savedInstanceState) {
+    public final void asyncInitView(Bundle savedInstanceState) {
         ViewGroup group = (ViewGroup) requireView();
         callBack = AsyncLoadView();
         if (callBack != null) {
@@ -85,7 +85,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
     }
 
     @Nullable
-    protected MultiDataViewDataManager getBindManager() {
+    protected final MultiDataViewDataManager getBindManager() {
         return manager;
     }
 }

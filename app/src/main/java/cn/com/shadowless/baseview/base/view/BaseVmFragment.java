@@ -82,7 +82,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public final View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.savedInstanceState = savedInstanceState;
         LoadMode mode = getLoadMode();
         switch (mode) {
@@ -149,7 +149,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
      * @return the bind activity
      */
     @Override
-    public Activity getAttachActivity() {
+    public final Activity getAttachActivity() {
         return mActivity;
     }
 
@@ -234,7 +234,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     }
 
     @Override
-    public void initEvent(Bundle savedInstanceState) {
+    public final void initEvent(Bundle savedInstanceState) {
         initObject(savedInstanceState);
         initView();
         initViewListener();
@@ -249,7 +249,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
      */
     @NonNull
     @Override
-    public VB getBindView() {
+    public final VB getBindView() {
         return bind;
     }
 
@@ -259,12 +259,12 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
      * @return the boolean
      */
     @Override
-    public boolean isLazyInitSuccess() {
+    public final boolean isLazyInitSuccess() {
         return isLazyInitSuccess;
     }
 
     @Override
-    public void initModelObserve() {
+    public final void initModelObserve() {
         initModelListener();
         for (BaseViewModel<?, ?> model : setViewModels()) {
             model.onModelInitData();

@@ -26,7 +26,7 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
      * 异步加载布局
      */
     @Override
-    public void asyncInitView(Bundle savedInstanceState) {
+    public final void asyncInitView(Bundle savedInstanceState) {
         callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();

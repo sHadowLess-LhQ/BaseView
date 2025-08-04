@@ -80,7 +80,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public final View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         this.savedInstanceState = savedInstanceState;
         LoadMode mode = getLoadMode();
         switch (mode) {
@@ -100,7 +100,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
         super.onResume();
         LoadMode mode = getLoadMode();
         if (mode != LoadMode.DEFAULT && this.isAdded()) {
-            mainHandler.postDelayed(() -> {
+            requireView().post(() -> {
                 if (this.isAdded()) {
                     //防止多次加载标志位
                     if (!isLazyInit) {
@@ -122,7 +122,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                         }
                     }
                 }
-            }, 10);
+            });
         }
     }
 
@@ -146,7 +146,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      * @return the bind
      */
     @Override
-    public VB getBindView() {
+    public final VB getBindView() {
         return bind;
     }
 
@@ -156,7 +156,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      * @return the bind activity
      */
     @Override
-    public Activity getAttachActivity() {
+    public final Activity getAttachActivity() {
         return mActivity;
     }
 
@@ -166,7 +166,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      * @return the boolean
      */
     @Override
-    public boolean isLazyInitSuccess() {
+    public final boolean isLazyInitSuccess() {
         return isLazyInitSuccess;
     }
 
@@ -246,7 +246,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      * Init.
      */
     @Override
-    public void initEvent(Bundle savedInstanceState) {
+    public final void initEvent(Bundle savedInstanceState) {
         initObject(savedInstanceState);
         initView();
         initViewListener();
