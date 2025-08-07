@@ -59,6 +59,9 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
                                 @Override
                                 public void animStart() {
                                     setContentView(bind.getRoot());
+                                    initView();
+                                    initViewListener();
+                                    isLazyInitSuccess = true;
                                     manager.setViewBinding();
                                 }
 
@@ -70,6 +73,9 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
                             return;
                         }
                         setContentView(bind.getRoot());
+                        initView();
+                        initViewListener();
+                        isLazyInitSuccess = true;
                         manager.setViewBinding();
                     }
 
@@ -81,7 +87,8 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
                         throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
-        initEvent(savedInstanceState);
+        initObject(savedInstanceState);
+        initPermissionAndInitData(this);
     }
 
     @Nullable

@@ -48,6 +48,9 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                                 @Override
                                 public void animStart() {
                                     setContentView(bind.getRoot());
+                                    initView();
+                                    initViewListener();
+                                    isLazyInitSuccess = true;
                                     for (BaseViewModel<VB, ?> model : setViewModels()) {
                                         if (!(model instanceof BaseMutualViewModel)) {
                                             throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
@@ -64,6 +67,9 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                             return;
                         }
                         setContentView(bind.getRoot());
+                        initView();
+                        initViewListener();
+                        isLazyInitSuccess = true;
                         for (BaseViewModel<VB, ?> model : setViewModels()) {
                             if (!(model instanceof BaseMutualViewModel)) {
                                 throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
@@ -80,6 +86,7 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                         throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
-        initEvent(savedInstanceState);
+        initObject(savedInstanceState);
+        initPermissionAndInitData(this);
     }
 }
