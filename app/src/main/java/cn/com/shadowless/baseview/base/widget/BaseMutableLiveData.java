@@ -51,7 +51,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
         this.lifecycleOwner.getLifecycle().addObserver(this);
         mutableLiveDataList = new ArrayList<>();
         if (isReflectSet) {
-            getAllFields(this.getClass(), this);
+            getAllFields(this.getClass(), BaseMutableLiveData.this);
         }
     }
 

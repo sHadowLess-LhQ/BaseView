@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param <T> the type parameter
  * @author sHadowLess
  */
-public class SingleMutableLiveData<T> extends MutableLiveData<T> {
+public class SingleLiveData<T> extends MutableLiveData<T> {
 
     /**
      * The Pending.
@@ -28,6 +28,15 @@ public class SingleMutableLiveData<T> extends MutableLiveData<T> {
     @Override
     public void observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer) {
         super.observe(owner, value -> {
+            if (pending.compareAndSet(true, false)) {
+                observer.onChanged(value);
+            }
+        });
+    }
+
+    @Override
+    public void observeForever(@NonNull Observer<? super T> observer) {
+        super.observeForever(value -> {
             if (pending.compareAndSet(true, false)) {
                 observer.onChanged(value);
             }
