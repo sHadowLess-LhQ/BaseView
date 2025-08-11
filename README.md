@@ -62,10 +62,12 @@ b、远程仓库引入
 [![](https://jitpack.io/v/sHadowLess-LhQ/BaseView.svg)](https://jitpack.io/#sHadowLess-LhQ/BaseView)
 
 ```
+    //gradle.properties
+    //没有声明转移至androidX，需要声明，否则报错
+    android.enableJetifier=true
+
     dependencies {
-        implementation('com.github.sHadowLess-LhQ:BaseView:Tag') {
-             exclude group: 'com.android.support'
-        }
+        implementation 'com.github.sHadowLess-LhQ:BaseView:Tag'
         implementation 'com.github.getActivity:XXPermissions:26'
     }
 ```
