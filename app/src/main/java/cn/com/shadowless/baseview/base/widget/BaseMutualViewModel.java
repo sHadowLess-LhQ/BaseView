@@ -17,7 +17,9 @@ public abstract class BaseMutualViewModel<VB extends ViewBinding, LD extends Bas
 
     @Override
     public void onModelCreated() {
-        manager = new MultiDataViewDataManager();
+        if (manager == null) {
+            manager = new MultiDataViewDataManager();
+        }
         manager.reset();
         manager.resetAllDataState();
         manager.bindLifecycle(this);

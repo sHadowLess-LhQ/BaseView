@@ -29,9 +29,9 @@ public abstract class BaseMutualVpActivity<VB extends ViewBinding> extends BaseV
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (isAsyncLoad()) {
+            manager = null;
             manager = new MultiDataViewDataManager();
             manager.reset();
-            manager.resetAllDataState();
             manager.bindLifecycle(this);
         }
         super.onCreate(savedInstanceState);
