@@ -151,7 +151,6 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
      * 重置指定key的状态，用于重新绑定特定数据
      */
     public <T> void resetDataState(DataKey<T> key) {
-        if (isDestroyed.get()) return;
         lock.writeLock().lock();
         try {
             DataState<?> state = dataStates.get(key);
@@ -168,7 +167,6 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
      * 重置所有状态
      */
     public void resetAllDataState() {
-        if (isDestroyed.get()) return;
         lock.writeLock().lock();
         try {
             for (DataState<?> state : dataStates.values()) {
@@ -184,9 +182,9 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
      * 重置状态，用于重新绑定
      */
     public void reset() {
-        if (isDestroyed.get()) return;
         lock.writeLock().lock();
         try {
+            isDestroyed.set(false);
             if (lifecycle != null) {
                 lifecycle.removeObserver(this);
             }
