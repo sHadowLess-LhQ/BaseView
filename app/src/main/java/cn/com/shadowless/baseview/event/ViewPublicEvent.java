@@ -505,6 +505,7 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(activity, permissions)) {
+                initDataByPermission();
                 return;
             }
             XXPermissions.with(activity).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
@@ -549,6 +550,7 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(fragment.requireContext(), permissions)) {
+                initDataByPermission();
                 return;
             }
             XXPermissions.with(fragment).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
@@ -644,6 +646,7 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(activity, permissions)) {
+                initModelDataByPermission();
                 return;
             }
             XXPermissions.with(activity).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
@@ -688,6 +691,7 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(fragment.requireContext(), permissions)) {
+                initModelDataByPermission();
                 return;
             }
             XXPermissions.with(fragment).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
