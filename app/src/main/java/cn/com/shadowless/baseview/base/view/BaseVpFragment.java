@@ -228,6 +228,7 @@ public abstract class BaseVpFragment<VB extends ViewBinding> extends Fragment im
         initObject(savedInstanceState);
         initView();
         initViewListener();
+        initDataListener();
         initPermissionAndInitData(this);
         isLazyInitSuccess = true;
     }

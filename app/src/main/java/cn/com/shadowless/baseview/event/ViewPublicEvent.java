@@ -18,14 +18,15 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewbinding.ViewBinding;
 
-import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.OnPermissionInterceptor;
 import com.hjq.permissions.XXPermissions;
+import com.hjq.permissions.permission.base.IPermission;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 import cn.com.shadowless.baseview.BaseCons;
@@ -91,6 +92,84 @@ public interface ViewPublicEvent {
              * All lazy lazy mode.
              */
             LAZY_VIEW_AND_DATA
+        }
+    }
+
+    interface InitBindingPublicEvent {
+        /**
+         * 需要申请的权限
+         *
+         * @return the 权限组
+         */
+        @Nullable
+        default List<IPermission> permissions() {
+            return null;
+        }
+
+        /**
+         * 初始化对象
+         *
+         * @param savedInstanceState the saved instance state
+         */
+        void initObject(Bundle savedInstanceState);
+
+        /**
+         * 给视图绑定数据
+         */
+        void initView();
+
+        /**
+         * 初始化视图监听
+         */
+        void initViewListener();
+
+        /**
+         * 强制数据获取执行所需权限
+         */
+        default List<IPermission> isForcePermissionToInitData() {
+            return null;
+        }
+
+        /**
+         * 获取永久拒绝权限
+         */
+        default List<IPermission> getDoNotAskAgainPermission(Activity activity, List<IPermission> deniedList) {
+            List<IPermission> doNotAskAgainList = new ArrayList<>();
+            for (IPermission permission : deniedList) {
+                if (permission.isDoNotAskAgainPermission(activity)) {
+                    doNotAskAgainList.add(permission);
+                }
+            }
+            return doNotAskAgainList;
+        }
+
+        /**
+         * 判断强制执行initData所需权限是否涵盖
+         */
+        default boolean isAllCoverForcePermission(List<IPermission> grantedList) {
+            boolean isAllCover = true;
+            List<IPermission> temp = isForcePermissionToInitData();
+            if (temp != null && !temp.isEmpty()) {
+                for (IPermission permission : temp) {
+                    if (!XXPermissions.containsPermission(grantedList, permission)) {
+                        isAllCover = false;
+                        break;
+                    }
+                }
+            }
+            return isAllCover;
+        }
+
+        interface OnPermissionResult {
+
+            /**
+             * 权限请求结果回调
+             *
+             * @param grantedList       授予权限列表
+             * @param deniedList        拒绝权限列表
+             * @param doNotAskAgainList 永久拒绝权限列表
+             */
+            void onResult(@NonNull List<IPermission> grantedList, @NonNull List<IPermission> deniedList, @NonNull List<IPermission> doNotAskAgainList);
         }
     }
 
@@ -348,34 +427,7 @@ public interface ViewPublicEvent {
     /**
      * The interface Init event.
      */
-    interface InitBindingEvent {
-
-        /**
-         * 需要申请的权限
-         *
-         * @return the 权限组
-         */
-        @Nullable
-        default String[] permissions() {
-            return null;
-        }
-
-        /**
-         * 初始化对象
-         *
-         * @param savedInstanceState the saved instance state
-         */
-        void initObject(Bundle savedInstanceState);
-
-        /**
-         * 给视图绑定数据
-         */
-        void initView();
-
-        /**
-         * 初始化视图监听
-         */
-        void initViewListener();
+    interface InitBindingEvent extends InitBindingPublicEvent {
 
         /**
          * Bind data to view.
@@ -393,10 +445,9 @@ public interface ViewPublicEvent {
          * @param activity the activity
          */
         default void initPermissionAndInitData(FragmentActivity activity) {
-            String[] permissions = permissions();
-            boolean hasPermission = null != permissions && permissions.length != 0;
+            List<IPermission> permissions = permissions();
+            boolean hasPermission = null != permissions && permissions.size() != 0;
             if (!hasPermission) {
-                initDataListener();
                 initData();
                 return;
             }
@@ -409,10 +460,9 @@ public interface ViewPublicEvent {
          * @param fragment the fragment
          */
         default void initPermissionAndInitData(Fragment fragment) {
-            String[] permissions = permissions();
-            boolean hasPermission = null != permissions && permissions.length != 0;
+            List<IPermission> permissions = permissions();
+            boolean hasPermission = null != permissions && permissions.size() != 0;
             if (!hasPermission) {
-                initDataListener();
                 initData();
                 return;
             }
@@ -425,7 +475,7 @@ public interface ViewPublicEvent {
          * @param activity    the activity
          * @param permissions the permissions
          */
-        default void dealPermission(FragmentActivity activity, String[] permissions) {
+        default void dealPermission(FragmentActivity activity, List<IPermission> permissions) {
             dealPermission(activity, permissions, null, null);
         }
 
@@ -436,7 +486,7 @@ public interface ViewPublicEvent {
          * @param permissions the permissions
          * @param interceptor the interceptor
          */
-        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor) {
+        default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor) {
             dealPermission(activity, permissions, interceptor, null);
         }
 
@@ -448,31 +498,23 @@ public interface ViewPublicEvent {
          * @param interceptor the interceptor
          * @param callBack    the call back
          */
-        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-            if (XXPermissions.isGranted(activity, permissions)) {
-                initDataListener();
+        default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+            if (XXPermissions.isGrantedPermissions(activity, permissions)) {
                 initData();
                 return;
             }
-            XXPermissions.with(activity).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
-
-                @Override
-                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
-                    initDataListener();
+            List<IPermission> needCheck = isForcePermissionToInitData();
+            if (needCheck == null || needCheck.isEmpty()) {
+                initData();
+            }
+            XXPermissions.with(activity).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
+                if (isAllCoverForcePermission(grantedList)) {
                     initData();
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onGranted(permissions, allGranted);
                 }
-
-                @Override
-                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onDenied(permissions, doNotAskAgain);
+                if (callBack == null) {
+                    return;
                 }
+                callBack.onResult(grantedList, deniedList, getDoNotAskAgainPermission(activity, deniedList));
             });
         }
 
@@ -482,7 +524,7 @@ public interface ViewPublicEvent {
          * @param fragment    the fragment
          * @param permissions the permissions
          */
-        default void dealPermission(Fragment fragment, String[] permissions) {
+        default void dealPermission(Fragment fragment, List<IPermission> permissions) {
             dealPermission(fragment, permissions, null, null);
         }
 
@@ -493,7 +535,7 @@ public interface ViewPublicEvent {
          * @param permissions the permissions
          * @param interceptor the interceptor
          */
-        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor) {
+        default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor) {
             dealPermission(fragment, permissions, interceptor, null);
         }
 
@@ -505,31 +547,23 @@ public interface ViewPublicEvent {
          * @param interceptor the interceptor
          * @param callBack    the call back
          */
-        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-            if (XXPermissions.isGranted(fragment.requireContext(), permissions)) {
-                initDataListener();
+        default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+            if (XXPermissions.isGrantedPermissions(fragment.requireContext(), permissions)) {
                 initData();
                 return;
             }
-            XXPermissions.with(fragment).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
-
-                @Override
-                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
-                    initDataListener();
+            List<IPermission> needCheck = isForcePermissionToInitData();
+            if (needCheck == null || needCheck.isEmpty()) {
+                initData();
+            }
+            XXPermissions.with(fragment).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
+                if (isAllCoverForcePermission(grantedList)) {
                     initData();
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onGranted(permissions, allGranted);
                 }
-
-                @Override
-                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onDenied(permissions, doNotAskAgain);
+                if (callBack == null) {
+                    return;
                 }
+                callBack.onResult(grantedList, deniedList, getDoNotAskAgainPermission(fragment.requireActivity(), deniedList));
             });
         }
     }
@@ -537,31 +571,7 @@ public interface ViewPublicEvent {
     /**
      * The interface Init event.
      */
-    interface InitModelEvent {
-
-        /**
-         * 需要申请的权限
-         *
-         * @return the 权限组
-         */
-        default String[] permissions() {
-            return null;
-        }
-
-        /**
-         * 初始化对象
-         */
-        void initObject(Bundle savedInstanceState);
-
-        /**
-         * 给视图绑定数据
-         */
-        void initView();
-
-        /**
-         * 初始化视图监听
-         */
-        void initViewListener();
+    interface InitModelEvent extends InitBindingPublicEvent {
 
         /**
          * Init model observe.
@@ -579,8 +589,8 @@ public interface ViewPublicEvent {
          * @param activity the activity
          */
         default void initPermissionAndInitData(FragmentActivity activity) {
-            String[] permissions = permissions();
-            boolean hasPermission = null != permissions && permissions.length != 0;
+            List<IPermission> permissions = permissions();
+            boolean hasPermission = null != permissions && !permissions.isEmpty();
             if (!hasPermission) {
                 initModelObserve();
                 return;
@@ -594,8 +604,8 @@ public interface ViewPublicEvent {
          * @param fragment the fragment
          */
         default void initPermissionAndInitData(Fragment fragment) {
-            String[] permissions = permissions();
-            boolean hasPermission = null != permissions && permissions.length != 0;
+            List<IPermission> permissions = permissions();
+            boolean hasPermission = null != permissions && !permissions.isEmpty();
             if (!hasPermission) {
                 initModelObserve();
                 return;
@@ -609,7 +619,7 @@ public interface ViewPublicEvent {
          * @param activity    the activity
          * @param permissions the permissions
          */
-        default void dealPermission(FragmentActivity activity, String[] permissions) {
+        default void dealPermission(FragmentActivity activity, List<IPermission> permissions) {
             dealPermission(activity, permissions, null, null);
         }
 
@@ -620,7 +630,7 @@ public interface ViewPublicEvent {
          * @param permissions the permissions
          * @param interceptor the interceptor
          */
-        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor) {
+        default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor) {
             dealPermission(activity, permissions, interceptor, null);
         }
 
@@ -632,29 +642,23 @@ public interface ViewPublicEvent {
          * @param interceptor the interceptor
          * @param callBack    the call back
          */
-        default void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-            if (XXPermissions.isGranted(activity, permissions)) {
+        default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+            if (XXPermissions.isGrantedPermissions(activity, permissions)) {
                 initModelObserve();
                 return;
             }
-            XXPermissions.with(activity).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
-
-                @Override
-                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
+            List<IPermission> needCheck = isForcePermissionToInitData();
+            if (needCheck == null || needCheck.isEmpty()) {
+                initModelObserve();
+            }
+            XXPermissions.with(activity).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
+                if (isAllCoverForcePermission(grantedList)) {
                     initModelObserve();
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onGranted(permissions, allGranted);
                 }
-
-                @Override
-                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onDenied(permissions, doNotAskAgain);
+                if (callBack == null) {
+                    return;
                 }
+                callBack.onResult(grantedList, deniedList, getDoNotAskAgainPermission(activity, deniedList));
             });
         }
 
@@ -664,7 +668,7 @@ public interface ViewPublicEvent {
          * @param fragment    the fragment
          * @param permissions the permissions
          */
-        default void dealPermission(Fragment fragment, String[] permissions) {
+        default void dealPermission(Fragment fragment, List<IPermission> permissions) {
             dealPermission(fragment, permissions, null, null);
         }
 
@@ -675,7 +679,7 @@ public interface ViewPublicEvent {
          * @param permissions the permissions
          * @param interceptor the interceptor
          */
-        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor) {
+        default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor) {
             dealPermission(fragment, permissions, interceptor, null);
         }
 
@@ -687,32 +691,24 @@ public interface ViewPublicEvent {
          * @param interceptor the interceptor
          * @param callBack    the call back
          */
-        default void dealPermission(Fragment fragment, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-            if (XXPermissions.isGranted(fragment.requireContext(), permissions)) {
+        default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+            if (XXPermissions.isGrantedPermissions(fragment.requireContext(), permissions)) {
                 initModelObserve();
                 return;
             }
-            XXPermissions.with(fragment).permission(permissions).interceptor(interceptor).request(new OnPermissionCallback() {
-
-                @Override
-                public void onGranted(@NonNull List<String> permissions, boolean allGranted) {
+            List<IPermission> needCheck = isForcePermissionToInitData();
+            if (needCheck == null || needCheck.isEmpty()) {
+                initModelObserve();
+            }
+            XXPermissions.with(fragment).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
+                if (isAllCoverForcePermission(grantedList)) {
                     initModelObserve();
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onGranted(permissions, allGranted);
                 }
-
-                @Override
-                public void onDenied(@NonNull List<String> permissions, boolean doNotAskAgain) {
-                    if (callBack == null) {
-                        return;
-                    }
-                    callBack.onDenied(permissions, doNotAskAgain);
+                if (callBack == null) {
+                    return;
                 }
+                callBack.onResult(grantedList, deniedList, getDoNotAskAgainPermission(fragment.requireActivity(), deniedList));
             });
         }
     }
-
-
 }

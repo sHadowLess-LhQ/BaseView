@@ -238,6 +238,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         initObject(savedInstanceState);
         initView();
         initViewListener();
+        initModelListener();
         initPermissionAndInitData(this);
         isLazyInitSuccess = true;
     }
@@ -265,7 +266,6 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
 
     @Override
     public final void initModelObserve() {
-        initModelListener();
         for (BaseViewModel<?, ?> model : setViewModels()) {
             model.onModelInitData();
         }

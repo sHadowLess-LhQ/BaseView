@@ -125,6 +125,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
         initObject(savedInstanceState);
         initView();
         initViewListener();
+        initDataListener();
         initPermissionAndInitData(this);
         isLazyInitSuccess = true;
     }

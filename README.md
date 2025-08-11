@@ -64,7 +64,7 @@ b、远程仓库引入
 ```
     dependencies {
         implementation 'com.github.sHadowLess-LhQ:BaseView:Tag'
-        implementation 'com.github.getActivity:XXPermissions:21.3'
+        implementation 'com.github.getActivity:XXPermissions:26'
     }
 ```
 
@@ -109,18 +109,26 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissions方法
+      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
+      //不传入，initData将和权限获取并行执行
       public class MainActivity extends BaseVpActivity<ActivityMainBinding> {
   
           @Nullable
           @Override
-          public String[] permissions() {
+          public List<IPermission> permissions() {
               //设置需要动态获取的权限
               return super.permissions();
           }
+          
+          @Override
+          public List<IPermission> isForcePermissionToInitData() {
+              //强制获取哪些权限才可执行InitData获取数据
+              return super.isForcePermissionToInitData();
+          }
 
           @Override
-          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
+          public void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+                super.dealPermission(activity, permissions, interceptor, callBack);
                 //若使用基类获取权限，可重写此方法
                 //设置权限拦截器
                 //权限获取结果回调
@@ -222,18 +230,26 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissions方法
+      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
+      //不传入，initData将和权限获取并行执行
       public class MainFragment extends BaseVpFragment<FragmentMainBinding> {
   
           @Nullable
           @Override
-          public String[] permissions() {
+          public List<IPermission> permissions() {
               //设置需要动态获取的权限
               return super.permissions();
           }
+          
+          @Override
+          public List<IPermission> isForcePermissionToInitData() {
+              //强制获取哪些权限才可执行InitData获取数据
+              return super.isForcePermissionToInitData();
+          }
 
           @Override
-          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
+          public void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+                super.dealPermission(fragment, permissions, interceptor, callBack);
                 //若使用基类获取权限，可重写此方法
                 //设置权限拦截器
                 //权限获取结果回调
@@ -339,20 +355,28 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissionss方法
+      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
+      //不传入，BaseViewModel#onModelInitData将和权限获取并行执行
       public class MainActivity extends BaseVmActivity<ActivityMainBinding> {
       
           private TestViewModel viewModel;
   
           @Nullable
           @Override
-          public String[] permissions() {
+          public List<IPermission> permissions() {
               //设置需要动态获取的权限
               return super.permissions();
           }
+          
+          @Override
+          public List<IPermission> isForcePermissionToInitData() {
+              //强制获取哪些权限才可执行InitData获取数据
+              return super.isForcePermissionToInitData();
+          }
 
           @Override
-          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
+          public void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+                super.dealPermission(activity, permissions, interceptor, callBack);
                 //若使用基类获取权限，可重写此方法
                 //设置权限拦截器
                 //权限获取结果回调
@@ -461,20 +485,28 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissions方法
+      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
+      //不传入，BaseViewModel#onModelInitData将和权限获取并行执行
       public class MainFragment extends BaseVmFragment<FragmentMainBinding> {
       
           private TestViewModel viewModel;
   
           @Nullable
           @Override
-          public String[] permissions() {
+          public List<IPermission> permissions() {
               //设置需要动态获取的权限
               return super.permissions();
           }
+          
+          @Override
+          public List<IPermission> isForcePermissionToInitData() {
+              //强制获取哪些权限才可执行InitData获取数据
+              return super.isForcePermissionToInitData();
+          }
 
           @Override
-          public void dealPermission(FragmentActivity activity, String[] permissions, OnPermissionInterceptor interceptor, OnPermissionCallback callBack) {
-                super.dealPermission(activity, normalPermission, specialPermission, adapter, callBack);
+          public void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
+                super.dealPermission(fragment, permissions, interceptor, callBack);
                 //若使用基类获取权限，可重写此方法
                 //设置权限拦截器
                 //权限获取结果回调
