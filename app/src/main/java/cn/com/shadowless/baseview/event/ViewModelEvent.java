@@ -26,4 +26,9 @@ public interface ViewModelEvent {
      * On model init data.
      */
     void onModelInitData();
+
+    /**
+     * On model init data.
+     */
+    void onModelInitDataByPermission();
 }

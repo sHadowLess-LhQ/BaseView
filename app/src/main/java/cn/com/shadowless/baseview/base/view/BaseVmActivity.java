@@ -136,6 +136,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
         initView();
         initViewListener();
         initModelListener();
+        initModelData();
         initPermissionAndInitData(this);
         isLazyInitSuccess = true;
     }
@@ -161,9 +162,16 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
     }
 
     @Override
-    public final void initModelObserve() {
+    public final void initModelData() {
         for (BaseViewModel<VB, ?> model : setViewModels()) {
             model.onModelInitData();
+        }
+    }
+
+    @Override
+    public final void initModelDataByPermission() {
+        for (BaseViewModel<VB, ?> model : setViewModels()) {
+            model.onModelInitDataByPermission();
         }
     }
 

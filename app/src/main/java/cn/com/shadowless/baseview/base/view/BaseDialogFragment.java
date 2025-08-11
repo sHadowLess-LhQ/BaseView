@@ -250,6 +250,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
         initObject(savedInstanceState);
         initView();
         initViewListener();
+        initData();
         initPermissionAndInitData(this);
         isLazyInitSuccess = true;
     }

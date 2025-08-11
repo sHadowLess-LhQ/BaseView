@@ -440,6 +440,13 @@ public interface ViewPublicEvent {
         void initData();
 
         /**
+         * 获取权限后执行数据获取
+         */
+        default void initDataByPermission() {
+
+        }
+
+        /**
          * Init permission and init data.
          *
          * @param activity the activity
@@ -448,7 +455,6 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && permissions.size() != 0;
             if (!hasPermission) {
-                initData();
                 return;
             }
             dealPermission(activity, permissions);
@@ -463,7 +469,6 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && permissions.size() != 0;
             if (!hasPermission) {
-                initData();
                 return;
             }
             dealPermission(fragment, permissions);
@@ -500,16 +505,11 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(activity, permissions)) {
-                initData();
                 return;
-            }
-            List<IPermission> needCheck = isForcePermissionToInitData();
-            if (needCheck == null || needCheck.isEmpty()) {
-                initData();
             }
             XXPermissions.with(activity).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
                 if (isAllCoverForcePermission(grantedList)) {
-                    initData();
+                    initDataByPermission();
                 }
                 if (callBack == null) {
                     return;
@@ -549,16 +549,11 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(fragment.requireContext(), permissions)) {
-                initData();
                 return;
-            }
-            List<IPermission> needCheck = isForcePermissionToInitData();
-            if (needCheck == null || needCheck.isEmpty()) {
-                initData();
             }
             XXPermissions.with(fragment).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
                 if (isAllCoverForcePermission(grantedList)) {
-                    initData();
+                    initDataByPermission();
                 }
                 if (callBack == null) {
                     return;
@@ -574,14 +569,21 @@ public interface ViewPublicEvent {
     interface InitModelEvent extends InitBindingPublicEvent {
 
         /**
-         * Init model observe.
-         */
-        void initModelObserve();
-
-        /**
          * Init model listener.
          */
         void initModelListener();
+
+        /**
+         * Init model data.
+         */
+        void initModelData();
+
+        /**
+         * Init model data.
+         */
+        default void initModelDataByPermission() {
+
+        }
 
         /**
          * Init permission and init data.
@@ -592,7 +594,6 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && !permissions.isEmpty();
             if (!hasPermission) {
-                initModelObserve();
                 return;
             }
             dealPermission(activity, permissions);
@@ -607,7 +608,6 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && !permissions.isEmpty();
             if (!hasPermission) {
-                initModelObserve();
                 return;
             }
             dealPermission(fragment, permissions);
@@ -644,16 +644,11 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(FragmentActivity activity, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(activity, permissions)) {
-                initModelObserve();
                 return;
-            }
-            List<IPermission> needCheck = isForcePermissionToInitData();
-            if (needCheck == null || needCheck.isEmpty()) {
-                initModelObserve();
             }
             XXPermissions.with(activity).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
                 if (isAllCoverForcePermission(grantedList)) {
-                    initModelObserve();
+                    initModelDataByPermission();
                 }
                 if (callBack == null) {
                     return;
@@ -693,16 +688,11 @@ public interface ViewPublicEvent {
          */
         default void dealPermission(Fragment fragment, List<IPermission> permissions, OnPermissionInterceptor interceptor, OnPermissionResult callBack) {
             if (XXPermissions.isGrantedPermissions(fragment.requireContext(), permissions)) {
-                initModelObserve();
                 return;
-            }
-            List<IPermission> needCheck = isForcePermissionToInitData();
-            if (needCheck == null || needCheck.isEmpty()) {
-                initModelObserve();
             }
             XXPermissions.with(fragment).permissions(permissions).interceptor(interceptor).request((grantedList, deniedList) -> {
                 if (isAllCoverForcePermission(grantedList)) {
-                    initModelObserve();
+                    initModelDataByPermission();
                 }
                 if (callBack == null) {
                     return;

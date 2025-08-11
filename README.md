@@ -63,7 +63,9 @@ b、远程仓库引入
 
 ```
     dependencies {
-        implementation 'com.github.sHadowLess-LhQ:BaseView:Tag'
+        implementation('com.github.sHadowLess-LhQ:BaseView:Tag') {
+             exclude group: 'com.android.support'
+        }
         implementation 'com.github.getActivity:XXPermissions:26'
     }
 ```
@@ -109,8 +111,8 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissions方法
-      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
-      //不传入，initData将和权限获取并行执行
+      //新增isForcePermissionToInitData方法，判断是否有需要获取权限后才允许获取数据
+      //新增initDataByPermission方法，用于需要获取权限后才可以获取数据的逻辑
       public class MainActivity extends BaseVpActivity<ActivityMainBinding> {
   
           @Nullable
@@ -151,13 +153,18 @@ c、混淆规则
           }
       
           @Override
+          protected void initDataListener() {
+             //初始化数据回调
+          }
+          
+          @Override
           protected void initData() {
              //初始化数据
           }
           
           @Override
-          protected void initDataListener() {
-             //初始化数据回调
+          public void initDataByPermission() {
+              super.initDataByPermission();
           }
           
           @Override
@@ -230,8 +237,8 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissions方法
-      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
-      //不传入，initData将和权限获取并行执行
+      //新增isForcePermissionToInitData方法，判断是否有需要获取权限后才允许获取数据
+      //新增initDataByPermission方法，用于需要获取权限后才可以获取数据的逻辑
       public class MainFragment extends BaseVpFragment<FragmentMainBinding> {
   
           @Nullable
@@ -283,13 +290,18 @@ c、混淆规则
           }
           
           @Override
+          protected void initDataListener() {
+             //初始化数据监听
+          }
+          
+          @Override
           protected void initData() {
              //初始化数据
           }
           
           @Override
-          protected void initDataListener() {
-             //初始化数据监听
+          public void initDataByPermission() {
+              super.initDataByPermission();
           }
           
           @Override
@@ -355,8 +367,8 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissionss方法
-      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
-      //不传入，BaseViewModel#onModelInitData将和权限获取并行执行
+      //新增isForcePermissionToInitData方法，判断是否有需要获取权限后才允许获取数据
+      //新增BaseViewModel#onModelInitDataByPermission方法，用于需要获取权限后才可以获取数据的逻辑
       public class MainActivity extends BaseVmActivity<ActivityMainBinding> {
       
           private TestViewModel viewModel;
@@ -485,8 +497,8 @@ c、混淆规则
       //如果有反射加载视图慢的情况，请重写inflateView方法，手动实现ViewBinding类创建
       //需要更改点击防抖时间阈值，请重写isFastClick，在超类调用传递时间
       //需要在获取权限，请重写permissions方法
-      //isForcePermissionToInitData传入的权限，判断逻辑是需都满足获取
-      //不传入，BaseViewModel#onModelInitData将和权限获取并行执行
+      //新增isForcePermissionToInitData方法，判断是否有需要获取权限后才允许获取数据
+      //新增BaseViewModel#onModelInitDataByPermission方法，用于需要获取权限后才可以获取数据的逻辑
       public class MainFragment extends BaseVmFragment<FragmentMainBinding> {
       
           private TestViewModel viewModel;
@@ -726,15 +738,20 @@ c、混淆规则
             protected void initViewListener() {
                //初始化视图监听
             }
+            
+            @Override
+            protected void initDataListener() {
+               //初始化数据监听
+            }
         
             @Override
             protected void initData() {
                //初始化数据
             }
-        
+            
             @Override
-            protected void initDataListener() {
-               //初始化数据监听
+            public void initDataByPermission() {
+                super.initDataByPermission();
             }
             
             @Override
@@ -751,6 +768,12 @@ c、混淆规则
             @Override
             public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
                 //监听其他Lifecycle组件的声明周期标识符
+            }
+            
+            @Override
+            public boolean isAsyncLoad() {
+                //是否异步加载视图
+                return false;
             }
       }
 ```
