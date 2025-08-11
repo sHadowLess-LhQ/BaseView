@@ -88,6 +88,8 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                     }
                 });
         initObject(savedInstanceState);
+        initModelListener();
+        initModelData();
         initPermissionAndInitData(this);
     }
 }

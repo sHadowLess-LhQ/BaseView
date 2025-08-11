@@ -87,6 +87,8 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                     }
                 });
         initObject(savedInstanceState);
+        initModelListener();
+        initModelData();
         initPermissionAndInitData(this);
     }
 }
