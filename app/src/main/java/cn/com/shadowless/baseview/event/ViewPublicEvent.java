@@ -455,6 +455,7 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && permissions.size() != 0;
             if (!hasPermission) {
+                initDataByPermission();
                 return;
             }
             dealPermission(activity, permissions);
@@ -469,6 +470,7 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && permissions.size() != 0;
             if (!hasPermission) {
+                initDataByPermission();
                 return;
             }
             dealPermission(fragment, permissions);
@@ -596,6 +598,7 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && !permissions.isEmpty();
             if (!hasPermission) {
+                initModelDataByPermission();
                 return;
             }
             dealPermission(activity, permissions);
@@ -610,6 +613,7 @@ public interface ViewPublicEvent {
             List<IPermission> permissions = permissions();
             boolean hasPermission = null != permissions && !permissions.isEmpty();
             if (!hasPermission) {
+                initModelDataByPermission();
                 return;
             }
             dealPermission(fragment, permissions);
@@ -622,7 +626,7 @@ public interface ViewPublicEvent {
          * @param permissions the permissions
          */
         default void dealPermission(FragmentActivity activity, List<IPermission> permissions) {
-            dealPermission(activity, permissions, null, null);
+            dealPermission(activity, permissions, null);
         }
 
         /**
@@ -667,7 +671,7 @@ public interface ViewPublicEvent {
          * @param permissions the permissions
          */
         default void dealPermission(Fragment fragment, List<IPermission> permissions) {
-            dealPermission(fragment, permissions, null, null);
+            dealPermission(fragment, permissions, null);
         }
 
         /**
