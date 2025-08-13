@@ -40,7 +40,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : setViewModels()) {
+                        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
                             model.onModelInitView();
                         }
                         if (callBack != null) {
@@ -52,7 +52,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                                     initView();
                                     initViewListener();
                                     isLazyInitSuccess = true;
-                                    for (BaseViewModel<VB, ?> model : setViewModels()) {
+                                    for (BaseViewModel<VB, ?> model : collectionViewModels()) {
                                         if (!(model instanceof BaseMutualViewModel)) {
                                             throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                                         }
@@ -71,7 +71,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                         initView();
                         initViewListener();
                         isLazyInitSuccess = true;
-                        for (BaseViewModel<VB, ?> model : setViewModels()) {
+                        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
                             if (!(model instanceof BaseMutualViewModel)) {
                                 throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                             }

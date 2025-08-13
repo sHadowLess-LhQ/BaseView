@@ -57,7 +57,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
         manager = new VmObjManager<>();
         manager.setCurrentActivity(this);
         manager.setCurrentLifecycleOwner(this);
-        for (BaseViewModel<VB, ?> model : setViewModels()) {
+        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
             model.setObjManager(manager);
             model.onModelCreated();
             model.onModelInitListener();
@@ -88,7 +88,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         manager.setCurrentViewBinding(bind);
-        for (BaseViewModel<VB, ?> model : setViewModels()) {
+        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
             model.onModelInitView();
         }
         setContentView(bind.getRoot());
@@ -112,7 +112,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : setViewModels()) {
+                        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
                             model.onModelInitView();
                         }
                         if (callBack != null) {
@@ -177,14 +177,14 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
 
     @Override
     public final void initModelData() {
-        for (BaseViewModel<VB, ?> model : setViewModels()) {
+        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
             model.onModelInitData();
         }
     }
 
     @Override
     public final void initModelDataByPermission() {
-        for (BaseViewModel<VB, ?> model : setViewModels()) {
+        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
             model.onModelInitDataByPermission();
         }
     }

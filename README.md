@@ -417,7 +417,7 @@ public class MainActivity extends BaseVmActivity<ActivityMainBinding> {
     
     @NonNull
     @Override
-    public List<BaseViewModel<ActivityMainBinding, ?>> setViewModels() {
+    public List<BaseViewModel<ActivityMainBinding, ?>> collectionViewModels() {
         // 设置已经初始化的ViewModel
         // 有多个需传递多个
         return Collections.singletonList(viewModel);
@@ -558,7 +558,7 @@ public class MainFragment extends BaseVmFragment<FragmentMainBinding> {
     
     @NonNull
     @Override
-    public List<BaseViewModel<FragmentMainBinding, ?>> setViewModels() {
+    public List<BaseViewModel<FragmentMainBinding, ?>> collectionViewModels() {
         // 设置已经初始化的ViewModel
         // 有多个需传递多个
         return Collections.singletonList(viewModel);
