@@ -285,12 +285,12 @@ public interface ViewPublicEvent {
 
         boolean isLazyInitSuccess();
 
-        void syncInitView(Bundle savedInstanceState);
+        void syncInitView();
 
-        void asyncInitView(Bundle savedInstanceState);
+        void asyncInitView();
 
         @MainThread
-        void initEvent(Bundle savedInstanceState);
+        void initEvent();
 
         interface AsyncLoadViewAnimCallBack {
             void animStart();

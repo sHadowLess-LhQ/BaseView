@@ -5,6 +5,7 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -12,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import cn.com.shadowless.baseview.event.UpdateObjEvent;
 import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
+import cn.com.shadowless.baseview.manager.VmObjManager;
 
 
 /**
@@ -20,7 +23,7 @@ import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
  *
  * @author sHadowLess
  */
-public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
+public abstract class BaseMutableLiveData implements BaseQuickLifecycle, UpdateObjEvent {
 
     /**
      * The Mutable live data list.
@@ -30,7 +33,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
     /**
      * The Lifecycle owner.
      */
-    private final LifecycleOwner lifecycleOwner;
+    private LifecycleOwner lifecycleOwner;
 
     /**
      * Instantiates a new Base mutable live data.
@@ -119,7 +122,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == Lifecycle.Event.ON_DESTROY) {
-            onTerminate(event);
+            onTerminate();
             clearAllForEverObserver(source);
             this.getLifecycle().removeObserver(this);
         }
@@ -129,5 +132,13 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
     @Override
     public LifecycleOwner getObserveLifecycleOwner() {
         return lifecycleOwner;
+    }
+
+    @Override
+    public void update(VmObjManager<? extends ViewBinding> manager) {
+        this.lifecycleOwner.getLifecycle().removeObserver(this);
+        this.lifecycleOwner = null;
+        this.lifecycleOwner = manager.getCurrentLifecycleOwner();
+        this.lifecycleOwner.getLifecycle().addObserver(this);
     }
 }

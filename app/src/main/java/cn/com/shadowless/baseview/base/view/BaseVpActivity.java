@@ -46,11 +46,12 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
+        initObject(savedInstanceState);
         if (isAsyncLoad()) {
-            asyncInitView(savedInstanceState);
+            asyncInitView();
             return;
         }
-        syncInitView(savedInstanceState);
+        syncInitView();
     }
 
     @Override
@@ -65,21 +66,21 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
      * 同步加载布局
      */
     @Override
-    public void syncInitView(Bundle savedInstanceState) {
+    public void syncInitView() {
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         setContentView(bind.getRoot());
-        initEvent(savedInstanceState);
+        initEvent();
     }
 
     /**
      * 异步加载布局
      */
     @Override
-    public void asyncInitView(Bundle savedInstanceState) {
+    public void asyncInitView() {
         callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();
@@ -101,13 +102,13 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
 
                                 @Override
                                 public void animEnd() {
-                                    initEvent(savedInstanceState);
+                                    initEvent();
                                 }
                             });
                             return;
                         }
                         setContentView(view);
-                        initEvent(savedInstanceState);
+                        initEvent();
                     }
 
                     @Override
@@ -121,8 +122,7 @@ public abstract class BaseVpActivity<VB extends ViewBinding> extends AppCompatAc
     }
 
     @Override
-    public final void initEvent(Bundle savedInstanceState) {
-        initObject(savedInstanceState);
+    public final void initEvent() {
         initView();
         initViewListener();
         initDataListener();

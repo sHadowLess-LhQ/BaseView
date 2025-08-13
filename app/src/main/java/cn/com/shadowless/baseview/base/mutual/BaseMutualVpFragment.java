@@ -41,7 +41,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
      * 异步加载布局
      */
     @Override
-    public final void asyncInitView(Bundle savedInstanceState) {
+    public final void asyncInitView() {
         ViewGroup group = (ViewGroup) requireView();
         callBack = AsyncLoadView();
         if (callBack != null) {
@@ -87,7 +87,6 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
                         throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
-        initObject(savedInstanceState);
         initDataListener();
         initData();
         initPermissionAndInitData(this);

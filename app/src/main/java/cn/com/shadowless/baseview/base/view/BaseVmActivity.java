@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
@@ -47,6 +48,11 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
      */
     protected VmObjManager<VB> manager = null;
 
+    /**
+     * ViewModel对象集合
+     */
+    protected List<BaseViewModel<VB, ?>> tempList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         int customTheme = initTheme();
@@ -54,19 +60,21 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
+        initObject(savedInstanceState);
         manager = new VmObjManager<>();
         manager.setCurrentActivity(this);
         manager.setCurrentLifecycleOwner(this);
-        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+        tempList = collectionViewModels();
+        for (BaseViewModel<VB, ?> model : tempList) {
             model.setObjManager(manager);
             model.onModelCreated();
             model.onModelInitListener();
         }
         if (isAsyncLoad()) {
-            asyncInitView(savedInstanceState);
+            asyncInitView();
             return;
         }
-        syncInitView(savedInstanceState);
+        syncInitView();
     }
 
     @Override
@@ -81,25 +89,25 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
      * 同步加载布局
      */
     @Override
-    public void syncInitView(Bundle savedInstanceState) {
+    public void syncInitView() {
         try {
             bind = inflateView(this, getLayoutInflater());
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         manager.setCurrentViewBinding(bind);
-        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+        for (BaseViewModel<VB, ?> model : tempList) {
             model.onModelInitView();
         }
         setContentView(bind.getRoot());
-        initEvent(savedInstanceState);
+        initEvent();
     }
 
     /**
      * 异步加载布局
      */
     @Override
-    public void asyncInitView(Bundle savedInstanceState) {
+    public void asyncInitView() {
         callBack = AsyncLoadView();
         if (callBack != null) {
             callBack.showLoadView();
@@ -112,7 +120,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+                        for (BaseViewModel<VB, ?> model : tempList) {
                             model.onModelInitView();
                         }
                         if (callBack != null) {
@@ -125,13 +133,13 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
 
                                 @Override
                                 public void animEnd() {
-                                    initEvent(savedInstanceState);
+                                    initEvent();
                                 }
                             });
                             return;
                         }
                         setContentView(view);
-                        initEvent(savedInstanceState);
+                        initEvent();
                     }
 
                     @Override
@@ -145,8 +153,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
     }
 
     @Override
-    public final void initEvent(Bundle savedInstanceState) {
-        initObject(savedInstanceState);
+    public final void initEvent() {
         initView();
         initViewListener();
         initModelListener();
@@ -177,14 +184,14 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
 
     @Override
     public final void initModelData() {
-        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+        for (BaseViewModel<VB, ?> model : tempList) {
             model.onModelInitData();
         }
     }
 
     @Override
     public final void initModelDataByPermission() {
-        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+        for (BaseViewModel<VB, ?> model : tempList) {
             model.onModelInitDataByPermission();
         }
     }

@@ -61,11 +61,6 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      */
     private boolean isLazyInitSuccess = false;
 
-    /**
-     * The Saved instance state.
-     */
-    private Bundle savedInstanceState;
-
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -81,7 +76,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
     @Nullable
     @Override
     public final View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        this.savedInstanceState = savedInstanceState;
+        initObject(savedInstanceState);
         LoadMode mode = getLoadMode();
         switch (mode) {
             case ONLY_LAZY_DATA:
@@ -90,7 +85,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                mainHandler.postDelayed(() -> initEvent(this.savedInstanceState), 100);
+                mainHandler.postDelayed(this::initEvent, 100);
                 return defaultView;
         }
     }
@@ -107,15 +102,15 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
                         isLazyInit = true;
                         switch (mode) {
                             case ONLY_LAZY_DATA:
-                                initEvent(savedInstanceState);
+                                initEvent();
                                 break;
                             case LAZY_VIEW_AND_DATA:
                                 //是否异步加载
                                 if (isAsyncLoad()) {
-                                    asyncInitView(savedInstanceState);
+                                    asyncInitView();
                                     return;
                                 }
-                                syncInitView(savedInstanceState);
+                                syncInitView();
                                 break;
                             default:
                                 break;
@@ -189,18 +184,18 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      * 同步加载布局
      */
     @Override
-    public void syncInitView(Bundle savedInstanceState) {
+    public void syncInitView() {
         ViewGroup group = (ViewGroup) requireView();
         View contentView = getInflateView();
         group.addView(contentView);
-        initEvent(savedInstanceState);
+        initEvent();
     }
 
     /**
      * 异步加载布局
      */
     @Override
-    public void asyncInitView(Bundle savedInstanceState) {
+    public void asyncInitView() {
         ViewGroup group = (ViewGroup) requireView();
         callBack = AsyncLoadView();
         if (callBack != null) {
@@ -223,13 +218,13 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
 
                                 @Override
                                 public void animEnd() {
-                                    initEvent(savedInstanceState);
+                                    initEvent();
                                 }
                             });
                             return;
                         }
                         group.addView(view);
-                        initEvent(savedInstanceState);
+                        initEvent();
                     }
 
                     @Override
@@ -246,8 +241,7 @@ public abstract class BaseDialogFragment<VB extends ViewBinding> extends DialogF
      * Init.
      */
     @Override
-    public final void initEvent(Bundle savedInstanceState) {
-        initObject(savedInstanceState);
+    public final void initEvent() {
         initView();
         initViewListener();
         initData();

@@ -18,10 +18,8 @@ public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwn
 
     /**
      * On terminate.
-     *
-     * @param event the event
      */
-    void onTerminate(@NonNull Lifecycle.Event event);
+    void onTerminate();
 
     /**
      * Observe lifecycle lifecycle owner.

@@ -1,6 +1,5 @@
 package cn.com.shadowless.baseview.base.mutual;
 
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +25,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
      * 异步加载布局
      */
     @Override
-    public final void asyncInitView(Bundle savedInstanceState) {
+    public final void asyncInitView() {
         ViewGroup group = (ViewGroup) requireView();
         callBack = AsyncLoadView();
         if (callBack != null) {
@@ -40,7 +39,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+                        for (BaseViewModel<VB, ?> model : tempList) {
                             model.onModelInitView();
                         }
                         if (callBack != null) {
@@ -52,7 +51,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                                     initView();
                                     initViewListener();
                                     isLazyInitSuccess = true;
-                                    for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+                                    for (BaseViewModel<VB, ?> model : tempList) {
                                         if (!(model instanceof BaseMutualViewModel)) {
                                             throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                                         }
@@ -71,7 +70,7 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                         initView();
                         initViewListener();
                         isLazyInitSuccess = true;
-                        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+                        for (BaseViewModel<VB, ?> model : tempList) {
                             if (!(model instanceof BaseMutualViewModel)) {
                                 throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                             }
@@ -87,7 +86,6 @@ public abstract class BaseMutualVmFragment<VB extends ViewBinding> extends BaseV
                         throw new RuntimeException("异步加载视图错误：\n" + Log.getStackTraceString(e));
                     }
                 });
-        initObject(savedInstanceState);
         initModelListener();
         initModelData();
         initPermissionAndInitData(this);

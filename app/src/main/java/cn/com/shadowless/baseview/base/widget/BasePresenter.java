@@ -4,8 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.viewbinding.ViewBinding;
 
+import cn.com.shadowless.baseview.event.UpdateObjEvent;
 import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
+import cn.com.shadowless.baseview.manager.VmObjManager;
 
 /**
  * The type Base presenter.
@@ -14,12 +17,12 @@ import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
  * @author sHadowLess
  */
 public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
-        BaseQuickLifecycle {
+        BaseQuickLifecycle, UpdateObjEvent {
 
     /**
      * The Observe lifecycle.
      */
-    private final LifecycleOwner observeLifecycle;
+    private LifecycleOwner observeLifecycle;
 
     /**
      * Instantiates a new Base presenter.
@@ -28,12 +31,13 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
      */
     public BasePresenter(@NonNull LifecycleOwner observeLifecycle) {
         this.observeLifecycle = observeLifecycle;
+        this.observeLifecycle.getLifecycle().addObserver(this);
     }
 
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == Lifecycle.Event.ON_DESTROY) {
-            onTerminate(event);
+            onTerminate();
             this.getLifecycle().removeObserver(this);
         }
     }
@@ -51,4 +55,12 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
      */
     @Nullable
     public abstract LD getMutable();
+
+    @Override
+    public void update(VmObjManager<? extends ViewBinding> manager) {
+        this.observeLifecycle.getLifecycle().removeObserver(this);
+        this.observeLifecycle = null;
+        this.observeLifecycle = manager.getCurrentLifecycleOwner();
+        this.observeLifecycle.getLifecycle().addObserver(this);
+    }
 }

@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
@@ -65,14 +66,14 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     protected boolean isLazyInitSuccess = false;
 
     /**
-     * The Saved instance state.
-     */
-    protected Bundle savedInstanceState;
-
-    /**
      * ViewModel所需对象管理
      */
     protected VmObjManager<VB> manager = null;
+
+    /**
+     * ViewModel对象集合
+     */
+    protected List<BaseViewModel<VB, ?>> tempList;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -89,12 +90,13 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     @Nullable
     @Override
     public final View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        this.savedInstanceState = savedInstanceState;
+        initObject(savedInstanceState);
         manager = new VmObjManager<>();
         manager.setCurrentActivity(getAttachActivity());
         manager.setCurrentFragment(this);
         manager.setCurrentLifecycleOwner(this);
-        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+        tempList = collectionViewModels();
+        for (BaseViewModel<VB, ?> model : tempList) {
             model.setObjManager(manager);
             model.onModelCreated();
             model.onModelInitListener();
@@ -107,7 +109,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                 return new FrameLayout(getAttachActivity());
             default:
                 View defaultView = getInflateView();
-                mainHandler.postDelayed(() -> initEvent(this.savedInstanceState), 100);
+                mainHandler.postDelayed(this::initEvent, 100);
                 return defaultView;
         }
     }
@@ -124,15 +126,15 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                         isLazyInit = true;
                         switch (mode) {
                             case ONLY_LAZY_DATA:
-                                initEvent(savedInstanceState);
+                                initEvent();
                                 break;
                             case LAZY_VIEW_AND_DATA:
                                 //是否异步加载
                                 if (isAsyncLoad()) {
-                                    asyncInitView(savedInstanceState);
+                                    asyncInitView();
                                     return;
                                 }
-                                syncInitView(savedInstanceState);
+                                syncInitView();
                                 break;
                             default:
                                 break;
@@ -181,7 +183,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         manager.setCurrentViewBinding(bind);
-        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+        for (BaseViewModel<VB, ?> model : tempList) {
             model.onModelInitView();
         }
         return bind.getRoot();
@@ -191,18 +193,18 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
      * 同步加载布局
      */
     @Override
-    public void syncInitView(Bundle savedInstanceState) {
+    public void syncInitView() {
         ViewGroup group = (ViewGroup) requireView();
         View contentView = getInflateView();
         group.addView(contentView);
-        initEvent(savedInstanceState);
+        initEvent();
     }
 
     /**
      * 异步加载布局
      */
     @Override
-    public void asyncInitView(Bundle savedInstanceState) {
+    public void asyncInitView() {
         ViewGroup group = (ViewGroup) requireView();
         callBack = AsyncLoadView();
         if (callBack != null) {
@@ -216,7 +218,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+                        for (BaseViewModel<VB, ?> model : tempList) {
                             model.onModelInitView();
                         }
                         if (callBack != null) {
@@ -229,13 +231,13 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
 
                                 @Override
                                 public void animEnd() {
-                                    initEvent(savedInstanceState);
+                                    initEvent();
                                 }
                             });
                             return;
                         }
                         group.addView(view);
-                        initEvent(savedInstanceState);
+                        initEvent();
                     }
 
                     @Override
@@ -249,8 +251,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     }
 
     @Override
-    public final void initEvent(Bundle savedInstanceState) {
-        initObject(savedInstanceState);
+    public final void initEvent() {
         initView();
         initViewListener();
         initModelListener();
@@ -282,14 +283,14 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
 
     @Override
     public final void initModelData() {
-        for (BaseViewModel<?, ?> model : collectionViewModels()) {
+        for (BaseViewModel<?, ?> model : tempList) {
             model.onModelInitData();
         }
     }
 
     @Override
     public final void initModelDataByPermission() {
-        for (BaseViewModel<VB, ?> model : collectionViewModels()) {
+        for (BaseViewModel<VB, ?> model : tempList) {
             model.onModelInitDataByPermission();
         }
     }
