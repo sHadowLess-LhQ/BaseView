@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
+import cn.com.shadowless.baseview.manager.VmObjManager;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
@@ -41,6 +42,11 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
      */
     protected boolean isLazyInitSuccess = false;
 
+    /**
+     * ViewModel所需对象管理
+     */
+    protected VmObjManager<VB> manager = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         int customTheme = initTheme();
@@ -48,6 +54,14 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
             setTheme(customTheme);
         }
         super.onCreate(savedInstanceState);
+        manager = new VmObjManager<>();
+        manager.setCurrentActivity(this);
+        manager.setCurrentLifecycleOwner(this);
+        for (BaseViewModel<VB, ?> model : setViewModels()) {
+            model.setObjManager(manager);
+            model.onModelCreated();
+            model.onModelInitListener();
+        }
         if (isAsyncLoad()) {
             asyncInitView(savedInstanceState);
             return;
@@ -73,8 +87,8 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
+        manager.setCurrentViewBinding(bind);
         for (BaseViewModel<VB, ?> model : setViewModels()) {
-            model.setBindView(bind);
             model.onModelInitView();
         }
         setContentView(bind.getRoot());
@@ -97,8 +111,8 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
                         bind = binding;
                         View view = bind.getRoot();
+                        manager.setCurrentViewBinding(bind);
                         for (BaseViewModel<VB, ?> model : setViewModels()) {
-                            model.setBindView(bind);
                             model.onModelInitView();
                         }
                         if (callBack != null) {

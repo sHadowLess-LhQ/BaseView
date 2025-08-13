@@ -36,7 +36,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
      *
      * @param lifecycleOwner the lifecycle owner
      */
-    public BaseMutableLiveData(LifecycleOwner lifecycleOwner) {
+    public BaseMutableLiveData(@NonNull LifecycleOwner lifecycleOwner) {
         this(lifecycleOwner, true);
     }
 
@@ -46,7 +46,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
      * @param lifecycleOwner the lifecycle owner
      * @param isReflectSet   the is reflect set
      */
-    public BaseMutableLiveData(LifecycleOwner lifecycleOwner, boolean isReflectSet) {
+    public BaseMutableLiveData(@NonNull LifecycleOwner lifecycleOwner, boolean isReflectSet) {
         this.lifecycleOwner = lifecycleOwner;
         this.lifecycleOwner.getLifecycle().addObserver(this);
         mutableLiveDataList = new ArrayList<>();
@@ -89,7 +89,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
      *
      * @param mutableLiveData the mutable live data
      */
-    public void setForeverObserve(LiveData<?>... mutableLiveData) {
+    public void setForeverObserve(@NonNull LiveData<?>... mutableLiveData) {
         mutableLiveDataList.addAll(Arrays.asList(mutableLiveData));
     }
 
@@ -98,7 +98,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
      *
      * @param mutableLiveData the mutable live data
      */
-    public void setForeverObserve(LiveData<?> mutableLiveData) {
+    public void setForeverObserve(@NonNull LiveData<?> mutableLiveData) {
         mutableLiveDataList.add(mutableLiveData);
     }
 
@@ -107,7 +107,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
      *
      * @param owner the owner
      */
-    public void clearAllForEverObserver(LifecycleOwner owner) {
+    public void clearAllForEverObserver(@NonNull LifecycleOwner owner) {
         for (LiveData<?> mutableLiveData : mutableLiveDataList) {
             mutableLiveData.removeObservers(owner);
         }
@@ -116,17 +116,11 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
 
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-        if (event == setStopEvent()) {
+        if (event == Lifecycle.Event.ON_DESTROY) {
             onTerminate(event);
             clearAllForEverObserver(source);
             this.getLifecycle().removeObserver(this);
         }
-    }
-
-    @NonNull
-    @Override
-    public Lifecycle.Event setStopEvent() {
-        return Lifecycle.Event.ON_DESTROY;
     }
 
     @NonNull

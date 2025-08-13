@@ -1,5 +1,6 @@
 package cn.com.shadowless.baseview.base.widget;
 
+import androidx.annotation.NonNull;
 import androidx.viewbinding.ViewBinding;
 
 import cn.com.shadowless.baseview.manager.MultiDataViewDataManager;
@@ -25,6 +26,7 @@ public abstract class BaseMutualViewModel<VB extends ViewBinding, LD extends Bas
         manager.bindLifecycle(this);
     }
 
+    @NonNull
     @Override
     public final MultiDataViewDataManager getViewDataManager() {
         return manager;

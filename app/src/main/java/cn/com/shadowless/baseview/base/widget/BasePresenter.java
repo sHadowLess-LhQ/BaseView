@@ -1,6 +1,7 @@
 package cn.com.shadowless.baseview.base.widget;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -25,22 +26,16 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
      *
      * @param observeLifecycle the observe lifecycle
      */
-    public BasePresenter(LifecycleOwner observeLifecycle) {
+    public BasePresenter(@NonNull LifecycleOwner observeLifecycle) {
         this.observeLifecycle = observeLifecycle;
     }
 
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-        if (event == setStopEvent()) {
+        if (event == Lifecycle.Event.ON_DESTROY) {
             onTerminate(event);
             this.getLifecycle().removeObserver(this);
         }
-    }
-
-    @NonNull
-    @Override
-    public Lifecycle.Event setStopEvent() {
-        return Lifecycle.Event.ON_DESTROY;
     }
 
     @NonNull
@@ -54,5 +49,6 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
      *
      * @return the mutable
      */
+    @Nullable
     public abstract LD getMutable();
 }

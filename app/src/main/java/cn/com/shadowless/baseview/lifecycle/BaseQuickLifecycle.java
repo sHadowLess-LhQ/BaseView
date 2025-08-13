@@ -17,19 +17,11 @@ public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwn
     void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event);
 
     /**
-     * Sets stop event.
-     *
-     * @return the stop event
-     */
-    @NonNull
-    Lifecycle.Event setStopEvent();
-
-    /**
      * On terminate.
      *
      * @param event the event
      */
-    void onTerminate(Lifecycle.Event event);
+    void onTerminate(@NonNull Lifecycle.Event event);
 
     /**
      * Observe lifecycle lifecycle owner.

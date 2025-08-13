@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.viewbinding.ViewBinding;
 
 import com.hjq.permissions.OnPermissionInterceptor;
@@ -350,40 +351,17 @@ public interface ViewPublicEvent {
          * @return the base view model
          */
         @NonNull
-        List<BaseViewModel<VB, ?>> setViewModels();
+        List<BaseViewModel<VB, ?>> collectionViewModels();
 
         /**
-         * Create activity view model vm.
+         * Create view model vm.
          *
-         * @param <VM>     the type parameter
-         * @param activity the activity
-         * @param cls      the cls
+         * @param <VM> the type parameter
+         * @param cls  the cls
          * @return the vm
          */
-        default <VM extends ViewModel> VM createActivityViewModel(FragmentActivity activity, Class<VM> cls) {
-            BaseViewModel<VB, ?> viewModel = (BaseViewModel<VB, ?>) new ViewModelProvider(activity, new ViewModelProvider.NewInstanceFactory()).get(cls);
-            viewModel.setOwner(activity);
-            viewModel.setActivity(activity);
-            viewModel.onModelCreated();
-            viewModel.onModelInitListener();
-            return (VM) viewModel;
-        }
-
-        /**
-         * Create fragment view model vm.
-         *
-         * @param <VM>     the type parameter
-         * @param fragment the fragment
-         * @param cls      the cls
-         * @return the vm
-         */
-        default <VM extends ViewModel> VM createFragmentViewModel(Fragment fragment, Class<VM> cls) {
-            BaseViewModel<VB, ?> viewModel = (BaseViewModel<VB, ?>) new ViewModelProvider(fragment, new ViewModelProvider.NewInstanceFactory()).get(cls);
-            viewModel.setOwner(fragment);
-            viewModel.setFragment(fragment);
-            viewModel.onModelCreated();
-            viewModel.onModelInitListener();
-            return (VM) viewModel;
+        default <VM extends ViewModel> VM createViewModel(ViewModelStoreOwner owner, Class<VM> cls) {
+            return (VM) new ViewModelProvider(owner, new ViewModelProvider.NewInstanceFactory()).get(cls);
         }
     }
 

@@ -1,10 +1,7 @@
 package cn.com.shadowless.baseview.base.widget;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModel;
@@ -13,6 +10,7 @@ import androidx.viewbinding.ViewBinding;
 import cn.com.shadowless.baseview.event.ViewModelEvent;
 import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
 import cn.com.shadowless.baseview.manager.MultiDataViewDataManager;
+import cn.com.shadowless.baseview.manager.VmObjManager;
 
 /**
  * The type Base view model.
@@ -24,94 +22,19 @@ import cn.com.shadowless.baseview.manager.MultiDataViewDataManager;
 public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutableLiveData> extends ViewModel
         implements ViewModelEvent, BaseQuickLifecycle {
 
-    /**
-     * The View binding.
-     */
-    private VB viewBinding;
+    private VmObjManager<VB> manager;
 
-    /**
-     * The Activity.
-     */
-    @SuppressLint("StaticFieldLeak")
-    private Activity activity;
-
-    /**
-     * The Fragment.
-     */
-    private Fragment fragment;
-
-    /**
-     * The Observe lifecycle.
-     */
-    private LifecycleOwner observeLifecycle;
-
-    /**
-     * Gets binding view.
-     *
-     * @return the binding view
-     */
-    protected VB getBindView() {
-        return viewBinding;
+    public void setObjManager(VmObjManager<VB> manager) {
+        this.manager = manager;
     }
 
-    /**
-     * Sets view binding.
-     *
-     * @param viewBinding the view binding
-     */
-    public void setBindView(VB viewBinding) {
-        this.viewBinding = viewBinding;
-    }
-
-    /**
-     * Sets owner.
-     *
-     * @param owner the owner
-     */
-    public void setOwner(LifecycleOwner owner) {
-        this.observeLifecycle = owner;
-        this.observeLifecycle.getLifecycle().addObserver(this);
-    }
-
-    /**
-     * Sets activity.
-     *
-     * @param activity the activity
-     */
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-    }
-
-    /**
-     * Gets activity.
-     *
-     * @return the activity
-     */
-    protected Activity getActivity() {
-        return activity;
-    }
-
-    /**
-     * Sets fragment.
-     *
-     * @param fragment the fragment
-     */
-    public void setFragment(Fragment fragment) {
-        this.fragment = fragment;
-    }
-
-    /**
-     * Gets fragment.
-     *
-     * @return the fragment
-     */
-    protected Fragment getFragment() {
-        return fragment;
+    public VmObjManager<VB> getObjManager() {
+        return manager;
     }
 
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-        if (event == setStopEvent()) {
+        if (event == Lifecycle.Event.ON_DESTROY) {
             onTerminate(event);
             this.getLifecycle().removeObserver(this);
         }
@@ -119,14 +42,8 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
 
     @NonNull
     @Override
-    public Lifecycle.Event setStopEvent() {
-        return Lifecycle.Event.ON_DESTROY;
-    }
-
-    @NonNull
-    @Override
     public LifecycleOwner getObserveLifecycleOwner() {
-        return observeLifecycle;
+        return manager.getCurrentLifecycleOwner();
     }
 
     /**
@@ -134,6 +51,7 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
      *
      * @return the mutable
      */
+    @Nullable
     public abstract LD getMutable();
 
     public MultiDataViewDataManager getViewDataManager() {

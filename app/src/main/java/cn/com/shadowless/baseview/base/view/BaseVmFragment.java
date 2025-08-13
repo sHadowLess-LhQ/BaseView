@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
+import cn.com.shadowless.baseview.manager.VmObjManager;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
@@ -68,6 +69,11 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
      */
     protected Bundle savedInstanceState;
 
+    /**
+     * ViewModel所需对象管理
+     */
+    protected VmObjManager<VB> manager = null;
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -84,6 +90,15 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     @Override
     public final View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.savedInstanceState = savedInstanceState;
+        manager = new VmObjManager<>();
+        manager.setCurrentActivity(getAttachActivity());
+        manager.setCurrentFragment(this);
+        manager.setCurrentLifecycleOwner(this);
+        for (BaseViewModel<VB, ?> model : setViewModels()) {
+            model.setObjManager(manager);
+            model.onModelCreated();
+            model.onModelInitListener();
+        }
         LoadMode mode = getLoadMode();
         switch (mode) {
             case ONLY_LAZY_DATA:
@@ -165,8 +180,8 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
+        manager.setCurrentViewBinding(bind);
         for (BaseViewModel<VB, ?> model : setViewModels()) {
-            model.setBindView(bind);
             model.onModelInitView();
         }
         return bind.getRoot();
@@ -200,8 +215,8 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                     public void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent) {
                         bind = binding;
                         View view = bind.getRoot();
+                        manager.setCurrentViewBinding(bind);
                         for (BaseViewModel<VB, ?> model : setViewModels()) {
-                            model.setBindView(bind);
                             model.onModelInitView();
                         }
                         if (callBack != null) {
