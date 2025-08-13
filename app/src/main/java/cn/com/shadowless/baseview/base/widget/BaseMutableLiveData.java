@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +69,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
         Field[] fields = cls.getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
-            if (field.getType() != MutableLiveData.class) {
+            if (!MutableLiveData.class.isAssignableFrom(field.getType())) {
                 continue;
             }
             try {
@@ -76,8 +77,9 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle {
                 if (o != null) {
                     continue;
                 }
-                field.set(obj, new MutableLiveData<>());
-            } catch (IllegalAccessException e) {
+                field.set(obj, field.getType().getDeclaredConstructor().newInstance());
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException |
+                     NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
         }
