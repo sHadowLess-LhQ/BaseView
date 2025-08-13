@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModel;
 import androidx.viewbinding.ViewBinding;
 
+import cn.com.shadowless.baseview.event.UpdateObjEvent;
 import cn.com.shadowless.baseview.event.ViewModelEvent;
 import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
 import cn.com.shadowless.baseview.manager.MultiDataViewDataManager;
@@ -20,7 +21,7 @@ import cn.com.shadowless.baseview.manager.VmObjManager;
  * @author sHadowLess
  */
 public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutableLiveData> extends ViewModel
-        implements ViewModelEvent, BaseQuickLifecycle {
+        implements ViewModelEvent, BaseQuickLifecycle, UpdateObjEvent {
 
     private VmObjManager<VB> manager;
 
@@ -49,6 +50,7 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
     public final void setObjManager(VmObjManager<VB> manager) {
         this.manager = manager;
         this.getLifecycle().addObserver(this);
+        update(manager);
     }
 
     public final VmObjManager<VB> getObjManager() {

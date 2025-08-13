@@ -33,7 +33,7 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle, UpdateO
     /**
      * The Lifecycle owner.
      */
-    private LifecycleOwner lifecycleOwner;
+    private LifecycleOwner observeLifecycle;
 
     /**
      * Instantiates a new Base mutable live data.
@@ -51,8 +51,8 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle, UpdateO
      * @param isReflectSet   the is reflect set
      */
     public BaseMutableLiveData(@NonNull LifecycleOwner lifecycleOwner, boolean isReflectSet) {
-        this.lifecycleOwner = lifecycleOwner;
-        this.lifecycleOwner.getLifecycle().addObserver(this);
+        this.observeLifecycle = lifecycleOwner;
+        this.getLifecycle().addObserver(this);
         mutableLiveDataList = new ArrayList<>();
         if (isReflectSet) {
             getAllFields(this.getClass(), BaseMutableLiveData.this);
@@ -131,14 +131,15 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle, UpdateO
     @NonNull
     @Override
     public LifecycleOwner getObserveLifecycleOwner() {
-        return lifecycleOwner;
+        return observeLifecycle;
     }
 
     @Override
-    public void update(VmObjManager<? extends ViewBinding> manager) {
-        this.lifecycleOwner.getLifecycle().removeObserver(this);
-        this.lifecycleOwner = null;
-        this.lifecycleOwner = manager.getCurrentLifecycleOwner();
-        this.lifecycleOwner.getLifecycle().addObserver(this);
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
+        UpdateObjEvent.super.update(manager);
+        this.getLifecycle().removeObserver(this);
+        this.observeLifecycle = null;
+        this.observeLifecycle = manager.getCurrentLifecycleOwner();
+        this.getLifecycle().addObserver(this);
     }
 }

@@ -57,10 +57,11 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
     public abstract LD getMutable();
 
     @Override
-    public void update(VmObjManager<? extends ViewBinding> manager) {
-        this.observeLifecycle.getLifecycle().removeObserver(this);
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
+        UpdateObjEvent.super.update(manager);
+        this.getLifecycle().removeObserver(this);
         this.observeLifecycle = null;
         this.observeLifecycle = manager.getCurrentLifecycleOwner();
-        this.observeLifecycle.getLifecycle().addObserver(this);
+        this.getLifecycle().addObserver(this);
     }
 }
