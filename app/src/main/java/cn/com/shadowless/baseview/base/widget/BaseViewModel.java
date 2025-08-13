@@ -24,14 +24,6 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
 
     private VmObjManager<VB> manager;
 
-    public void setObjManager(VmObjManager<VB> manager) {
-        this.manager = manager;
-    }
-
-    public VmObjManager<VB> getObjManager() {
-        return manager;
-    }
-
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == Lifecycle.Event.ON_DESTROY) {
@@ -53,6 +45,14 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
      */
     @Nullable
     public abstract LD getMutable();
+
+    public final void setObjManager(VmObjManager<VB> manager) {
+        this.manager = manager;
+    }
+
+    public final VmObjManager<VB> getObjManager() {
+        return manager;
+    }
 
     public MultiDataViewDataManager getViewDataManager() {
         return null;

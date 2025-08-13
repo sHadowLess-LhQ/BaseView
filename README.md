@@ -409,15 +409,16 @@ public class MainActivity extends BaseVmActivity<ActivityMainBinding> {
     @Override
     protected void initObject() {
         // 初始化对象
-        // 如果使用的ViewModel是继承自BaseViewModel
-        // 必须通过createActivityViewModel方法实例化
-        // 或者按照createActivityViewModel方法的流程，手动赋值
-        viewModel = createActivityViewModel(this, TestViewModel.class);
+        // 如果使用的ViewModel必须继承自BaseViewModel
+        // 可按照常规方法初始化viewModel，kotlin使用by viewModels()也行
+        // 框架提供一个createActivityViewModel方法实例化
+        viewModel = createViewModel(this, TestViewModel.class);
     }
     
     @NonNull
     @Override
     public List<BaseViewModel<ActivityMainBinding, ?>> collectionViewModels() {
+        // 一定要传入，否则相关抽象方法不会调用
         // 设置已经初始化的ViewModel
         // 有多个需传递多个
         return Collections.singletonList(viewModel);
@@ -550,19 +551,20 @@ public class MainFragment extends BaseVmFragment<FragmentMainBinding> {
     @Override
     protected void initObject() {
         // 初始化对象
-        // 如果使用的ViewModel是继承自BaseViewModel
-        // 必须通过createFragmentViewModel方法实例化
-        // 或者按照createFragmentViewModel方法的流程，手动赋值
-        viewModel = createFragmentViewModel(this, TestViewModel.class);
+        // 如果使用的ViewModel必须继承自BaseViewModel
+        // 可按照常规方法初始化viewModel，kotlin使用by viewModels()也行
+        // 框架提供一个createActivityViewModel方法实例化
+        viewModel = createViewModel(this, TestViewModel.class);
     }
     
     @NonNull
     @Override
-    public List<BaseViewModel<FragmentMainBinding, ?>> collectionViewModels() {
+    public List<BaseViewModel<ActivityMainBinding, ?>> collectionViewModels() {
+        // 一定要传入，否则相关抽象方法不会调用
         // 设置已经初始化的ViewModel
         // 有多个需传递多个
         return Collections.singletonList(viewModel);
-    }
+    }   
     
     @Override
     protected void initView() {
