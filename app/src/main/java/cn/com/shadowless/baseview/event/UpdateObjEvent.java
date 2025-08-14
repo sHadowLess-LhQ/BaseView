@@ -4,42 +4,58 @@ import androidx.annotation.NonNull;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
+import cn.com.shadowless.baseview.annotation.UpdateReflect;
 import cn.com.shadowless.baseview.manager.VmObjManager;
+import cn.com.shadowless.baseview.reflectImpl.DelegateReflect;
 
 public interface UpdateObjEvent {
 
     default void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
-        update(manager, false);
+        update(manager, true);
     }
 
     default void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate) {
-        autoUpdate(this.getClass(), UpdateObjEvent.this, manager, isAutoUpdate);
+        List<UpdateReflectEvent> list = new ArrayList<>();
+        list.add(DelegateReflect.getInstance());
+        update(UpdateObjEvent.this.getClass(), UpdateObjEvent.this, manager, isAutoUpdate, list);
     }
 
-    default void autoUpdate(Class<?> cls, @NonNull Object obj, @NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate) {
-        if (cls == null) {
-            return;
-        }
-        if (!isAutoUpdate) {
+    default void update(Class<?> cls, @NonNull Object obj, @NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate, List<UpdateReflectEvent> events) {
+        if (cls == null || !isAutoUpdate) {
             return;
         }
         Field[] fields = cls.getDeclaredFields();
         for (Field field : fields) {
-            field.setAccessible(true);
-            if (!UpdateObjEvent.class.isAssignableFrom(field.getType())) {
-                continue;
-            }
             try {
-                Object o = field.get(obj);
-                if (o == null) {
+                field.setAccessible(true);
+                Object value = field.get(obj);
+                if (value == null) {
                     continue;
                 }
-                ((UpdateObjEvent) o).update(manager, true);
+                if (field.isAnnotationPresent(UpdateReflect.class)) {
+                    for (UpdateReflectEvent event : events) {
+                        Object tempObj = event.getActualObject(value);
+                        if (tempObj == null) {
+                            continue;
+                        }
+                        if (!UpdateObjEvent.class.isAssignableFrom(tempObj.getClass())) {
+                            continue;
+                        }
+                        ((UpdateObjEvent) tempObj).update(manager, true);
+                    }
+                } else {
+                    if (!UpdateObjEvent.class.isAssignableFrom(field.getType())) {
+                        continue;
+                    }
+                    ((UpdateObjEvent) value).update(manager, true);
+                }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }
-        autoUpdate(cls.getSuperclass(), obj, manager, true);
+        update(cls.getSuperclass(), obj, manager, true, events);
     }
 }
