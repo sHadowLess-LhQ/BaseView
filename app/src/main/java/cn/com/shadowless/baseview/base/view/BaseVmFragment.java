@@ -97,7 +97,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         manager.setCurrentLifecycleOwner(this);
         tempList = collectionViewModels();
         for (BaseViewModel<VB, ?> model : tempList) {
-            model.setObjManager(manager);
+            model.update(manager);
             model.onModelCreated();
             model.onModelInitListener();
         }

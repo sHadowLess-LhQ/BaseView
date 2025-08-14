@@ -20,10 +20,10 @@ public interface UpdateObjEvent {
     default void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate) {
         List<UpdateReflectEvent> list = new ArrayList<>();
         list.add(DelegateReflect.getInstance());
-        update(UpdateObjEvent.this.getClass(), UpdateObjEvent.this, manager, isAutoUpdate, list);
+        update(manager, isAutoUpdate, UpdateObjEvent.this.getClass(), UpdateObjEvent.this, list);
     }
 
-    default void update(Class<?> cls, @NonNull Object obj, @NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate, List<UpdateReflectEvent> events) {
+    default void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate, Class<?> cls, @NonNull Object obj, @NonNull List<UpdateReflectEvent> events) {
         if (cls == null || !isAutoUpdate) {
             return;
         }
@@ -56,6 +56,6 @@ public interface UpdateObjEvent {
                 throw new RuntimeException(e);
             }
         }
-        update(cls.getSuperclass(), obj, manager, true, events);
+        update(manager, true, cls.getSuperclass(), obj, events);
     }
 }

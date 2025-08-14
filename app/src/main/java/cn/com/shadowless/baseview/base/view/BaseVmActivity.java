@@ -66,7 +66,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
         manager.setCurrentLifecycleOwner(this);
         tempList = collectionViewModels();
         for (BaseViewModel<VB, ?> model : tempList) {
-            model.setObjManager(manager);
+            model.update(manager);
             model.onModelCreated();
             model.onModelInitListener();
         }

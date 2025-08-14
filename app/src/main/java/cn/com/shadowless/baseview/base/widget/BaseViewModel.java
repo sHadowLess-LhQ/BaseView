@@ -47,10 +47,11 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
     @Nullable
     public abstract LD getMutable();
 
-    public final void setObjManager(VmObjManager<VB> manager) {
-        this.manager = manager;
+    @Override
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
+        this.manager = (VmObjManager<VB>) manager;
         this.getLifecycle().addObserver(this);
-        update(manager);
+        UpdateObjEvent.super.update(manager);
     }
 
     public final VmObjManager<VB> getObjManager() {

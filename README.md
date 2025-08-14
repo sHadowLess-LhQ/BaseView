@@ -802,6 +802,11 @@ public class TestDialog extends BaseDialog<PopTestBinding> {
 // BaseMutableLiveData自动反射实例化子类定义的所有全局MutableLiveData变量
 // 若不想反射，则在构造超类中，第二参数传递false后，手动实例化即可
 // 新增实现UpdateObjEvent接口，用于在ViewModel中，旋转屏幕后更新VmObjManager实例
+// 默认自动反射更新类中实现接口的全局变量，若需手动，重写update方法，将isAutoUpdate传入false
+// 若全局变量实际对象被隐藏，如懒加载、Kotlin委托，请在对象打上注解@UpdateReflect
+// 注解默认提供处理Kotlin委托变量的更新的事件，如需其他处理，可实现UpdateReflectEvent接口
+// 在需要处理且实现UpdateObjEvent接口的类中，重写update方法，将实现接口的类，添加到events集合
+// 若有其他额外对象需要更新，请重写update方法后填入逻辑
 public class TestMutable extends BaseMutableLiveData {
 
     private MutableLiveData<Integer> testInteger;
@@ -828,6 +833,25 @@ public class TestMutable extends BaseMutableLiveData {
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         super.onStateChanged(source, event);
     }
+    
+    @Override
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
+        UpdateObjEvent.super.update(manager);
+        //在此补充额外需要更新实例的逻辑
+    }
+    
+    @Override
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate) {
+        //在此启用/停用自动更新
+        UpdateObjEvent.super.update(manager, isAutoUpdate);
+    }
+    
+    @Override
+    public void update(Class<?> cls, Object obj, @NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate, List<UpdateReflectEvent> events) {
+        //在此启用/停用自动更新
+        //在此传入基于注解需要额外处理的反射的逻辑
+        UpdateObjEvent.super.update(cls, obj, manager, isAutoUpdate, events);
+    }
 
     public MutableLiveData<Integer> getTestInteger() {
         return testInteger;
@@ -842,6 +866,11 @@ public class TestMutable extends BaseMutableLiveData {
 // 已实现LifecycleEventObserver、LifecycleOwner接口
 // 支持监听和生命周期事件（被监听需自实现Lifecycle逻辑，并重写getLifecycle()）
 // 新增实现UpdateObjEvent接口，用于在ViewModel中，旋转屏幕后更新VmObjManager实例
+// 默认自动反射更新类中实现接口的全局变量，若需手动，重写update方法，将isAutoUpdate传入false
+// 若全局变量实际对象被隐藏，如懒加载、Kotlin委托，请在对象打上注解@UpdateReflect
+// 注解默认提供处理Kotlin委托变量的更新的事件，如需其他处理，可实现UpdateReflectEvent接口
+// 在需要处理且实现UpdateObjEvent接口的类中，重写update方法，将实现接口的类，添加到events集合
+// 若有其他额外对象需要更新，请重写update方法后填入逻辑
 public class TestPresenter extends BasePresenter<TestMutable> {
 
     private final TestMutable testMutable;
@@ -865,6 +894,25 @@ public class TestPresenter extends BasePresenter<TestMutable> {
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         super.onStateChanged(source, event);
     }
+    
+    @Override
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
+        super.update(manager);
+        //在此补充额外需要更新实例的逻辑
+    }
+    
+    @Override
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate) {
+        //在此启用/停用自动更新
+        UpdateObjEvent.super.update(manager, isAutoUpdate);
+    }
+    
+    @Override
+    public void update(Class<?> cls, Object obj, @NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate, List<UpdateReflectEvent> events) {
+        //在此启用/停用自动更新
+        //在此传入基于注解需要额外处理的反射的逻辑
+        UpdateObjEvent.super.update(cls, obj, manager, isAutoUpdate, events);
+    }
 }
 ```
 
@@ -876,6 +924,12 @@ public class TestPresenter extends BasePresenter<TestMutable> {
 // 已实现LifecycleEventObserver、LifecycleOwner接口
 // 已支持监听和生命周期事件
 // 可搭配presenter使用，进行数据获取解耦，model内只处理业务数据逻辑和页面数据绑定
+// 新增实现UpdateObjEvent接口，用于在ViewModel中，旋转屏幕后更新VmObjManager实例
+// 默认自动反射更新类中实现接口的全局变量，若需手动，重写update方法，将isAutoUpdate传入false
+// 若全局变量实际对象被隐藏，如懒加载、Kotlin委托，请在对象打上注解@UpdateReflect
+// 注解默认提供处理Kotlin委托变量的更新的事件，如需其他处理，可实现UpdateReflectEvent接口
+// 在需要处理且实现UpdateObjEvent接口的类中，重写update方法，将实现接口的类，添加到events集合
+// 若有其他额外对象需要更新，请重写update方法后填入逻辑
 public class TestViewModel extends BaseViewModel<ActivityMain2Binding, TestMutable> {
 
     private TestMutable testMutable;
@@ -929,6 +983,25 @@ public class TestViewModel extends BaseViewModel<ActivityMain2Binding, TestMutab
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         super.onStateChanged(source, event);
+    }
+    
+    @Override
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
+        super.update(manager);
+        //在此补充额外需要更新实例的逻辑
+    }
+    
+    @Override
+    public void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate) {
+        //在此启用/停用自动更新
+        UpdateObjEvent.super.update(manager, isAutoUpdate);
+    }
+    
+    @Override
+    public void update(Class<?> cls, Object obj, @NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate, List<UpdateReflectEvent> events) {
+        //在此启用/停用自动更新
+        //在此传入基于注解需要额外处理的反射的逻辑
+        UpdateObjEvent.super.update(cls, obj, manager, isAutoUpdate, events);
     }
 
     public void test() {
