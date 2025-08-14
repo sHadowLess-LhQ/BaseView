@@ -44,13 +44,13 @@ public interface UpdateObjEvent {
                         if (!UpdateObjEvent.class.isAssignableFrom(tempObj.getClass())) {
                             continue;
                         }
-                        ((UpdateObjEvent) tempObj).update(manager, true);
+                        ((UpdateObjEvent) tempObj).update(manager);
                     }
                 } else {
                     if (!UpdateObjEvent.class.isAssignableFrom(field.getType())) {
                         continue;
                     }
-                    ((UpdateObjEvent) value).update(manager, true);
+                    ((UpdateObjEvent) value).update(manager);
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
