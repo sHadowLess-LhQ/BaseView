@@ -126,7 +126,6 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle, UpdateO
             onTerminate();
             clearAllForEverObserver(source);
             this.getLifecycle().removeObserver(this);
-            this.observeLifecycle = null;
         }
     }
 
@@ -138,7 +137,6 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle, UpdateO
 
     @Override
     public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
-        this.getLifecycle().removeObserver(this);
         this.observeLifecycle = null;
         this.observeLifecycle = manager.getCurrentLifecycleOwner();
         this.getLifecycle().addObserver(this);

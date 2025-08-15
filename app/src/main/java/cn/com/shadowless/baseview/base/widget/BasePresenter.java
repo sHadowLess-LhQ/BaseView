@@ -39,7 +39,6 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
         if (event == Lifecycle.Event.ON_DESTROY) {
             onTerminate();
             this.getLifecycle().removeObserver(this);
-            this.observeLifecycle = null;
         }
     }
 
@@ -59,7 +58,6 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
 
     @Override
     public void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
-        this.getLifecycle().removeObserver(this);
         this.observeLifecycle = null;
         this.observeLifecycle = manager.getCurrentLifecycleOwner();
         this.getLifecycle().addObserver(this);
