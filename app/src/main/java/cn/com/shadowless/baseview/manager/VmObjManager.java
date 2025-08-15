@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.viewbinding.ViewBinding;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * ViewModel对象资源管理
@@ -15,22 +16,26 @@ import java.lang.ref.WeakReference;
  */
 public class VmObjManager<VB extends ViewBinding> {
 
-    private WeakReference<Activity> currentActivityWeakRef;
-    private WeakReference<Fragment> currentFragmentWeakRef;
-    private WeakReference<LifecycleOwner> currentLifecycleOwnerWeakRef;
-    private WeakReference<VB> currentViewBindingWeakRef;
+    private volatile WeakReference<Activity> currentActivityWeakRef;
+    private volatile WeakReference<Fragment> currentFragmentWeakRef;
+    private volatile WeakReference<LifecycleOwner> currentLifecycleOwnerWeakRef;
+    private volatile WeakReference<VB> currentViewBindingWeakRef;
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock.ReadLock readLock = lock.readLock();
+    private final ReentrantReadWriteLock.WriteLock writeLock = lock.writeLock();
 
     /**
-     * Get current activity activity.
+     * Get current activity.
      *
      * @return the activity
      */
     public Activity getCurrentActivity() {
-        Activity currentActivity = null;
-        if (currentActivityWeakRef != null) {
-            currentActivity = currentActivityWeakRef.get();
+        readLock.lock();
+        try {
+            return currentActivityWeakRef != null ? currentActivityWeakRef.get() : null;
+        } finally {
+            readLock.unlock();
         }
-        return currentActivity;
     }
 
     /**
@@ -39,20 +44,29 @@ public class VmObjManager<VB extends ViewBinding> {
      * @param activity the activity
      */
     public void setCurrentActivity(Activity activity) {
-        currentActivityWeakRef = new WeakReference<>(activity);
+        writeLock.lock();
+        try {
+            if (currentActivityWeakRef != null) {
+                currentActivityWeakRef.clear();
+            }
+            currentActivityWeakRef = activity != null ? new WeakReference<>(activity) : null;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     /**
-     * Get current fragment fragment.
+     * Get current fragment.
      *
      * @return the fragment
      */
     public Fragment getCurrentFragment() {
-        Fragment currentFragment = null;
-        if (currentFragmentWeakRef != null) {
-            currentFragment = currentFragmentWeakRef.get();
+        readLock.lock();
+        try {
+            return currentFragmentWeakRef != null ? currentFragmentWeakRef.get() : null;
+        } finally {
+            readLock.unlock();
         }
-        return currentFragment;
     }
 
     /**
@@ -61,51 +75,78 @@ public class VmObjManager<VB extends ViewBinding> {
      * @param fragment the fragment
      */
     public void setCurrentFragment(Fragment fragment) {
-        currentFragmentWeakRef = new WeakReference<>(fragment);
+        writeLock.lock();
+        try {
+            if (currentFragmentWeakRef != null) {
+                currentFragmentWeakRef.clear();
+            }
+            currentFragmentWeakRef = fragment != null ? new WeakReference<>(fragment) : null;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     /**
-     * Get current fragment fragment.
+     * Get current lifecycle owner.
      *
-     * @return the fragment
+     * @return the lifecycle owner
      */
     public LifecycleOwner getCurrentLifecycleOwner() {
-        LifecycleOwner currentLifecycleOwner = null;
-        if (currentLifecycleOwnerWeakRef != null) {
-            currentLifecycleOwner = currentLifecycleOwnerWeakRef.get();
+        readLock.lock();
+        try {
+            return currentLifecycleOwnerWeakRef != null ? currentLifecycleOwnerWeakRef.get() : null;
+        } finally {
+            readLock.unlock();
         }
-        return currentLifecycleOwner;
     }
 
     /**
-     * Set current fragment.
+     * Set current lifecycle owner.
      *
-     * @param lifecycleOwner the lifecycleOwner
+     * @param lifecycleOwner the lifecycle owner
      */
     public void setCurrentLifecycleOwner(LifecycleOwner lifecycleOwner) {
-        currentLifecycleOwnerWeakRef = new WeakReference<>(lifecycleOwner);
+        writeLock.lock();
+        try {
+            if (currentLifecycleOwnerWeakRef != null) {
+                currentLifecycleOwnerWeakRef.clear();
+            }
+            currentLifecycleOwnerWeakRef = lifecycleOwner != null ?
+                    new WeakReference<>(lifecycleOwner) : null;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     /**
-     * Get current VB VB.
+     * Get current view binding.
      *
-     * @return the vb
+     * @return the view binding
      */
     public VB getCurrentViewBinding() {
-        VB currentVB = null;
-        if (currentViewBindingWeakRef != null) {
-            currentVB = currentViewBindingWeakRef.get();
+        readLock.lock();
+        try {
+            return currentViewBindingWeakRef != null ? currentViewBindingWeakRef.get() : null;
+        } finally {
+            readLock.unlock();
         }
-        return currentVB;
     }
 
     /**
-     * Set current VB.
+     * Set current view binding.
      *
-     * @param vb the vb
+     * @param vb the view binding
      */
     public void setCurrentViewBinding(VB vb) {
-        currentViewBindingWeakRef = new WeakReference<>(vb);
+        writeLock.lock();
+        try {
+            if (currentViewBindingWeakRef != null) {
+                currentViewBindingWeakRef.clear();
+            }
+            currentViewBindingWeakRef = vb != null ? new WeakReference<>(vb) : null;
+        } finally {
+            writeLock.unlock();
+        }
     }
 
 }

@@ -1,6 +1,7 @@
 package cn.com.shadowless.baseview.lifecycle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
@@ -26,12 +27,16 @@ public interface BaseQuickLifecycle extends LifecycleEventObserver, LifecycleOwn
      *
      * @return the lifecycle owner
      */
-    @NonNull
+    @Nullable
     LifecycleOwner getObserveLifecycleOwner();
 
     @NonNull
     @Override
     default Lifecycle getLifecycle() {
-        return getObserveLifecycleOwner().getLifecycle();
+        LifecycleOwner owner = getObserveLifecycleOwner();
+        if (owner == null) {
+            throw new IllegalStateException("LifecycleOwner is null, this instance may have been destroyed");
+        }
+        return owner.getLifecycle();
     }
 }

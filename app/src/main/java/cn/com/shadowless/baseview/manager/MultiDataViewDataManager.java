@@ -21,7 +21,7 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Map<DataKey<?>, DataState<?>> dataStates = new ConcurrentHashMap<>();
-    private Lifecycle lifecycle;
+    private LifecycleOwner owner;
 
     /**
      * 数据键，用于标识不同类型或同类型的不同数据
@@ -97,9 +97,9 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
     /**
      * 绑定生命周期
      */
-    public void bindLifecycle(LifecycleOwner lifecycle) {
-        this.lifecycle = lifecycle.getLifecycle();
-        this.lifecycle.addObserver(this);
+    public void bindLifecycleOwner(LifecycleOwner owner) {
+        this.owner = owner;
+        this.owner.getLifecycle().addObserver(this);
     }
 
     private <T> DataState<T> getDataState(DataKey<T> key) {
@@ -185,10 +185,10 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         lock.writeLock().lock();
         try {
             isDestroyed.set(false);
-            if (lifecycle != null) {
-                lifecycle.removeObserver(this);
+            if (this.owner != null) {
+                this.owner.getLifecycle().removeObserver(this);
             }
-            lifecycle = null;
+            this.owner = null;
             viewReady.set(false);
         } finally {
             lock.writeLock().unlock();
@@ -225,12 +225,12 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         if (event == Lifecycle.Event.ON_DESTROY) {
             lock.writeLock().lock();
             try {
-                if (lifecycle != null) {
-                    lifecycle.removeObserver(this);
+                if (this.owner != null) {
+                    this.owner.getLifecycle().removeObserver(this);
                 }
                 isDestroyed.set(true);
                 dataStates.clear();
-                lifecycle = null;
+                this.owner = null;
             } finally {
                 lock.writeLock().unlock();
             }

@@ -23,7 +23,7 @@ public abstract class BaseMutualViewModel<VB extends ViewBinding, LD extends Bas
         }
         manager.reset();
         manager.resetAllDataState();
-        manager.bindLifecycle(this);
+        manager.bindLifecycleOwner(this);
     }
 
     @NonNull

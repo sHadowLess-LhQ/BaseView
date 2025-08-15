@@ -39,10 +39,11 @@ public abstract class BasePresenter<LD extends BaseMutableLiveData> implements
         if (event == Lifecycle.Event.ON_DESTROY) {
             onTerminate();
             this.getLifecycle().removeObserver(this);
+            this.observeLifecycle = null;
         }
     }
 
-    @NonNull
+    @Nullable
     @Override
     public LifecycleOwner getObserveLifecycleOwner() {
         return observeLifecycle;

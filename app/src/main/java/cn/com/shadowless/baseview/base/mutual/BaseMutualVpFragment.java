@@ -32,7 +32,7 @@ public abstract class BaseMutualVpFragment<VB extends ViewBinding> extends BaseV
             manager = null;
             manager = new MultiDataViewDataManager();
             manager.reset();
-            manager.bindLifecycle(this);
+            manager.bindLifecycleOwner(this);
         }
         super.onResume();
     }

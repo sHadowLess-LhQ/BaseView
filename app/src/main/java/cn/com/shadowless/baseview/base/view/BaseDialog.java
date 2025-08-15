@@ -1,7 +1,6 @@
 package cn.com.shadowless.baseview.base.view;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -32,7 +31,7 @@ import cn.com.shadowless.baseview.lifecycle.BaseQuickLifecycle;
  */
 public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implements
         ViewPublicEvent.InitViewBinding<VB>, ViewPublicEvent.InitBindingEvent,
-        ViewPublicEvent.InitViewClick, BaseQuickLifecycle, LifecycleOwner {
+        ViewPublicEvent.InitViewClick, BaseQuickLifecycle {
 
     /**
      * Dialog窗体参数
@@ -59,6 +58,11 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
      */
     private boolean isResumed = false;
 
+    private boolean isLayoutListenerAdded = false;
+
+    private final View.OnLayoutChangeListener visibilityListener =
+            (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> updateLifecycleFromVisibility();
+
     /**
      * The Lifecycle registry.
      */
@@ -72,7 +76,7 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     /**
      * The type Dialog setting.
      */
-    public static final class DialogSetting {
+    public static class DialogSetting {
         /**
          * The Dialog params.
          */
@@ -248,62 +252,70 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         super(context, themeResId);
         this.context = context;
         this.setting = setDialogParam();
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+        if (getObserveLifecycleOwner() != null) {
+            getObserveLifecycleOwner().getLifecycle().addObserver(this);
+        }
+        handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().getDecorView().addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
-                checkVisibility()
-        );
-        initDialogAttr();
         initObject(savedInstanceState);
-        initView();
-        initViewListener();
-    }
-
-    @Override
-    public void show() {
-        super.show();
-        handleLifecycleEvent(Lifecycle.Event.ON_START);
-        handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
-        isResumed = true;
-        initDialog();
-        initDataListener();
-        initData();
-    }
-
-    @Override
-    public void dismiss() {
-        super.dismiss();
-        handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
-        handleLifecycleEvent(Lifecycle.Event.ON_STOP);
-        handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
-        isResumed = false;
+        initDialogAttr();
+        addVisibilityListener();
+        initEvent();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        if (!isResumed) {
-            handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
-            isResumed = true;
+        if (lifecycleRegistry.getCurrentState() == Lifecycle.State.CREATED) {
+            handleLifecycleEvent(Lifecycle.Event.ON_START);
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
-        handleLifecycleEvent(Lifecycle.Event.ON_STOP);
-        isResumed = false;
+        if (lifecycleRegistry.getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+            handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+            isResumed = false;
+        }
     }
 
     @Override
     public void onDetachedFromWindow() {
+        if (isLayoutListenerAdded && window != null) {
+            window.getDecorView().removeOnLayoutChangeListener(visibilityListener);
+            isLayoutListenerAdded = false;
+        }
         super.onDetachedFromWindow();
+    }
+
+    @Override
+    public void show() {
+        super.show();
+        if (lifecycleRegistry.getCurrentState() == Lifecycle.State.CREATED) {
+            handleLifecycleEvent(Lifecycle.Event.ON_START);
+            handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+            isResumed = true;
+        }
+        initDialog();
+        initData();
+    }
+
+    @Override
+    public void dismiss() {
+        if (lifecycleRegistry.getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
+            handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+            isResumed = false;
+        }
+        if (lifecycleRegistry.getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+            handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+        }
         handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
+        super.dismiss();
     }
 
     @NonNull
@@ -313,9 +325,19 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
     }
 
     @Override
+    public LifecycleOwner getObserveLifecycleOwner() {
+        if (context instanceof LifecycleOwner) {
+            return (LifecycleOwner) context;
+        }
+        return null;
+    }
+
+    @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         if (event == Lifecycle.Event.ON_DESTROY) {
-            source.getLifecycle().removeObserver(this);
+            if (getObserveLifecycleOwner() != null) {
+                getObserveLifecycleOwner().getLifecycle().removeObserver(this);
+            }
             this.dismiss();
         }
     }
@@ -330,27 +352,53 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         return bind;
     }
 
-    /**
-     * Gets attach activity.
-     *
-     * @return the attach activity
-     */
-    public Activity getAttachActivity() {
-        return (Activity) this.context;
+    @Override
+    public void initEvent() {
+        initView();
+        initViewListener();
+        initDataListener();
+    }
+
+    @Override
+    public void syncInitView() {
+
+    }
+
+    @Override
+    public void asyncInitView() {
+
+    }
+
+    @Override
+    public boolean isLazyInitSuccess() {
+        return false;
+    }
+
+    private void addVisibilityListener() {
+        if (!isLayoutListenerAdded && window != null) {
+            window.getDecorView().addOnLayoutChangeListener(visibilityListener);
+            isLayoutListenerAdded = true;
+        }
     }
 
     /**
      * Check visibility.
      */
-    private void checkVisibility() {
-        boolean isVisible = getWindow().getDecorView().getVisibility() == View.VISIBLE;
+    private void updateLifecycleFromVisibility() {
+        if (window == null) {
+            return;
+        }
+        boolean isVisible = window.getDecorView().getVisibility() == View.VISIBLE;
         if (isVisible && !isResumed) {
-            handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
-            isResumed = true;
+            if (lifecycleRegistry.getCurrentState() == Lifecycle.State.STARTED) {
+                lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+                isResumed = true;
+            }
         } else if (!isVisible && isResumed) {
-            handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
-            handleLifecycleEvent(Lifecycle.Event.ON_STOP);
-            isResumed = false;
+            if (lifecycleRegistry.getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
+                lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+                isResumed = false;
+            }
         }
     }
 
@@ -363,15 +411,6 @@ public abstract class BaseDialog<VB extends ViewBinding> extends Dialog implemen
         if (lifecycleRegistry.getCurrentState() != Lifecycle.State.DESTROYED) {
             lifecycleRegistry.handleLifecycleEvent(event);
         }
-    }
-
-    /**
-     * Sets observer lifecycle.
-     *
-     * @param owner the owner
-     */
-    public void setNeedObserveLifecycle(LifecycleOwner owner) {
-        owner.getLifecycle().addObserver(this);
     }
 
     /**

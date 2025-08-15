@@ -1,6 +1,7 @@
 package cn.com.shadowless.baseview.base.widget;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
@@ -125,10 +126,11 @@ public abstract class BaseMutableLiveData implements BaseQuickLifecycle, UpdateO
             onTerminate();
             clearAllForEverObserver(source);
             this.getLifecycle().removeObserver(this);
+            this.observeLifecycle = null;
         }
     }
 
-    @NonNull
+    @Nullable
     @Override
     public LifecycleOwner getObserveLifecycleOwner() {
         return observeLifecycle;

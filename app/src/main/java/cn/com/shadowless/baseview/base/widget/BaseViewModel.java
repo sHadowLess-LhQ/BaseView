@@ -33,7 +33,7 @@ public abstract class BaseViewModel<VB extends ViewBinding, LD extends BaseMutab
         }
     }
 
-    @NonNull
+    @Nullable
     @Override
     public LifecycleOwner getObserveLifecycleOwner() {
         return manager.getCurrentLifecycleOwner();
