@@ -763,11 +763,6 @@ public class TestDialog extends BaseDialog<PopTestBinding> {
     }
     
     @Override
-    public void initDataByPermission() {
-        super.initDataByPermission();
-    }
-    
-    @Override
     public boolean isFastClick(int time) {
         // 传递需要的防抖时间阈值
         return PublicEvent.super.isFastClick(time);
@@ -781,12 +776,6 @@ public class TestDialog extends BaseDialog<PopTestBinding> {
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         // 监听其他Lifecycle组件的声明周期标识符
-    }
-    
-    @Override
-    public boolean isAsyncLoad() {
-        // 是否异步加载视图
-        return false;
     }
 }
 ```
@@ -1095,7 +1084,9 @@ CrashConfig.Builder
 ### BaseQuickLifecycle
 
 ```java
-// 快速实现一个支持Lifecycle和支持监听其他Lifecycle的类
+// 快速实现一个自身支持Lifecycle和支持监听其他Lifecycle的类
+// 默认不重写getLifecycle时，lifecycle只跟监听的生命周期有关
+// 重写并实现自身生命周期逻辑后，才区分自身与监听
 public class Test implements BaseQuickLifecycle {
 
     @Override
@@ -1106,13 +1097,13 @@ public class Test implements BaseQuickLifecycle {
     @NonNull
     @Override
     public Lifecycle getLifecycle() {
-        // 实现自己的Lifecycle注册
+        // 实现自己的Lifecycle事件逻辑
         return null;
     }
     
-    @NonNull
+    @Nullable
     @Override
-    public LifecycleOwner observeLifecycle() {
+    public LifecycleOwner getObserveLifecycleOwner() {
         // 监听的生命周期
         return observeLifecycle;
     }
