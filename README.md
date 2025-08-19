@@ -795,7 +795,7 @@ public class TestDialog extends BaseDialog<PopTestBinding> {
 // 若全局变量实际对象被隐藏，如懒加载、Kotlin委托，请在对象打上注解@UpdateReflect
 // 注解默认提供处理Kotlin委托变量的更新的事件，如需其他处理，可实现UpdateReflectEvent接口
 // 在需要处理且实现UpdateObjEvent接口的类中，重写update方法，将实现接口的类，添加到events集合
-// 若有其他额外对象需要更新，请重写update方法后填入逻辑
+// 若有其他额外对象需要更新，请重写setReflectRules方法后填入逻辑
 public class TestMutable extends BaseMutableLiveData {
 
     private MutableLiveData<Integer> testInteger;
@@ -821,6 +821,13 @@ public class TestMutable extends BaseMutableLiveData {
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         super.onStateChanged(source, event);
+    }
+    
+    @Override
+    public List<UpdateReflectEvent> setReflectRules(List<UpdateReflectEvent> list) {
+        List<UpdateReflectEvent> temp = UpdateObjEvent.super.setReflectRules(list);
+        //在此添加额外的反射处理规则实例
+        return temp;
     }
     
     @Override
@@ -859,7 +866,7 @@ public class TestMutable extends BaseMutableLiveData {
 // 若全局变量实际对象被隐藏，如懒加载、Kotlin委托，请在对象打上注解@UpdateReflect
 // 注解默认提供处理Kotlin委托变量的更新的事件，如需其他处理，可实现UpdateReflectEvent接口
 // 在需要处理且实现UpdateObjEvent接口的类中，重写update方法，将实现接口的类，添加到events集合
-// 若有其他额外对象需要更新，请重写update方法后填入逻辑
+// 若有其他额外对象需要更新，请重写setReflectRules方法后填入逻辑
 public class TestPresenter extends BasePresenter<TestMutable> {
 
     private final TestMutable testMutable;
@@ -882,6 +889,13 @@ public class TestPresenter extends BasePresenter<TestMutable> {
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         super.onStateChanged(source, event);
+    }
+    
+    @Override
+    public List<UpdateReflectEvent> setReflectRules(List<UpdateReflectEvent> list) {
+        List<UpdateReflectEvent> temp = UpdateObjEvent.super.setReflectRules(list);
+        //在此添加额外的反射处理规则实例
+        return temp;
     }
     
     @Override
@@ -918,7 +932,7 @@ public class TestPresenter extends BasePresenter<TestMutable> {
 // 若全局变量实际对象被隐藏，如懒加载、Kotlin委托，请在对象打上注解@UpdateReflect
 // 注解默认提供处理Kotlin委托变量的更新的事件，如需其他处理，可实现UpdateReflectEvent接口
 // 在需要处理且实现UpdateObjEvent接口的类中，重写update方法，将实现接口的类，添加到events集合
-// 若有其他额外对象需要更新，请重写update方法后填入逻辑
+// 若有其他额外对象需要更新，请重写setReflectRules方法后填入逻辑
 public class TestViewModel extends BaseViewModel<ActivityMain2Binding, TestMutable> {
 
     private TestMutable testMutable;
@@ -972,6 +986,13 @@ public class TestViewModel extends BaseViewModel<ActivityMain2Binding, TestMutab
     @Override
     public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
         super.onStateChanged(source, event);
+    }
+    
+    @Override
+    public List<UpdateReflectEvent> setReflectRules(List<UpdateReflectEvent> list) {
+        List<UpdateReflectEvent> temp = UpdateObjEvent.super.setReflectRules(list);
+        //在此添加额外的反射处理规则实例
+        return temp;
     }
     
     @Override

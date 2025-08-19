@@ -13,14 +13,17 @@ import cn.com.shadowless.baseview.reflectImpl.DelegateReflect;
 
 public interface UpdateObjEvent {
 
+    default List<UpdateReflectEvent> setReflectRules(List<UpdateReflectEvent> list) {
+        list.add(DelegateReflect.getInstance());
+        return list;
+    }
+
     default void update(@NonNull VmObjManager<? extends ViewBinding> manager) {
         update(manager, true);
     }
 
     default void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate) {
-        List<UpdateReflectEvent> list = new ArrayList<>();
-        list.add(DelegateReflect.getInstance());
-        update(manager, isAutoUpdate, UpdateObjEvent.this.getClass(), UpdateObjEvent.this, list);
+        update(manager, isAutoUpdate, UpdateObjEvent.this.getClass(), UpdateObjEvent.this, setReflectRules(new ArrayList<>()));
     }
 
     default void update(@NonNull VmObjManager<? extends ViewBinding> manager, boolean isAutoUpdate, Class<?> cls, @NonNull Object obj, @NonNull List<UpdateReflectEvent> events) {
