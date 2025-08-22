@@ -13,7 +13,9 @@ import androidx.viewbinding.ViewBinding;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import cn.com.shadowless.baseview.base.widget.BaseMutableLiveData;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
+import cn.com.shadowless.baseview.event.ViewModelEvent;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.manager.VmObjManager;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
@@ -51,7 +53,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
     /**
      * ViewModel对象集合
      */
-    protected List<BaseViewModel<VB, ?>> tempList;
+    protected List<BaseViewModel<VB, ? extends BaseMutableLiveData>> tempList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +67,11 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
         manager.setCurrentActivity(this);
         manager.setCurrentLifecycleOwner(this);
         tempList = collectionViewModels();
-        for (BaseViewModel<VB, ?> model : tempList) {
+        execModelEvent(tempList, model -> {
             model.update(manager);
             model.onModelCreated();
             model.onModelInitListener();
-        }
+        });
         if (isAsyncLoad()) {
             asyncInitView();
             return;
@@ -96,9 +98,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         manager.setCurrentViewBinding(bind);
-        for (BaseViewModel<VB, ?> model : tempList) {
-            model.onModelInitView();
-        }
+        execModelEvent(tempList, ViewModelEvent::onModelInitView);
         setContentView(bind.getRoot());
         initEvent();
     }
@@ -120,9 +120,7 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : tempList) {
-                            model.onModelInitView();
-                        }
+                        execModelEvent(tempList, ViewModelEvent::onModelInitView);
                         if (callBack != null) {
                             callBack.dismissLoadView();
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
@@ -184,16 +182,12 @@ public abstract class BaseVmActivity<VB extends ViewBinding> extends AppCompatAc
 
     @Override
     public final void initModelData() {
-        for (BaseViewModel<VB, ?> model : tempList) {
-            model.onModelInitData();
-        }
+        execModelEvent(tempList, ViewModelEvent::onModelInitData);
     }
 
     @Override
     public final void initModelDataByPermission() {
-        for (BaseViewModel<VB, ?> model : tempList) {
-            model.onModelInitDataByPermission();
-        }
+        execModelEvent(tempList, ViewModelEvent::onModelInitDataByPermission);
     }
 
     /**

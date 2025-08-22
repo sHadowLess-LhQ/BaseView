@@ -19,7 +19,9 @@ import androidx.viewbinding.ViewBinding;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import cn.com.shadowless.baseview.base.widget.BaseMutableLiveData;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
+import cn.com.shadowless.baseview.event.ViewModelEvent;
 import cn.com.shadowless.baseview.event.ViewPublicEvent;
 import cn.com.shadowless.baseview.manager.VmObjManager;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
@@ -73,7 +75,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
     /**
      * ViewModel对象集合
      */
-    protected List<BaseViewModel<VB, ?>> tempList;
+    protected List<BaseViewModel<VB, ? extends BaseMutableLiveData>> tempList;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -96,11 +98,11 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
         manager.setCurrentFragment(this);
         manager.setCurrentLifecycleOwner(this);
         tempList = collectionViewModels();
-        for (BaseViewModel<VB, ?> model : tempList) {
+        execModelEvent(tempList, model -> {
             model.update(manager);
             model.onModelCreated();
             model.onModelInitListener();
-        }
+        });
         LoadMode mode = getLoadMode();
         switch (mode) {
             case ONLY_LAZY_DATA:
@@ -183,9 +185,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
             throw new RuntimeException("视图无法反射初始化，若动态布局请检查setBindViewClass是否传入或重写inflateView手动实现ViewBinding创建\n" + Log.getStackTraceString(e));
         }
         manager.setCurrentViewBinding(bind);
-        for (BaseViewModel<VB, ?> model : tempList) {
-            model.onModelInitView();
-        }
+        execModelEvent(tempList, ViewModelEvent::onModelInitView);
         return bind.getRoot();
     }
 
@@ -218,9 +218,7 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : tempList) {
-                            model.onModelInitView();
-                        }
+                        execModelEvent(tempList, ViewModelEvent::onModelInitView);
                         if (callBack != null) {
                             callBack.dismissLoadView();
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
@@ -283,15 +281,11 @@ public abstract class BaseVmFragment<VB extends ViewBinding> extends Fragment
 
     @Override
     public final void initModelData() {
-        for (BaseViewModel<?, ?> model : tempList) {
-            model.onModelInitData();
-        }
+        execModelEvent(tempList, ViewModelEvent::onModelInitData);
     }
 
     @Override
     public final void initModelDataByPermission() {
-        for (BaseViewModel<VB, ?> model : tempList) {
-            model.onModelInitDataByPermission();
-        }
+        execModelEvent(tempList, ViewModelEvent::onModelInitDataByPermission);
     }
 }

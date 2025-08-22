@@ -9,8 +9,10 @@ import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 
 import cn.com.shadowless.baseview.base.view.BaseVmActivity;
+import cn.com.shadowless.baseview.base.widget.BaseMutableLiveData;
 import cn.com.shadowless.baseview.base.widget.BaseMutualViewModel;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
+import cn.com.shadowless.baseview.event.ViewModelEvent;
 import cn.com.shadowless.baseview.utils.AsyncViewBindingInflate;
 
 /**
@@ -38,9 +40,7 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                         bind = binding;
                         View view = bind.getRoot();
                         manager.setCurrentViewBinding(bind);
-                        for (BaseViewModel<VB, ?> model : tempList) {
-                            model.onModelInitView();
-                        }
+                        execModelEvent(tempList, ViewModelEvent::onModelInitView);
                         if (callBack != null) {
                             callBack.dismissLoadView();
                             callBack.startAsyncAnimSetView(view, new AsyncLoadViewAnimCallBack() {
@@ -50,12 +50,12 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                                     initView();
                                     initViewListener();
                                     isLazyInitSuccess = true;
-                                    for (BaseViewModel<VB, ?> model : tempList) {
+                                    execModelEvent(tempList, model -> {
                                         if (!(model instanceof BaseMutualViewModel)) {
                                             throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                                         }
                                         model.getViewDataManager().setViewBinding();
-                                    }
+                                    });
                                 }
 
                                 @Override
@@ -69,12 +69,12 @@ public abstract class BaseMutualVmActivity<VB extends ViewBinding> extends BaseV
                         initView();
                         initViewListener();
                         isLazyInitSuccess = true;
-                        for (BaseViewModel<VB, ?> model : tempList) {
+                        execModelEvent(tempList, model -> {
                             if (!(model instanceof BaseMutualViewModel)) {
                                 throw new RuntimeException("ViewModel请继承BaseMutualViewModel");
                             }
                             model.getViewDataManager().setViewBinding();
-                        }
+                        });
                     }
 
                     @Override

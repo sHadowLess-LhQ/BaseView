@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.com.shadowless.baseview.BaseCons;
+import cn.com.shadowless.baseview.base.widget.BaseMutableLiveData;
 import cn.com.shadowless.baseview.base.widget.BaseViewModel;
 
 
@@ -314,26 +315,19 @@ public interface ViewPublicEvent {
 
             default void startAsyncAnimSetView(View view, AsyncLoadViewAnimCallBack callBack) {
                 view.setAlpha(0);
-                view
-                        .animate()
-                        .alpha(0)
-                        .alpha(1)
-                        .setDuration(500)
-                        .setListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationStart(Animator animation) {
-                                super.onAnimationStart(animation);
-                                callBack.animStart();
-                            }
+                view.animate().alpha(0).alpha(1).setDuration(500).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        super.onAnimationStart(animation);
+                        callBack.animStart();
+                    }
 
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                callBack.animEnd();
-                            }
-                        })
-                        .setInterpolator(new LinearInterpolator())
-                        .start();
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        callBack.animEnd();
+                    }
+                }).setInterpolator(new LinearInterpolator()).start();
             }
         }
     }
@@ -345,13 +339,36 @@ public interface ViewPublicEvent {
      */
     interface InitViewModel<VB extends ViewBinding> {
 
+        interface ExecuteModelEvent<VB extends ViewBinding> {
+            /**
+             * Exec.
+             */
+            void exec(BaseViewModel<VB, ? extends BaseMutableLiveData> model);
+        }
+
         /**
          * Sets view model.
          *
          * @return the base view model
          */
         @NonNull
-        List<BaseViewModel<VB, ?>> collectionViewModels();
+        List<BaseViewModel<VB, ? extends BaseMutableLiveData>> collectionViewModels();
+
+        /**
+         * exec Model Event.
+         */
+        default void execModelEvent(ExecuteModelEvent<VB> event) {
+            execModelEvent(collectionViewModels(), event);
+        }
+
+        /**
+         * exec Model Event.
+         */
+        default void execModelEvent(List<BaseViewModel<VB, ? extends BaseMutableLiveData>> list, ExecuteModelEvent<VB> event) {
+            for (BaseViewModel<VB, ? extends BaseMutableLiveData> model : list) {
+                event.exec(model);
+            }
+        }
 
         /**
          * Create view model vm.
