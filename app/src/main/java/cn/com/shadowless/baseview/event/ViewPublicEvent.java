@@ -377,8 +377,19 @@ public interface ViewPublicEvent {
          * @param cls  the cls
          * @return the vm
          */
-        default <VM extends ViewModel> VM createViewModel(ViewModelStoreOwner owner, Class<VM> cls) {
-            return (VM) new ViewModelProvider(owner, new ViewModelProvider.NewInstanceFactory()).get(cls);
+        default <VM extends ViewModel> VM createViewModel(@NonNull ViewModelStoreOwner owner, @NonNull Class<VM> cls) {
+            return (VM) createViewModel(owner, new ViewModelProvider.NewInstanceFactory(), cls);
+        }
+
+        /**
+         * Create view model vm.
+         *
+         * @param <VM> the type parameter
+         * @param cls  the cls
+         * @return the vm
+         */
+        default <VM extends ViewModel> VM createViewModel(@NonNull ViewModelStoreOwner owner, @NonNull ViewModelProvider.Factory factory, @NonNull Class<VM> cls) {
+            return (VM) new ViewModelProvider(owner, factory).get(cls);
         }
     }
 
