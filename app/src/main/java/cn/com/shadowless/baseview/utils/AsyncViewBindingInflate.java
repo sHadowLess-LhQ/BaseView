@@ -18,7 +18,6 @@ import androidx.core.util.Pools;
 import androidx.core.view.LayoutInflaterCompat;
 import androidx.viewbinding.ViewBinding;
 
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.BlockingQueue;
@@ -29,48 +28,61 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The type Async layout inflate plus.
+ * 异步布局填充器
+ * <p>
+ * 提供异步加载ViewBinding布局的功能，避免在主线程进行耗时的布局解析操作。
+ * 使用线程池和Handler机制实现异步加载和主线程回调。
+ * </p>
  *
- * @param <VB> the type parameter
+ * @param <VB> ViewBinding类型参数
  * @author sHadowLess
  */
 public class AsyncViewBindingInflate<VB extends ViewBinding> {
 
     /**
-     * The M request pool.
+     * 请求对象池
+     * <p>
+     * 使用同步对象池管理InflateRequest对象，避免频繁创建和销毁对象。
+     * </p>
      */
-    private final Pools.SynchronizedPool<InflateRequest> mRequestPool = new Pools.SynchronizedPool<>(10);
+    private final Pools.SynchronizedPool<InflateRequest<VB>> mRequestPool = new Pools.SynchronizedPool<>(10);
 
     /**
-     * The M inflater.
+     * 布局填充器
      */
     LayoutInflater mInflater;
     /**
-     * The M handler.
+     * 处理消息的Handler
      */
     Handler mHandler;
     /**
-     * The M dispatcher.
+     * 调度器
      */
-    Dispather<VB> mDispatcher;
+    Dispatcher<VB> mDispatcher;
 
     /**
-     * Instantiates a new Async layout inflate plus.
+     * 构造函数
+     * <p>
+     * 初始化异步布局填充器。
+     * </p>
      *
-     * @param context the context
+     * @param context 上下文
      */
     public AsyncViewBindingInflate(@NonNull Context context) {
         mInflater = new BasicInflater(context);
         mHandler = new Handler(Looper.getMainLooper(), mHandlerCallback);
-        mDispatcher = new Dispather<>();
+        mDispatcher = new Dispatcher<>();
     }
 
     /**
-     * Inflate.
+     * 异步加载布局
+     * <p>
+     * 将布局加载请求放入调度器中，由调度器处理。
+     * </p>
      *
-     * @param vbClass  the vb class
-     * @param parent   the parent
-     * @param callback the callback
+     * @param vbClass  ViewBinding类
+     * @param parent   父容器
+     * @param callback 加载完成后的回调
      */
     @UiThread
     public void inflate(Class<VB> vbClass, @Nullable ViewGroup parent, @NonNull OnInflateFinishedListener<VB> callback) {
@@ -83,7 +95,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
     }
 
     /**
-     * The M handler callback.
+     * 处理消息的回调
      */
     private Handler.Callback mHandlerCallback = msg -> {
         InflateRequest<VB> request = (InflateRequest<VB>) msg.obj;
@@ -100,57 +112,57 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
     };
 
     /**
-     * The interface On inflate finished listener.
+     * 加载完成后的回调接口
      *
-     * @param <VB> the type parameter
+     * @param <VB> ViewBinding类型参数
      */
     public interface OnInflateFinishedListener<VB> {
         /**
-         * On inflate finished.
+         * 加载完成后的回调方法
          *
-         * @param binding the binding
-         * @param parent  the parent
+         * @param binding 加载完成的ViewBinding对象
+         * @param parent  父容器
          */
         void onInflateFinished(@NonNull VB binding, @Nullable ViewGroup parent);
 
         /**
-         * On inflate error.
+         * 加载出错后的回调方法
          *
-         * @param e the e
+         * @param e 异常对象
          */
         void onInflateError(Exception e);
     }
 
     /**
-     * The type Inflate request.
+     * 加载请求对象
      *
-     * @param <VB> the type parameter
+     * @param <VB> ViewBinding类型参数
      */
     private static class InflateRequest<VB extends ViewBinding> {
         /**
-         * The Inflater.
+         * 异步布局填充器
          */
         AsyncViewBindingInflate<VB> inflater;
         /**
-         * The Parent.
+         * 父容器
          */
         ViewGroup parent;
 
         /**
-         * The Class name.
+         * ViewBinding类
          */
         Class<VB> vbClass;
         /**
-         * The View.
+         * 加载完成的ViewBinding对象
          */
         VB binding;
         /**
-         * The Callback.
+         * 加载完成后的回调
          */
         OnInflateFinishedListener<VB> callback;
 
         /**
-         * Instantiates a new Inflate request.
+         * 构造函数
          */
         InflateRequest() {
         }
@@ -158,9 +170,9 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
 
 
     /**
-     * The type Dispather.
+     * 调度器
      */
-    private static class Dispather<VB extends ViewBinding> {
+    private static class Dispatcher<VB extends ViewBinding> {
 
         /**
          * 获得当前CPU的核心数
@@ -210,19 +222,19 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
         }
 
         /**
-         * Enqueue.
+         * 将加载请求放入线程池中
          *
-         * @param request the request
+         * @param request 加载请求对象
          */
         public void enqueue(InflateRequest<VB> request) {
-            THREAD_POOL_EXECUTOR.execute((new InflateRunnable(request)));
+            THREAD_POOL_EXECUTOR.execute((new InflateRunnable<>(request)));
 
         }
 
     }
 
     /**
-     * The type Basic inflater.
+     * 基础布局填充器
      */
     private static class BasicInflater extends LayoutInflater {
         /**
@@ -270,7 +282,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
 
 
     /**
-     * The type Inflate runnable.
+     * 加载任务
      */
     private static class InflateRunnable<VB extends ViewBinding> implements Runnable {
         /**
@@ -322,7 +334,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
     public InflateRequest<VB> obtainRequest() {
         InflateRequest<VB> obj = mRequestPool.acquire();
         if (obj == null) {
-            obj = new InflateRequest();
+            obj = new InflateRequest<>();
         }
         return obj;
     }
@@ -332,7 +344,7 @@ public class AsyncViewBindingInflate<VB extends ViewBinding> {
      *
      * @param obj the obj
      */
-    public void releaseRequest(InflateRequest obj) {
+    public void releaseRequest(InflateRequest<VB> obj) {
         obj.callback = null;
         obj.inflater = null;
         obj.parent = null;

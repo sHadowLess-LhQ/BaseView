@@ -25,6 +25,10 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
 
     /**
      * 数据键，用于标识不同类型或同类型的不同数据
+     * <p>
+     * 通过泛型参数指定数据类型，确保类型安全。
+     * 每个DataKey实例唯一标识一个数据源。
+     * </p>
      *
      * @param <T> 数据类型
      */
@@ -32,6 +36,14 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
 
     }
 
+    /**
+     * 数据状态类
+     * <p>
+     * 保存特定数据源的状态信息，包括数据本身、绑定器、数据准备状态和绑定状态。
+     * </p>
+     *
+     * @param <T> 数据类型
+     */
     public static class DataState<T> {
         private DataKey<T> key;
         private T data;
@@ -40,12 +52,34 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
         private final AtomicBoolean bound = new AtomicBoolean(false);
     }
 
+    /**
+     * 数据绑定视图绑定器接口
+     * <p>
+     * 定义了将数据绑定到视图的回调方法。
+     * </p>
+     *
+     * @param <T> 数据类型
+     */
     public interface DataBindViewBinder<T> {
+        /**
+         * 执行绑定事件
+         *
+         * @param key  数据键
+         * @param data 数据
+         */
         void bindEvent(@NonNull DataKey<T> key, @Nullable T data);
     }
 
     /**
      * 设置指定key的数据源
+     * <p>
+     * 设置指定数据键对应的数据，并尝试执行绑定操作。
+     * 如果数据已存在且绑定器也已设置，则执行绑定。
+     * </p>
+     *
+     * @param key  数据键
+     * @param data 数据
+     * @param <T>  数据类型
      */
     public <T> void setData(DataKey<T> key, T data) {
         if (isDestroyed.get()) return;
@@ -63,6 +97,14 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
 
     /**
      * 设置指定key的绑定器
+     * <p>
+     * 设置指定数据键对应的绑定器，并尝试执行绑定操作。
+     * 如果绑定器已存在且数据也已设置，则执行绑定。
+     * </p>
+     *
+     * @param key    数据键
+     * @param binder 数据绑定器
+     * @param <T>    数据类型
      */
     public <T> void setBinder(DataKey<T> key, DataBindViewBinder<T> binder) {
         lock.writeLock().lock();
@@ -78,6 +120,11 @@ public class MultiDataViewDataManager implements LifecycleEventObserver {
 
     /**
      * 设置ViewBinding
+     * <p>
+     * 标记视图为已准备状态，并尝试绑定所有已准备的数据。
+     * </p>
+     *
+     * @param viewBinding 视图绑定对象
      */
     @SuppressWarnings("unchecked")
     public void setViewBinding() {
